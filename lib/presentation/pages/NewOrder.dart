@@ -1,0 +1,181 @@
+import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:ordena_ya/core/constants/AppColors.dart';
+import 'package:ordena_ya/core/constants/utils/Functions.dart';
+import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
+import 'package:ordena_ya/presentation/pages/OrderSetupScreen.dart';
+import 'package:ordena_ya/presentation/providers/OrderSetupProvider.dart';
+import 'package:ordena_ya/presentation/widgets/CustomButton.dart';
+import 'package:ordena_ya/presentation/widgets/LabelValueColumn.dart';
+import 'package:ordena_ya/presentation/widgets/LabelValueRow.dart';
+import 'package:ordena_ya/presentation/widgets/OrderProduct.dart';
+import 'package:provider/provider.dart';
+
+class NewOrder extends StatelessWidget {
+  NewOrder({required this.product});
+
+  final Product product;
+
+  @override
+  Widget build(BuildContext context) {
+    final cart = Provider.of<OrderSetupProvider>(context);
+
+    return Scaffold(
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              child: GestureDetector(
+                onTap: () {
+                  Functions.navigateWithSlideUp(context, OrderSetupScreen());
+                },
+                child: Container(
+                  height: 150,
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: AppColors.subButton,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          LabelValueColumn(
+                            title: 'Entrega', // Para el tipo de entrega
+                            value: 'Para llevar∫',
+                          ),
+
+                          SizedBox(height: 10),
+
+                          LabelValueColumn(
+                            title: 'Mesa', // Para la mesa seleccionada
+                            value: 'Mesa 10',
+                          ),
+                        ],
+                      ),
+
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          LabelValueColumn(
+                            title: 'Personas', // Para cantidad de personas
+                            value: '3',
+                          ),
+
+                          SizedBox(height: 10),
+
+                          LabelValueColumn(
+                            title: 'Cliente', // Para cliente seleccionado
+                            value: 'Juan Pérez',
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
+            SizedBox(
+              height: 300,
+              child: Consumer<OrderSetupProvider>(
+                builder: (context, cart, _) {
+                  final products = cart.products;
+
+                  return ListView.builder(
+                    itemCount: products.length,
+                    itemBuilder: (context, index) {
+                      return OrderProduct(product: products[index]);
+                    },
+                  );
+                },
+              ),
+            ),
+
+            const SizedBox(height: 10),
+
+            // Encabezado
+            CustomButton(
+              label: 'Agregar descuento',
+              baseColor: AppColors.subButton,
+              onTap: () {},
+            ),
+
+            const SizedBox(height: 20),
+
+            LabelValueRow(
+              label: 'Artículos',
+              value: '3',
+              valueStyle: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.normal,
+                color: AppColors.text,
+              ),
+            ),
+            LabelValueRow(
+              label: 'Subtotal',
+              value: '\$48.00',
+              valueStyle: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.normal,
+                color: AppColors.text,
+              ),
+            ),
+            LabelValueRow(label: 'Impuesto al consumo', value: '\$4.00'),
+            LabelValueRow(label: 'Total', value: '\$52.00'),
+
+            const SizedBox(height: 20),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                CustomButton(
+                  label: 'Cuenta',
+                  baseColor: AppColors.primaryButton,
+                  onTap: () {},
+                ),
+
+                CustomButton(
+                  label: 'Factura y pago',
+                  baseColor: AppColors.subButton,
+                  onTap: () {},
+                ),
+              ],
+            ),
+
+            const SizedBox(height: 10),
+
+            CustomButton(
+              label: 'Facturar e imprimir recibo',
+              baseColor: AppColors.tertiaryButton,
+              onTap: () {},
+            ),
+
+            const SizedBox(height: 10),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Functions.navigateWithSlideUp(context, MenuScreen());
+        },
+        tooltip: 'Agregar producto',
+        backgroundColor: AppColors.primaryButton,
+        child: const HugeIcon(icon: HugeIcons.strokeRoundedPackageAdd, color: Colors.black,),
+      ),
+    );
+  }
+}
+
+class Product {
+  final String name;
+  int quantity;
+  final int price;
+
+  Product({required this.name, this.quantity = 1, required this.price});
+
+  int get total => price * quantity;
+}
