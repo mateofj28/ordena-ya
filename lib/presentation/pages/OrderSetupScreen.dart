@@ -40,20 +40,20 @@ class OrderSetupScreen extends StatelessWidget {
                 LabeledRadioOption(
                   label: 'Consumir en el local',
                   value: 0,
-                  groupValue: provider.selectedOption,
-                  onChanged: (val) => provider.setSelectedOption(val!),
+                  groupValue: provider.deliveryType,
+                  onChanged: (val) => provider.updateDeliveryType(val!),
                 ),
                 LabeledRadioOption(
                   label: 'Entregar a domicilio',
                   value: 1,
-                  groupValue: provider.selectedOption,
-                  onChanged: (val) => provider.setSelectedOption(val!),
+                  groupValue: provider.deliveryType,
+                  onChanged: (val) => provider.updateDeliveryType(val!),
                 ),
                 LabeledRadioOption(
                   label: 'Recoger personalmente',
                   value: 2,
-                  groupValue: provider.selectedOption,
-                  onChanged: (val) => provider.setSelectedOption(val!),
+                  groupValue: provider.deliveryType,
+                  onChanged: (val) => provider.updateDeliveryType(val!),
                 ),
           
                 const SizedBox(height: 24),
@@ -71,7 +71,7 @@ class OrderSetupScreen extends StatelessWidget {
                 CustomAutocomplete(
                   options: provider.clients,
                   initialValue: provider.selectedClient,
-                  onSelected: (value) => provider.setSelectedClient(value),
+                  onSelected: (value) => provider.updateSelectedClient(value),
                 ),
           
                 const SizedBox(height: 12),
@@ -98,7 +98,7 @@ class OrderSetupScreen extends StatelessWidget {
                   selectedValue: provider.selectedTable,
                   label: 'Mesa',
                   onChanged: (value) {
-                    if (value != null) provider.setSelectedTable(value);
+                    if (value != null) provider.updateSelectedTable(value);
                   },
                 ),
           
@@ -111,7 +111,7 @@ class OrderSetupScreen extends StatelessWidget {
                   selectedValue: provider.selectedPeople,
                   label: 'Personas',
                   onChanged: (value) {
-                    if (value != null) provider.setSelectedPeople(value);
+                    if (value != null) provider.updateSelectedPeople(value);
                   },
                 ),
           

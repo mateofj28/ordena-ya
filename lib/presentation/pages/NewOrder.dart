@@ -106,7 +106,7 @@ class NewOrder extends StatelessWidget {
               height: 300,
               child: Consumer<OrderSetupProvider>(
                 builder: (context, cart, _) {
-                  final products = cart.carts;
+                  final products = cart.cartItems;
 
                   if (products.isEmpty) {
                     return Column(

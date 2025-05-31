@@ -71,7 +71,7 @@ class _CartItemCardState extends State<CartItemCard> {
                           color: Colors.redAccent,
                         ),
                         onPressed: (){
-                          provider.removeFromCart(widget.index);
+                          provider.removeProductFromCart(widget.index);
                         },
                         tooltip: "Eliminar",
                       ),

@@ -30,7 +30,7 @@ class OrderProduct extends StatelessWidget {
               children: [
                 IconButton(
                   icon: const Icon(Icons.remove),
-                  onPressed: () => cart.decrement(product),
+                  onPressed: () => cart.increaseProductQuantity(product),
                 ),
                 Text(
                   '${product['quantity']}',
@@ -38,7 +38,7 @@ class OrderProduct extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.add),
-                  onPressed: () => cart.increment(product),
+                  onPressed: () => cart.decreaseProductQuantity(product),
                 ),
               ],
             ),
@@ -50,7 +50,7 @@ class OrderProduct extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.delete, color: Colors.redAccent),
-            onPressed: () => cart.remove(index),
+            onPressed: () => cart.removeProductFromCart(index),
           ),
         ],
       ),

@@ -47,7 +47,7 @@ class MenuScreen extends StatelessWidget {
             ),
             floatingActionButton: FloatingActionButton(
               onPressed: (){},
-              child: Text('Productos seleccionados: ${ orderProvider.carts.length }'),
+              child: Text('Productos seleccionados: ${ orderProvider.cartItems.length }'),
             ),
           );
         },

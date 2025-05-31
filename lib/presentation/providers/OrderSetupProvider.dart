@@ -1,14 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
-import 'package:ordena_ya/presentation/pages/NewOrder.dart';
 import 'package:ordena_ya/presentation/pages/OrderDetailScreen.dart';
 
+import '../../domain/usecases/create_order.dart';
+
+
+
+
+
 class OrderSetupProvider with ChangeNotifier {
-  List _carts = [];
-  int _selectedOption = 0;
+  final CreateOrder createOrderUseCase;
+
+  OrderSetupProvider({required this.createOrderUseCase});
+
+  // State
+  final List<Map<String, dynamic>> _cartItems = [];
+  int _selectedTabIndex = 0;
   String _selectedTable = 'Seleccionar opción';
   String _selectedPeople = 'Seleccionar opción';
-  String selectedClient = '';
+  String _selectedClient = '';
+  int _deliveryType = 0;
+
+  // Clientes fijos
   final List<String> clients = [
     'Mateo Florez',
     'Nicolás Gómez',
@@ -17,102 +30,89 @@ class OrderSetupProvider with ChangeNotifier {
     'María López',
   ];
 
-  
-
+  // Getters
+  List<Map<String, dynamic>> get cartItems => List.unmodifiable(_cartItems);
+  int get selectedTabIndex => _selectedTabIndex;
   String get selectedTable => _selectedTable;
   String get selectedPeople => _selectedPeople;
-  int get selectedOption => _selectedOption;
-  List get carts => _carts;
+  String get selectedClient => _selectedClient;
+  int get deliveryType => _deliveryType;
 
-  void setSelectedTable(String value) {
-    _selectedTable = value;
+  // Setters
+  void updateSelectedTable(String table) {
+    _selectedTable = table;
     notifyListeners();
   }
 
-  void setSelectedPeople(String value) {
-    _selectedPeople = value;
+  void updateSelectedPeople(String people) {
+    _selectedPeople = people;
     notifyListeners();
   }
 
-  void setSelectedClient(String client) {
-    selectedClient = client;
+  void updateSelectedClient(String client) {
+    _selectedClient = client;
     notifyListeners();
   }
 
-  void increment(dynamic product) {
-    product['quantity']++;
-     
+  void updateSelectedTab(int index) {
+    _selectedTabIndex = index;
     notifyListeners();
   }
 
-  void decrement(dynamic product) {
-    if (product['quantity'] > 1) {
-      product['quantity']--;
-       
+  void updateDeliveryType(int type) {
+    _deliveryType = type;
+    notifyListeners();
+  }
+
+  // Cart actions
+  void addProductToCart(Map<String, dynamic> product) {
+    _cartItems.add(product);
+    notifyListeners();
+  }
+
+  void removeProductFromCart(int index) {
+    if (index >= 0 && index < _cartItems.length) {
+      _cartItems.removeAt(index);
       notifyListeners();
     }
   }
 
-  void remove(int index) {
-    _carts.removeAt(index);
+  void increaseProductQuantity(Map<String, dynamic> product) {
+    product['quantity'] = (product['quantity'] ?? 0) + 1;
     notifyListeners();
   }
 
-  void setSelectedOption(int option) {
-    _selectedOption = option;
-    notifyListeners();
+  void decreaseProductQuantity(Map<String, dynamic> product) {
+    if ((product['quantity'] ?? 0) > 1) {
+      product['quantity']--;
+      notifyListeners();
+    }
   }
 
-  bool isSelected(String table) => _selectedTable == table;
-  bool isSelectedOption(String option) => _selectedOption == option;
+  // UI utils
+  bool isTableSelected(String table) => _selectedTable == table;
+  bool isTabSelected(int index) => _selectedTabIndex == index;
 
-  void addToCart(dynamic product) {
-    _carts.add(product);
-    print(_carts.length);
-    notifyListeners();
+  // Navigation
+  void navigateToMenuScreen(BuildContext context) {
+    _navigateWithSlideTransition(context, MenuScreen());
   }
 
-  removeFromCart(int index) {
-    _carts.removeAt(index);
+  void navigateToOrderDetailScreen(BuildContext context) {
+    _navigateWithSlideTransition(context, OrderDetailScreen());
   }
 
-  void handledAddProduct(BuildContext context) {
+  void _navigateWithSlideTransition(BuildContext context, Widget destination) {
     Navigator.of(context).push(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 500),
-        pageBuilder: (_, __, ___) => MenuScreen(),
+        pageBuilder: (_, __, ___) => destination,
         transitionsBuilder: (_, animation, __, child) {
-          const begin = Offset(0.0, 1.0); // desde abajo
+          const begin = Offset(0.0, 1.0);
           const end = Offset.zero;
           const curve = Curves.easeOut;
 
-          var tween = Tween(
-            begin: begin,
-            end: end,
-          ).chain(CurveTween(curve: curve));
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
-        },
-      ),
-    );
-  }
-
-  void handledViewDetails(BuildContext context) {
-    Navigator.of(context).push(
-      PageRouteBuilder(
-        transitionDuration: const Duration(milliseconds: 500),
-        pageBuilder: (_, __, ___) => OrderDetailScreen(),
-        transitionsBuilder: (_, animation, __, child) {
-          const begin = Offset(0.0, 1.0); // desde abajo
-          const end = Offset.zero;
-          const curve = Curves.easeOut;
-
-          var tween = Tween(
-            begin: begin,
-            end: end,
-          ).chain(CurveTween(curve: curve));
+          final tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
           return SlideTransition(
             position: animation.drive(tween),
             child: child,

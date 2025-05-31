@@ -73,7 +73,7 @@ class MenuItemCard extends StatelessWidget {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            price,
+                            price.toString(),
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 13,
@@ -109,7 +109,7 @@ class MenuItemCard extends StatelessWidget {
                         "total": price,
                       };
                       
-                      provider.addToCart(product);
+                      provider.addProductToCart(product);
                     },
                     child: Container(
                       width: 40,

@@ -20,7 +20,7 @@ class OrderDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<OrderSetupProvider>(context);
-    var items = provider.carts;
+    var items = provider.cartItems;
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(title: Text("Detalle del pedido"), centerTitle: true),
