@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "358244259521",
+    "project_id": "ordena-ya-7c7fa",
+    "storage_bucket": "ordena-ya-7c7fa.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:358244259521:android:fc9006b199ea2f97ee2640",
+        "android_client_info": {
+          "package_name": "com.example.ordena_ya"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDWo_dqcqV19A7ZmXEFOvhUyqXFM1oGRrY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

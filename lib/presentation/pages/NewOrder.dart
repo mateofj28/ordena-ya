@@ -5,6 +5,7 @@ import 'package:ordena_ya/core/constants/utils/Functions.dart';
 import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
 import 'package:ordena_ya/presentation/pages/OrderSetupScreen.dart';
 import 'package:ordena_ya/presentation/providers/OrderSetupProvider.dart';
+import 'package:ordena_ya/presentation/providers/ToggleButtonProvider.dart';
 import 'package:ordena_ya/presentation/widgets/CustomButton.dart';
 import 'package:ordena_ya/presentation/widgets/LabelValueColumn.dart';
 import 'package:ordena_ya/presentation/widgets/LabelValueRow.dart';
@@ -24,58 +25,80 @@ class NewOrder extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-              child: GestureDetector(
-                onTap: () {
-                  Functions.navigateWithSlideUp(context, OrderSetupScreen());
+            ChangeNotifierProvider(
+              create: (_) => ToggleButtonProvider(),
+              child: Consumer<ToggleButtonProvider>(
+                builder: (context, toggleProvider, child) {
+                  final currentColor =
+                      toggleProvider.isPressed
+                          ? Functions.getPressedColor(AppColors.subButton)
+                          : AppColors.subButton;
+
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 10,
+                    ),
+                    child: GestureDetector(
+                      onTap: () {
+                        Functions.navigateWithSlideUp(
+                          context,
+                          OrderSetupScreen(),
+                        );
+                      },
+                      onTapDown: (_) => toggleProvider.setPressed(true),
+                      onTapUp: (_) => toggleProvider.setPressed(false),
+                      onTapCancel: () => toggleProvider.setPressed(false),
+                      child: Container(
+                        height: 150,
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: currentColor,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                LabelValueColumn(
+                                  title: 'Entrega', // Para el tipo de entrega
+                                  value: 'Para llevar',
+                                ),
+
+                                SizedBox(height: 10),
+
+                                LabelValueColumn(
+                                  title: 'Mesa', // Para la mesa seleccionada
+                                  value: 'Mesa 10',
+                                ),
+                              ],
+                            ),
+
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                LabelValueColumn(
+                                  title:
+                                      'Personas', // Para cantidad de personas
+                                  value: '3',
+                                ),
+
+                                SizedBox(height: 10),
+
+                                LabelValueColumn(
+                                  title: 'Cliente', // Para cliente seleccionado
+                                  value: 'Juan Pérez',
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
                 },
-                child: Container(
-                  height: 150,
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: AppColors.subButton,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          LabelValueColumn(
-                            title: 'Entrega', // Para el tipo de entrega
-                            value: 'Para llevar∫',
-                          ),
-
-                          SizedBox(height: 10),
-
-                          LabelValueColumn(
-                            title: 'Mesa', // Para la mesa seleccionada
-                            value: 'Mesa 10',
-                          ),
-                        ],
-                      ),
-
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          LabelValueColumn(
-                            title: 'Personas', // Para cantidad de personas
-                            value: '3',
-                          ),
-
-                          SizedBox(height: 10),
-
-                          LabelValueColumn(
-                            title: 'Cliente', // Para cliente seleccionado
-                            value: 'Juan Pérez',
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ),
 
@@ -83,12 +106,33 @@ class NewOrder extends StatelessWidget {
               height: 300,
               child: Consumer<OrderSetupProvider>(
                 builder: (context, cart, _) {
-                  final products = cart.products;
+                  final products = cart.carts;
+
+                  if (products.isEmpty) {
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        HugeIcon(
+                          icon: HugeIcons.strokeRoundedPackage,
+                          size: 50,
+                          color: AppColors.text,
+                        ),
+
+                        Text(
+                          'No hay productos en el pedido',
+                          style: TextStyle(fontSize: 16, color: AppColors.text),
+                        ),
+                      ],
+                    );
+                  }
 
                   return ListView.builder(
                     itemCount: products.length,
                     itemBuilder: (context, index) {
-                      return OrderProduct(product: products[index]);
+                      return OrderProduct(
+                        product: products[index],
+                        index: index,
+                      );
                     },
                   );
                 },
@@ -164,7 +208,10 @@ class NewOrder extends StatelessWidget {
         },
         tooltip: 'Agregar producto',
         backgroundColor: AppColors.primaryButton,
-        child: const HugeIcon(icon: HugeIcons.strokeRoundedPackageAdd, color: Colors.black,),
+        child: const HugeIcon(
+          icon: HugeIcons.strokeRoundedPackageAdd,
+          color: Colors.black,
+        ),
       ),
     );
   }

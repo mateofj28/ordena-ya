@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:ordena_ya/presentation/pages/NewOrder.dart';
 import 'package:ordena_ya/presentation/providers/OrderSetupProvider.dart';
 import 'package:provider/provider.dart';
 
 class OrderProduct extends StatelessWidget {
-  final Product product;
-  const OrderProduct({required this.product});
+  final dynamic product;
+  final int index;
+  const OrderProduct({required this.product, required this.index});
 
   @override
   Widget build(BuildContext context) {
@@ -14,10 +14,10 @@ class OrderProduct extends StatelessWidget {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       title: Text(
-        product.name,
+        product['name'],
         style: const TextStyle(fontWeight: FontWeight.w600),
       ),
-      subtitle: Text('Precio unitario: \$${product.price}'),
+      subtitle: Text('Precio unitario: \$${product['price']}'),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -33,7 +33,7 @@ class OrderProduct extends StatelessWidget {
                   onPressed: () => cart.decrement(product),
                 ),
                 Text(
-                  '${product.quantity}',
+                  '${product['quantity']}',
                   style: const TextStyle(fontSize: 16),
                 ),
                 IconButton(
@@ -45,12 +45,12 @@ class OrderProduct extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Text(
-            '\$${product.total}',
+            '${product['total']}',
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           IconButton(
             icon: const Icon(Icons.delete, color: Colors.redAccent),
-            onPressed: () => cart.remove(product),
+            onPressed: () => cart.remove(index),
           ),
         ],
       ),

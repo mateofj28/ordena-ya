@@ -4,16 +4,26 @@ import 'package:hugeicons/hugeicons.dart';
 class MenuProvider extends ChangeNotifier {
   final PageController pageController = PageController();
   final ScrollController scrollController = ScrollController();
+  final PageController menuController = PageController();
 
   int _currentIndex = 0;
   int get currentIndex => _currentIndex;
 
-  final List<MenuItemData> menuItems = [
+  final List<MenuItemData> views = [
     MenuItemData(HugeIcons.strokeRoundedAddToList, 'Nuevo Pedido'),
     MenuItemData(HugeIcons.strokeRoundedFolderLibrary, 'Pedidos Activos'),
     MenuItemData(HugeIcons.strokeRoundedReceiptDollar, 'Facturación'),
     MenuItemData(HugeIcons.strokeRoundedPieChart02, 'Estadísticas'),
     MenuItemData(HugeIcons.strokeRoundedCashier, 'Cuadre de Caja'),
+  ];
+
+  final List<MenuItemData> menus = [
+    MenuItemData(HugeIcons.strokeRoundedShoppingBasketFavorite01, 'Favoritos'),
+    MenuItemData(HugeIcons.strokeRoundedSpaghetti, 'Entradas'),
+    MenuItemData(HugeIcons.strokeRoundedServingFood, 'Fuertes'),
+    MenuItemData(HugeIcons.strokeRoundedTaco01, 'Tacos'),
+    MenuItemData(HugeIcons.strokeRoundedSoftDrink01, 'Bebidas'),
+    MenuItemData(HugeIcons.strokeRoundedCheeseCake01, 'Postres'),
   ];
 
   void setIndex(int index) {

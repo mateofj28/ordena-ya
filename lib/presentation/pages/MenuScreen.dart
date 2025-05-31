@@ -1,34 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:ordena_ya/core/constants/AppColors.dart';
+import 'package:ordena_ya/presentation/providers/MenuProvider.dart';
+import 'package:ordena_ya/presentation/providers/OrderSetupProvider.dart';
 import 'package:ordena_ya/presentation/widgets/MenuItemCard.dart';
+import 'package:ordena_ya/presentation/widgets/TopMenu.dart';
+import 'package:provider/provider.dart';
 
 class MenuScreen extends StatelessWidget {
-  const MenuScreen({super.key});
+  MenuScreen({super.key});
+
+  final List<Widget> contentWidgets = [
+    const Favoritos(),
+    const Entradas(),
+    const PlatosFuertes(),
+    const Tacos(),
+    const Bebidas(),
+    const Postres(),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 5,
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: AppColors.background,
-          elevation: 0,
-          title: const Text("Menú", style: TextStyle(color: Colors.black)),
-          centerTitle: true,
-          bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(60),
-            child: ConsumerTabBar(),
-          ),
-        ),
-        body: const TabBarView(
-          children: [
-            Entradas(),
-            PlatosFuertes(),
-            Tacos(),
-            Bebidas(),
-            Postres(),
-          ],
-        ),
+    return ChangeNotifierProvider(
+      create: (_) => MenuProvider(),
+      child: Builder(
+        builder: (context) {
+          final provider = Provider.of<MenuProvider>(context);
+          final orderProvider = Provider.of<OrderSetupProvider>(context);
+          return Scaffold(
+            body: SafeArea(
+              child: Column(
+                children: [
+                  TopMenu(views: provider.menus),
+                  const Divider(),
+                  Expanded(
+                    child: PageView(
+                      controller: provider.pageController,
+                      onPageChanged: (i) {
+                        provider.setIndex(i);
+                        provider.scrollToItem(i);
+                      },
+                      children: contentWidgets,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            floatingActionButton: FloatingActionButton(
+              onPressed: (){},
+              child: Text('Productos seleccionados: ${ orderProvider.carts.length }'),
+            ),
+          );
+        },
       ),
     );
   }
@@ -55,7 +77,10 @@ class ConsumerTabBar extends StatelessWidget {
           _CustomTab(icon: Icons.cake, label: "Postres", index: 4),
         ],
         indicator: UnderlineTabIndicator(
-          borderSide: BorderSide(width: 3.0, color: AppColors.primaryButtonText),
+          borderSide: BorderSide(
+            width: 3.0,
+            color: AppColors.primaryButtonText,
+          ),
           insets: EdgeInsets.symmetric(horizontal: 16.0),
         ), // necesitarías definirla,
         indicatorPadding: EdgeInsets.all(10),
@@ -104,6 +129,39 @@ class _CustomTab extends StatelessWidget {
   }
 }
 
+class Favoritos extends StatelessWidget {
+  const Favoritos({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.background,
+      child: ListView(
+        children: const [
+          MenuItemCard(
+            name: "Huevos con queso",
+            price: 12000,
+            description: "Totopos crujientes bañados en queso cheddar.",
+            image: Icon(Icons.local_dining),
+          ),
+          MenuItemCard(
+            name: "Ceviche de camarón",
+            price: 15500,
+            description: "Camarones frescos marinados en limón y especias.",
+            image: Icon(Icons.set_meal),
+          ),
+          MenuItemCard(
+            name: "Tartar de salmón",
+            price: 17000,
+            description: "Salmón fresco, aguacate, salsa de soja y sésamo.",
+            image: Icon(Icons.ramen_dining),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class Entradas extends StatelessWidget {
   const Entradas({super.key});
 
@@ -115,19 +173,19 @@ class Entradas extends StatelessWidget {
         children: const [
           MenuItemCard(
             name: "Nachos con queso",
-            price: "\$12.000",
+            price: 12000,
             description: "Totopos crujientes bañados en queso cheddar.",
             image: Icon(Icons.local_dining),
           ),
           MenuItemCard(
             name: "Ceviche de camarón",
-            price: "\$15.500",
+            price: 15500,
             description: "Camarones frescos marinados en limón y especias.",
             image: Icon(Icons.set_meal),
           ),
           MenuItemCard(
             name: "Tartar de salmón",
-            price: "\$17.000",
+            price: 17000,
             description: "Salmón fresco, aguacate, salsa de soja y sésamo.",
             image: Icon(Icons.ramen_dining),
           ),
@@ -148,21 +206,21 @@ class PlatosFuertes extends StatelessWidget {
         children: const [
           MenuItemCard(
             name: "Lomo en salsa de champiñones",
-            price: "\$25.000",
+            price: 25000,
             description:
                 "Tierna carne de res acompañada de una cremosa salsa de champiñones.",
             image: Icon(Icons.dinner_dining),
           ),
           MenuItemCard(
             name: "Pollo a la parrilla",
-            price: "\$22.000",
+            price: 22000,
             description:
                 "Pechuga de pollo marinada y asada con vegetales al vapor.",
             image: Icon(Icons.local_fire_department),
           ),
           MenuItemCard(
             name: "Pasta carbonara",
-            price: "\$20.000",
+            price: 20000,
             description:
                 "Spaghetti con salsa cremosa, tocineta y queso parmesano.",
             image: Icon(Icons.ramen_dining),
@@ -184,19 +242,20 @@ class Tacos extends StatelessWidget {
         children: const [
           MenuItemCard(
             name: "Taco al pastor",
-            price: "\$8.500",
+            price: 8500,
             description: "Cerdo adobado con piña, cebolla y cilantro fresco.",
             image: Icon(Icons.fastfood),
           ),
           MenuItemCard(
             name: "Taco de carne asada",
-            price: "\$9.000",
-            description: "Carne de res marinada servida con guacamole y cebolla.",
+            price: 9000,
+            description:
+                "Carne de res marinada servida con guacamole y cebolla.",
             image: Icon(Icons.lunch_dining),
           ),
           MenuItemCard(
             name: "Taco vegetariano",
-            price: "\$7.500",
+            price: 7500,
             description: "Tortilla rellena de champiñones, pimientos y queso.",
             image: Icon(Icons.eco),
           ),
@@ -217,19 +276,19 @@ class Bebidas extends StatelessWidget {
         children: const [
           MenuItemCard(
             name: "Jugo natural",
-            price: "\$4.000",
+            price: 4000,
             description: "Jugo de naranja, mango o fresa preparado al momento.",
             image: Icon(Icons.local_drink),
           ),
           MenuItemCard(
             name: "Limonada de coco",
-            price: "\$5.500",
+            price: 5500,
             description: "Refrescante mezcla de limón, leche de coco y hielo.",
             image: Icon(Icons.emoji_food_beverage),
           ),
           MenuItemCard(
             name: "Cerveza artesanal",
-            price: "\$7.000",
+            price: 7000,
             description: "Variedad de cervezas locales: rubia, roja o negra.",
             image: Icon(Icons.sports_bar),
           ),
@@ -250,21 +309,21 @@ class Postres extends StatelessWidget {
         children: const [
           MenuItemCard(
             name: "Tarta de queso",
-            price: "\$6.500",
+            price: 6500,
             description:
                 "Suave tarta de queso con base de galleta y frutos rojos.",
             image: Icon(Icons.cake),
           ),
           MenuItemCard(
             name: "Brownie con helado",
-            price: "\$7.000",
+            price: 7000,
             description:
                 "Brownie de chocolate caliente con bola de helado de vainilla.",
             image: Icon(Icons.icecream),
           ),
           MenuItemCard(
             name: "Flan de caramelo",
-            price: "\$5.500",
+            price: 5500,
             description: "Clásico flan casero con caramelo líquido.",
             image: Icon(Icons.rice_bowl),
           ),

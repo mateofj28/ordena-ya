@@ -17,11 +17,7 @@ class OrderSetupProvider with ChangeNotifier {
     'María López',
   ];
 
-  List<Product> products = [
-    Product(name: 'Chocolate con leche', quantity: 1, price: 100),
-    Product(name: 'Pan con queso y arequipe', quantity: 4, price: 100),
-    Product(name: 'Sándwich de pollo', quantity: 3, price: 400),
-  ];
+  
 
   String get selectedTable => _selectedTable;
   String get selectedPeople => _selectedPeople;
@@ -43,20 +39,22 @@ class OrderSetupProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void increment(Product product) {
-    product.quantity++;
+  void increment(dynamic product) {
+    product['quantity']++;
+     
     notifyListeners();
   }
 
-  void decrement(Product product) {
-    if (product.quantity > 1) {
-      product.quantity--;
+  void decrement(dynamic product) {
+    if (product['quantity'] > 1) {
+      product['quantity']--;
+       
       notifyListeners();
     }
   }
 
-  void remove(Product product) {
-    products.remove(product);
+  void remove(int index) {
+    _carts.removeAt(index);
     notifyListeners();
   }
 
@@ -71,6 +69,7 @@ class OrderSetupProvider with ChangeNotifier {
   void addToCart(dynamic product) {
     _carts.add(product);
     print(_carts.length);
+    notifyListeners();
   }
 
   removeFromCart(int index) {

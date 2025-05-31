@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 class MenuItemCard extends StatelessWidget {
   final String name;
-  final String price;
+  final int price;
   final String description;
   final Widget? image;
 
@@ -101,12 +101,14 @@ class MenuItemCard extends StatelessWidget {
                   right: 0,
                   child: GestureDetector(
                     onTap: (){
+
                       var product = {
                         "name": name,
-                        "price": price
+                        "price": price,
+                        "quantity": 1,
+                        "total": price,
                       };
                       
-
                       provider.addToCart(product);
                     },
                     child: Container(
