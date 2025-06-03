@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class Functions {
   static void navigateWithSlideUp(BuildContext context, Widget screen) {
@@ -44,5 +45,15 @@ class Functions {
     return brightness == Brightness.light
         ? darken(color, 0.2)
         : lighten(color, 0.2);
+  }
+
+  static String formatCurrency(double amount) {
+    final formatter = NumberFormat.decimalPattern('es_CO');
+    return '\$${formatter.format(amount.truncate())}';
+  }
+
+  static String formatCurrencyINT(int amount) {
+    final formatter = NumberFormat.decimalPattern('es_CO');
+    return '\$${formatter.format(amount)}';
   }
 }

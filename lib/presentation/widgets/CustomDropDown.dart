@@ -17,7 +17,7 @@ class CustomDropdown extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DropdownButtonFormField<String>(
-      value: selectedValue == 'Seleccionar opción' ? null : selectedValue,
+      value: selectedValue == 'N/A' ? null : selectedValue,
       decoration: InputDecoration(
         labelText: label,
         border: OutlineInputBorder(

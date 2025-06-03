@@ -17,6 +17,19 @@ class NewOrder extends StatelessWidget {
 
   final Product product;
 
+  String deliveryTypeToString(int type) {
+    switch (type) {
+      case 0:
+        return 'En el lugar';
+      case 1:
+        return 'domicilio';
+      case 2:
+        return 'Para recoger';
+      default:
+        return 'Tipo desconocido';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<OrderSetupProvider>(context);
@@ -60,36 +73,44 @@ class NewOrder extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 LabelValueColumn(
                                   title: 'Entrega', // Para el tipo de entrega
-                                  value: 'Para llevar',
+                                  value:
+                                      cart.deliveryType == 0
+                                          ? 'Recoger en tienda'
+                                          : deliveryTypeToString(
+                                            cart.deliveryType,
+                                          ),
                                 ),
 
                                 SizedBox(height: 10),
 
                                 LabelValueColumn(
                                   title: 'Mesa', // Para la mesa seleccionada
-                                  value: 'Mesa 10',
+                                  value: cart.selectedTable,
                                 ),
                               ],
                             ),
 
                             Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
                               children: [
                                 LabelValueColumn(
                                   title:
                                       'Personas', // Para cantidad de personas
-                                  value: '3',
+                                  value: cart.selectedPeople,
                                 ),
 
                                 SizedBox(height: 10),
 
                                 LabelValueColumn(
                                   title: 'Cliente', // Para cliente seleccionado
-                                  value: 'Juan Pérez',
+                                  value:
+                                      cart.selectedClient.isNotEmpty
+                                          ? cart.selectedClient
+                                          : 'Sin cliente',
                                 ),
                               ],
                             ),
@@ -152,7 +173,7 @@ class NewOrder extends StatelessWidget {
 
             LabelValueRow(
               label: 'Artículos',
-              value: '3',
+              value: cart.totalItems.toString(),
               valueStyle: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.normal,
@@ -161,15 +182,22 @@ class NewOrder extends StatelessWidget {
             ),
             LabelValueRow(
               label: 'Subtotal',
-              value: '\$48.00',
+              value:
+                  cart.subtotal == 0
+                      ? '0.00'
+                      : Functions.formatCurrency(cart.subtotal),
+
               valueStyle: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.normal,
                 color: AppColors.text,
               ),
             ),
-            LabelValueRow(label: 'Impuesto al consumo', value: '\$4.00'),
-            LabelValueRow(label: 'Total', value: '\$52.00'),
+            LabelValueRow(label: 'Impuesto al consumo', value: '(8%)'),
+            LabelValueRow(
+              label: 'Total',
+              value: Functions.formatCurrency(cart.total),
+            ),
 
             const SizedBox(height: 20),
 
@@ -185,7 +213,9 @@ class NewOrder extends StatelessWidget {
                 CustomButton(
                   label: 'Factura y pago',
                   baseColor: AppColors.subButton,
-                  onTap: () {},
+                  onTap: () {
+                    cart.createOrder();
+                  },
                 ),
               ],
             ),

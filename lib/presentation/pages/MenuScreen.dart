@@ -45,9 +45,24 @@ class MenuScreen extends StatelessWidget {
                 ],
               ),
             ),
-            floatingActionButton: FloatingActionButton(
-              onPressed: (){},
-              child: Text('Productos seleccionados: ${ orderProvider.cartItems.length }'),
+            floatingActionButton: Container(
+              margin: const EdgeInsets.all(10),
+              child: FloatingActionButton.extended(
+                onPressed: () {
+                  if (orderProvider.cartItems.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("No hay productos en el carrito"),
+                      ),
+                    );
+                  } else {
+                    Navigator.pushNamed(context, '/orderDetail');
+                  }
+                },
+                label: Text('${ orderProvider.cartItems.length }'),
+                icon: const Icon(Icons.shopping_cart),
+                backgroundColor: AppColors.primaryButton,
+              ),
             ),
           );
         },

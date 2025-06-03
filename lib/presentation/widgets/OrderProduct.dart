@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ordena_ya/core/constants/utils/Functions.dart';
 import 'package:ordena_ya/presentation/providers/OrderSetupProvider.dart';
 import 'package:provider/provider.dart';
 
@@ -17,7 +18,7 @@ class OrderProduct extends StatelessWidget {
         product['name'],
         style: const TextStyle(fontWeight: FontWeight.w600),
       ),
-      subtitle: Text('Precio unitario: \$${product['price']}'),
+      subtitle: Text('Precio unitario: ${ Functions.formatCurrencyINT(product['price']) }'),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -30,7 +31,7 @@ class OrderProduct extends StatelessWidget {
               children: [
                 IconButton(
                   icon: const Icon(Icons.remove),
-                  onPressed: () => cart.increaseProductQuantity(product),
+                  onPressed: () => cart.decreaseProductQuantity(product),
                 ),
                 Text(
                   '${product['quantity']}',
@@ -38,14 +39,14 @@ class OrderProduct extends StatelessWidget {
                 ),
                 IconButton(
                   icon: const Icon(Icons.add),
-                  onPressed: () => cart.decreaseProductQuantity(product),
+                  onPressed: () => cart.increaseProductQuantity(product),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 12),
           Text(
-            '${product['total']}',
+            Functions.formatCurrencyINT(product['total']),
             style: const TextStyle(fontWeight: FontWeight.bold),
           ),
           IconButton(
