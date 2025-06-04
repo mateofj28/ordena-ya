@@ -1,4 +1,5 @@
-import 'package:ordena_ya/domain/entities/product.dart';
+import 'package:ordena_ya/domain/entities/ordered_product.dart';
+
 
 class Order {
 
@@ -9,7 +10,7 @@ class Order {
   int numberOfPeople;
   String clientId;
   String deliveryAddress;
-  List<Product> orderedProducts;
+  List<OrderedProduct> orderedProducts;
   double discountApplied;
   double totalValue;
   String paymentMethod;

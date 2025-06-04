@@ -214,7 +214,7 @@ class NewOrder extends StatelessWidget {
                   label: 'Factura y pago',
                   baseColor: AppColors.subButton,
                   onTap: () {
-                    cart.createOrder();
+                    cart.createOrder(context);
                   },
                 ),
               ],

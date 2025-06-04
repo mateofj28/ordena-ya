@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 class OrderProduct extends StatelessWidget {
   final dynamic product;
   final int index;
+
   const OrderProduct({required this.product, required this.index});
 
   @override
@@ -18,7 +19,9 @@ class OrderProduct extends StatelessWidget {
         product['name'],
         style: const TextStyle(fontWeight: FontWeight.w600),
       ),
-      subtitle: Text('Precio unitario: ${ Functions.formatCurrencyINT(product['price']) }'),
+      subtitle: Text(
+        'Precio unitario: ${Functions.formatCurrencyINT(product['unitPrice'])}',
+      ),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

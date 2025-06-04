@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:ordena_ya/core/constants/utils/Functions.dart';
+import 'package:ordena_ya/data/model/order_model.dart';
 import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
 import 'package:ordena_ya/presentation/pages/OrderDetailScreen.dart';
 
@@ -26,6 +28,8 @@ class OrderSetupProvider with ChangeNotifier {
     'María López',
   ];
 
+  Map<int, String> deliveryTypeMap = {0: 'Local', 1: 'Recoger', 2: 'Entregar'};
+
   // Getters
   List<Map<String, dynamic>> get cartItems => List.unmodifiable(_cartItems);
   int get selectedTabIndex => _selectedTabIndex;
@@ -42,7 +46,7 @@ class OrderSetupProvider with ChangeNotifier {
       0.0,
       (sum, item) =>
           sum +
-          ((item['price'] as num).toDouble() *
+          ((item['unitPrice'] as num).toDouble() *
               (item['quantity'] as num).toDouble()),
     );
   }
@@ -106,39 +110,87 @@ class OrderSetupProvider with ChangeNotifier {
 
   void increaseProductQuantity(Map<String, dynamic> product) {
     product['quantity'] = (product['quantity'] ?? 0) + 1;
-    product['total'] = product['price'] * product['quantity'];
+    product['total'] = product['unitPrice'] * product['quantity'];
     notifyListeners();
   }
 
   void decreaseProductQuantity(Map<String, dynamic> product) {
     if ((product['quantity'] ?? 0) > 1) {
       product['quantity']--;
-      product['total'] = product['price'] * product['quantity'];
+      product['total'] = product['unitPrice'] * product['quantity'];
       notifyListeners();
     }
   }
 
-  createOrder() async {
-    if (_cartItems.isEmpty) {
-      throw Exception('El carrito está vacío');
+  void createOrder(BuildContext context) async {
+    // Validaciones
+    if (_selectedTable == 'N/A' || _selectedPeople == 'N/A') {
+      Functions.showErrorSnackBar(
+        context,
+        'Debes seleccionar una mesa y el número de personas',
+      );
+      return; // Detiene la ejecución si falla esta validación
     }
 
-    final orderData = {
-      'table': _selectedTable,
-      'people': _selectedPeople,
-      'client': _selectedClient,
-      'deliveryType': _deliveryType,
-      'items': _cartItems,
-      'status': 'pending',
-    };
+    if (_cartItems.isEmpty) {
+      Functions.showErrorSnackBar(context, 'El carrito está vacío');
+      return;
+    }
 
     try {
+      // Si pasa todas las validaciones, se construye la orden
+      final orderData = {
+        'orderNumber': 'ORD123',
+        'assignedTable': _selectedTable,
+        'numberOfPeople': int.parse(_selectedPeople),
+        'clientId': _selectedClient == '' ? 'Indefinido' : _selectedClient,
+        'deliveryType': deliveryTypeMap[_deliveryType],
+        'orderedProducts': _cartItems,
+        'discountApplied': 0.0,
+        'paymentMethod': 'efectivo',
+        'orderStatus': 'pending',
+        'totalValue': total,
+        'orderDate': DateTime.now().toIso8601String(),
+        'statusUpdatedAt': DateTime.now().toIso8601String(),
+      };
+
+      print("pase por aqui");
       print(orderData);
-      // Clear cart after successful order creation
+
+      final orderModel = OrderModel.fromJson(orderData);
+      print("por aca se genera el error");
+      final orderEntity = orderModel.toEntity();
+
+      print(orderEntity);
+
+      await createOrderUseCase.call(orderEntity);
+
+      // Limpiar carrito luego de crear la orden
+      _selectedTable = 'N/A';
+      _selectedPeople = 'N/A';
+      _selectedClient = '';
       _cartItems.clear();
       notifyListeners();
-    } catch (e) {
-      throw Exception('Error al crear la orden: $e');
+
+      // Puedes mostrar una notificación de éxito si deseas
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 10),
+              Expanded(child: Text('Orden creada exitosamente')),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    } catch (e, stacktrace) {
+      print('❌ Error en OrderedProductModel.fromJson: $e');
+      print(stacktrace);
+      Functions.showErrorSnackBar(context, 'Error al crear la orden: $e');
     }
   }
 

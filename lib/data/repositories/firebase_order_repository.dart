@@ -12,6 +12,6 @@ class FirebaseOrderRepository implements OrderRepository {
   @override
   Future<void> createOrder(Order order) async {
     final model = OrderModel.fromEntity(order);
-    await firestore.collection('orders').doc(model.id).set(model.toJson());
+    await firestore.collection('orders').add(model.toJson());
   }
 }

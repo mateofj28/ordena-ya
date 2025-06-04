@@ -1,3 +1,5 @@
+import 'package:ordena_ya/data/model/ordered_product_model.dart';
+
 import '../../domain/entities/order.dart';
 
 import 'product_model.dart';
@@ -21,23 +23,44 @@ class OrderModel extends Order {
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
-    return OrderModel(
-      orderNumber: json['orderNumber'],
-      deliveryType: json['deliveryType'],
-      assignedTable: json['assignedTable'],
-      numberOfPeople: json['numberOfPeople'],
-      clientId: json['clientId'],
-      deliveryAddress: json['deliveryAddress'],
-      orderedProducts: (json['orderedProducts'] as List)
-          .map((item) => ProductModel.fromJson(item))
-          .toList(),
-      discountApplied: json['discountApplied'].toDouble(),
-      totalValue: json['totalValue'].toDouble(),
-      paymentMethod: json['paymentMethod'],
-      orderStatus: json['orderStatus'],
-      orderDate: DateTime.parse(json['orderDate']),
-      statusUpdatedAt: DateTime.parse(json['statusUpdatedAt']),
-    );
+    try {
+      print("orderNumber: ${json['orderNumber']}");
+      print("deliveryType: ${json['deliveryType']}");
+      print("assignedTable: ${json['assignedTable']}");
+      print("numberOfPeople: ${json['numberOfPeople']}");
+      print("clientId: ${json['clientId']}");
+      print("deliveryAddress: ${json['deliveryAddress']}");
+      print("orderedProducts: ${json['orderedProducts']}");
+      print("discountApplied: ${json['discountApplied']}");
+      print("totalValue: ${json['totalValue']}");
+      print("paymentMethod: ${json['paymentMethod']}");
+      print("orderStatus: ${json['orderStatus']}");
+      print("orderDate: ${json['orderDate']}");
+      print("statusUpdatedAt: ${json['statusUpdatedAt']}");
+
+      return OrderModel(
+        orderNumber: json['orderNumber'],
+        deliveryType: json['deliveryType'],
+        assignedTable: json['assignedTable'],
+        numberOfPeople: json['numberOfPeople'],
+        clientId: json['clientId'],
+        deliveryAddress: json['deliveryAddress'] ?? 'Indefinido',
+        orderedProducts:
+            (json['orderedProducts'] as List)
+                .map((item) => OrderedProductModel.fromJson(item))
+                .toList(),
+        discountApplied: json['discountApplied'].toDouble(),
+        totalValue: json['totalValue'].toDouble(),
+        paymentMethod: json['paymentMethod'],
+        orderStatus: json['orderStatus'],
+        orderDate: DateTime.parse(json['orderDate']),
+        statusUpdatedAt: DateTime.parse(json['statusUpdatedAt']),
+      );
+    } catch (e, stacktrace) {
+      print('❌ Error en OrderModel.fromJson: $e');
+      print(stacktrace);
+      rethrow;
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -48,9 +71,10 @@ class OrderModel extends Order {
       'numberOfPeople': numberOfPeople,
       'clientId': clientId,
       'deliveryAddress': deliveryAddress,
-      'orderedProducts': orderedProducts
-          .map((product) => (product as ProductModel).toJson())
-          .toList(),
+      'orderedProducts':
+          orderedProducts
+              .map((product) => (product as OrderedProductModel).toJson())
+              .toList(),
       'discountApplied': discountApplied,
       'totalValue': totalValue,
       'paymentMethod': paymentMethod,

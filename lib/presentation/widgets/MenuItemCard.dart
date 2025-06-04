@@ -104,10 +104,12 @@ class MenuItemCard extends StatelessWidget {
 
                       var product = {
                         "name": name,
-                        "price": price,
+                        "unitPrice": price,
                         "quantity": 1,
                         "total": price,
                       };
+
+                      
                       
                       provider.addProductToCart(product);
                     },
