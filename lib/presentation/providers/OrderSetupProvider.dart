@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ordena_ya/core/constants/utils/Functions.dart';
 import 'package:ordena_ya/data/model/order_model.dart';
+import 'package:ordena_ya/domain/entities/order.dart';
+import 'package:ordena_ya/domain/usecases/get_all_orders.dart';
 import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
 import 'package:ordena_ya/presentation/pages/OrderDetailScreen.dart';
 
@@ -8,8 +10,12 @@ import '../../domain/usecases/create_order.dart';
 
 class OrderSetupProvider with ChangeNotifier {
   final CreateOrder createOrderUseCase;
+  final GetAllOrders getAllOrdersUseCase;
 
-  OrderSetupProvider({required this.createOrderUseCase});
+  OrderSetupProvider({
+    required this.createOrderUseCase,
+    required this.getAllOrdersUseCase,
+  });
 
   // State
   final List<Map<String, dynamic>> _cartItems = [];
@@ -18,6 +24,9 @@ class OrderSetupProvider with ChangeNotifier {
   String _selectedPeople = 'N/A';
   String _selectedClient = '';
   int _deliveryType = 0;
+  List<Order> _orders = [];
+
+  bool _isLoadingAllOrders = true;
 
   // Clientes fijos
   final List<String> clients = [
@@ -36,6 +45,8 @@ class OrderSetupProvider with ChangeNotifier {
   String get selectedTable => _selectedTable;
   String get selectedPeople => _selectedPeople;
   String get selectedClient => _selectedClient;
+  bool get isLoadingAllOrders => _isLoadingAllOrders;
+  List<Order> get orders => _orders;
   int get deliveryType => _deliveryType;
   int get totalItems {
     return _cartItems.fold(0, (sum, item) => sum + (item['quantity'] as int));
@@ -154,14 +165,9 @@ class OrderSetupProvider with ChangeNotifier {
         'statusUpdatedAt': DateTime.now().toIso8601String(),
       };
 
-      print("pase por aqui");
-      print(orderData);
-
       final orderModel = OrderModel.fromJson(orderData);
-      print("por aca se genera el error");
-      final orderEntity = orderModel.toEntity();
 
-      print(orderEntity);
+      final orderEntity = orderModel.toEntity();
 
       await createOrderUseCase.call(orderEntity);
 
@@ -188,9 +194,22 @@ class OrderSetupProvider with ChangeNotifier {
         ),
       );
     } catch (e, stacktrace) {
-      print('❌ Error en OrderedProductModel.fromJson: $e');
-      print(stacktrace);
+      // print('❌ Error en OrderedProductModel.fromJson: $e');
+      // print(stacktrace);
       Functions.showErrorSnackBar(context, 'Error al crear la orden: $e');
+    }
+  }
+
+  getAllOrders(BuildContext context) async {
+    try {
+      _isLoadingAllOrders = true;
+      notifyListeners();
+
+      _orders = await getAllOrdersUseCase.call();
+      _isLoadingAllOrders = false;
+      notifyListeners();
+    } catch (e) {
+      Functions.showErrorSnackBar(context, 'Error al traer las ordenes: $e');
     }
   }
 

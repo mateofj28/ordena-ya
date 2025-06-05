@@ -21,7 +21,7 @@ class AppColors {
   // Sub botones
   static const Color subButton = Color(0xFFE8EAE7);
 
-// Textos generales
+  // Textos generales
   static const Color text = Color(0xFF6E737C);
 
   // Tercer fondo de botón
@@ -30,4 +30,8 @@ class AppColors {
   // Texto del tercer botón
   static const Color tertiaryButtonText = Color(0xFF004CA3);
 
+  // Colores de estado de órdenes
+  static const Color deliveredColor = Color(0xFFDDF3EC); // Entregado
+  static const Color pendingColor = Color(0xFFF0E9FA); // Pendiente
+  static const Color preparedColor = Color(0xFFD9ECFB); // Preparado
 }

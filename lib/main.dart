@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ordena_ya/core/constants/AppColors.dart';
 import 'package:ordena_ya/data/repositories/firebase_order_repository.dart';
+import 'package:ordena_ya/domain/usecases/get_all_orders.dart';
 import 'package:ordena_ya/presentation/pages/HomeScreen.dart';
 import 'package:ordena_ya/presentation/providers/MenuProvider.dart';
 import 'package:ordena_ya/presentation/providers/OrderSetupProvider.dart';
@@ -24,11 +25,12 @@ void main() async {
   final firestore = FirebaseFirestore.instance;
   final orderRepository = FirebaseOrderRepository(firestore);
   final createOrderUseCase = CreateOrder(orderRepository);
+  final getAllOrdersUseCase = GetAllOrders(orderRepository);
 
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => OrderSetupProvider(createOrderUseCase: createOrderUseCase)),
+        ChangeNotifierProvider(create: (_) => OrderSetupProvider(createOrderUseCase: createOrderUseCase, getAllOrdersUseCase: getAllOrdersUseCase)),
         ChangeNotifierProvider(create: (_) => ToggleButtonProvider()),
         ChangeNotifierProvider(create: (_) => MenuProvider()),
       ],

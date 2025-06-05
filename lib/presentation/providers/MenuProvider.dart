@@ -11,7 +11,7 @@ class MenuProvider extends ChangeNotifier {
 
   final List<MenuItemData> views = [
     MenuItemData(HugeIcons.strokeRoundedAddToList, 'Nuevo Pedido'),
-    MenuItemData(HugeIcons.strokeRoundedFolderLibrary, 'Pedidos Activos'),
+    MenuItemData(HugeIcons.strokeRoundedFolderLibrary, 'Pedidos'),
     MenuItemData(HugeIcons.strokeRoundedReceiptDollar, 'Facturación'),
     MenuItemData(HugeIcons.strokeRoundedPieChart02, 'Estadísticas'),
     MenuItemData(HugeIcons.strokeRoundedCashier, 'Cuadre de Caja'),
@@ -26,7 +26,7 @@ class MenuProvider extends ChangeNotifier {
     MenuItemData(HugeIcons.strokeRoundedCheeseCake01, 'Postres'),
   ];
 
-  void setIndex(int index) {
+  void  setIndex(int index) {
     _currentIndex = index;
     notifyListeners();
   }

@@ -14,4 +14,12 @@ class FirebaseOrderRepository implements OrderRepository {
     final model = OrderModel.fromEntity(order);
     await firestore.collection('orders').add(model.toJson());
   }
+
+  @override
+  Future<List<Order>> getAllOrders() async {
+    final querySnapshot = await firestore.collection('orders').get();
+    return querySnapshot.docs
+        .map((doc) => OrderModel.fromJson(doc.data()).toEntity())
+        .toList();
+  }
 }
