@@ -3,7 +3,7 @@ import '../entities/order.dart';
 import '../repositories/order_repository.dart';
 
 class GetAllOrders {
-  final OrderRepository repository;
+  final ClientRepository repository;
 
   GetAllOrders(this.repository);
 

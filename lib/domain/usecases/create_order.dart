@@ -3,7 +3,7 @@ import '../entities/order.dart';
 import '../repositories/order_repository.dart';
 
 class CreateOrder {
-  final OrderRepository repository;
+  final ClientRepository repository;
 
   CreateOrder(this.repository);
 

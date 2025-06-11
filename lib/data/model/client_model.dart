@@ -1,6 +1,5 @@
 import '../../domain/entities/client.dart';
 
-
 class ClientModel extends Client {
   ClientModel({
     required super.fullName,
@@ -14,11 +13,11 @@ class ClientModel extends Client {
   factory ClientModel.fromJson(Map<String, dynamic> json) {
     return ClientModel(
       fullName: json['fullName'],
-      idNumber: json['idNumber'],
+      idNumber: json['nationalId'],
       email: json['email'],
-      phone: json['phone'],
-      registrationDate: DateTime.parse(json['registrationDate']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      phone: json['phone'] ?? 'No registrado',
+      registrationDate: DateTime.now(),
+      updatedAt: DateTime.now(),
     );
   }
 

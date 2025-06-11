@@ -56,7 +56,7 @@ class MenuScreen extends StatelessWidget {
                       ),
                     );
                   } else {
-                    Navigator.pushNamed(context, '/orderDetail');
+                    Navigator.pop(context);
                   }
                 },
                 label: Text('${ orderProvider.cartItems.length }'),

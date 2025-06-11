@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:ordena_ya/core/constants/utils/Functions.dart';
+import 'package:ordena_ya/data/model/client_model.dart';
 import 'package:ordena_ya/data/model/order_model.dart';
 import 'package:ordena_ya/domain/entities/order.dart';
+import 'package:ordena_ya/domain/usecases/create_client.dart';
 import 'package:ordena_ya/domain/usecases/get_all_orders.dart';
 import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
 import 'package:ordena_ya/presentation/pages/OrderDetailScreen.dart';
@@ -10,12 +12,22 @@ import '../../domain/usecases/create_order.dart';
 
 class OrderSetupProvider with ChangeNotifier {
   final CreateOrder createOrderUseCase;
+  final CreateClient createClientUseCase;
   final GetAllOrders getAllOrdersUseCase;
 
   OrderSetupProvider({
     required this.createOrderUseCase,
+    required this.createClientUseCase,
     required this.getAllOrdersUseCase,
   });
+
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+  String name = '';
+  String cedula = '';
+  String email = '';
+
+  int _clienteStep = 0;
 
   // State
   final List<Map<String, dynamic>> _cartItems = [];
@@ -67,6 +79,13 @@ class OrderSetupProvider with ChangeNotifier {
     return subtotal * (1 + impoconsumoRate);
   }
 
+  int get clienteStep => _clienteStep;
+
+  set clienteStep(int step) {
+    _clienteStep = step;
+    notifyListeners();
+  }
+
   // Setters
   void updateSelectedTable(String table) {
     _selectedTable = table;
@@ -90,6 +109,27 @@ class OrderSetupProvider with ChangeNotifier {
 
   void updateDeliveryType(int type) {
     _deliveryType = type;
+    notifyListeners();
+  }
+
+  bool validateForm() {
+    return formKey.currentState?.validate() ?? false;
+  }
+
+  void saveForm() async {
+    formKey.currentState?.save();
+
+    final clientData = {'fullName': name, 'nationalId': cedula, 'email': email};
+
+    final clientModel = ClientModel.fromJson(clientData);
+
+    final clientEntity = clientModel.toEntity();
+
+    await createClientUseCase.call(clientEntity);
+
+    name = '';
+    cedula = '';
+    email = '';
     notifyListeners();
   }
 
@@ -167,9 +207,9 @@ class OrderSetupProvider with ChangeNotifier {
 
       final orderModel = OrderModel.fromJson(orderData);
 
-      final orderEntity = orderModel.toEntity();
+      final clientEntity = orderModel.toEntity();
 
-      await createOrderUseCase.call(orderEntity);
+      await createOrderUseCase.call(clientEntity);
 
       // Limpiar carrito luego de crear la orden
       _selectedTable = 'N/A';

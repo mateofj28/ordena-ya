@@ -4,7 +4,7 @@ import '../../domain/entities/order.dart';
 import '../../domain/repositories/order_repository.dart';
 import '../model/order_model.dart';
 
-class FirebaseOrderRepository implements OrderRepository {
+class FirebaseOrderRepository implements ClientRepository {
   final FirebaseFirestore firestore;
 
   FirebaseOrderRepository(this.firestore);

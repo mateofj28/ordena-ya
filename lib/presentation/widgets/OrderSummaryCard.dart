@@ -98,6 +98,24 @@ class OrderSummaryCard extends StatelessWidget {
             child: Column(
               children: [
                 const SizedBox(height: 10),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      Functions.formatCurrency(total),
+                      style:
+                          totalStyle ??
+                          const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 5),
+
                 IconTextRow(
                   icon: Icon(
                     HugeIcons.strokeRoundedPayment01,
@@ -121,20 +139,6 @@ class OrderSummaryCard extends StatelessWidget {
                     color: Colors.black,
                   ),
                   title: date,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Text(
-                      Functions.formatCurrency(total),
-                      style:
-                          totalStyle ??
-                          const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                    ),
-                  ],
                 ),
               ],
             ),
