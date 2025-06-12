@@ -28,11 +28,14 @@ class OrderSetupProvider with ChangeNotifier {
   String email = '';
 
   int _clienteStep = 0;
+  int _discountStep = 0;
 
   // State
   final List<Map<String, dynamic>> _cartItems = [];
   int _selectedTabIndex = 0;
+  double _discount = 0.0;
   String _selectedTable = 'N/A';
+  String _selectedDiscount = 'N/A';
   String _selectedPeople = 'N/A';
   String _selectedClient = '';
   int _deliveryType = 0;
@@ -50,11 +53,26 @@ class OrderSetupProvider with ChangeNotifier {
   ];
 
   Map<int, String> deliveryTypeMap = {0: 'Local', 1: 'Recoger', 2: 'Entregar'};
+  final Map<String, double> _discountTypeMap = {
+    '5%': 0.05,
+    '10%': 0.10,
+    '20%': 0.20,
+    '30%': 0.30,
+    '40%': 0.40,
+    '50%': 0.50,
+    '60%': 0.60,
+    '70%': 0.70,
+    '80%': 0.80,
+    '90%': 0.90,
+    '100%': 1.00,
+    'N/A': 0.0,
+  };
 
   // Getters
   List<Map<String, dynamic>> get cartItems => List.unmodifiable(_cartItems);
   int get selectedTabIndex => _selectedTabIndex;
   String get selectedTable => _selectedTable;
+  String get selectedDiscount => _selectedDiscount;
   String get selectedPeople => _selectedPeople;
   String get selectedClient => _selectedClient;
   bool get isLoadingAllOrders => _isLoadingAllOrders;
@@ -76,13 +94,26 @@ class OrderSetupProvider with ChangeNotifier {
 
   double get total {
     const impoconsumoRate = 0.08;
-    return subtotal * (1 + impoconsumoRate);
+    final subtotalConDescuento = subtotal * (1 - _discount);
+    return subtotalConDescuento * (1 + impoconsumoRate);
   }
 
   int get clienteStep => _clienteStep;
+  int get discountStep => _discountStep;
 
   set clienteStep(int step) {
     _clienteStep = step;
+    notifyListeners();
+  }
+
+  set discountStep(int step) {
+    _discountStep = step;
+    notifyListeners();
+  }
+
+  set selectedDiscount(String value) {
+    _selectedDiscount = value;
+    _discount = _discountTypeMap[value]!;
     notifyListeners();
   }
 
@@ -116,21 +147,43 @@ class OrderSetupProvider with ChangeNotifier {
     return formKey.currentState?.validate() ?? false;
   }
 
-  void saveForm() async {
+  void saveForm(BuildContext context) async {
     formKey.currentState?.save();
 
     final clientData = {'fullName': name, 'nationalId': cedula, 'email': email};
 
-    final clientModel = ClientModel.fromJson(clientData);
+    try {
+      final clientModel = ClientModel.fromJson(clientData);
 
-    final clientEntity = clientModel.toEntity();
+      final clientEntity = clientModel.toEntity();
 
-    await createClientUseCase.call(clientEntity);
+      await createClientUseCase.call(clientEntity);
 
-    name = '';
-    cedula = '';
-    email = '';
-    notifyListeners();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 10),
+              Expanded(child: Text('Cliente creado exitosamente')),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          duration: Duration(seconds: 3),
+        ),
+      );
+
+      _selectedClient = name; // Asignar el ID del cliente creado
+      name = '';
+      cedula = '';
+      email = '';
+      _clienteStep = 2;
+
+      notifyListeners();
+    } catch (e) {
+      Functions.showErrorSnackBar(context, 'Error al crear el Cliente: $e');
+    }
   }
 
   // a futuro cambiar este por buscar por id
@@ -197,7 +250,7 @@ class OrderSetupProvider with ChangeNotifier {
         'clientId': _selectedClient == '' ? 'Indefinido' : _selectedClient,
         'deliveryType': deliveryTypeMap[_deliveryType],
         'orderedProducts': _cartItems,
-        'discountApplied': 0.0,
+        'discountApplied': _discount,
         'paymentMethod': 'efectivo',
         'orderStatus': 'pending',
         'totalValue': total,
@@ -213,8 +266,11 @@ class OrderSetupProvider with ChangeNotifier {
 
       // Limpiar carrito luego de crear la orden
       _selectedTable = 'N/A';
+      _selectedDiscount = 'N/A';
       _selectedPeople = 'N/A';
       _selectedClient = '';
+      _deliveryType = 0;
+      _discountStep = 0;
       _cartItems.clear();
       notifyListeners();
 

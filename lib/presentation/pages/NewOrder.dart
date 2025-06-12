@@ -7,6 +7,8 @@ import 'package:ordena_ya/presentation/pages/OrderSetupScreen.dart';
 import 'package:ordena_ya/presentation/providers/OrderSetupProvider.dart';
 import 'package:ordena_ya/presentation/providers/ToggleButtonProvider.dart';
 import 'package:ordena_ya/presentation/widgets/CustomButton.dart';
+import 'package:ordena_ya/presentation/widgets/CustomDropDown.dart';
+import 'package:ordena_ya/presentation/widgets/IconActionButton.dart';
 import 'package:ordena_ya/presentation/widgets/LabelValueColumn.dart';
 import 'package:ordena_ya/presentation/widgets/LabelValueRow.dart';
 import 'package:ordena_ya/presentation/widgets/OrderProduct.dart';
@@ -33,7 +35,7 @@ class NewOrder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<OrderSetupProvider>(context);
-
+    final step = cart.discountStep;
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -162,12 +164,61 @@ class NewOrder extends StatelessWidget {
 
             const SizedBox(height: 10),
 
-            // Encabezado
-            CustomButton(
-              label: 'Agregar descuento',
-              baseColor: AppColors.subButton,
-              onTap: () {},
-            ),
+            if (step == 0) ...[
+              // Encabezado
+              CustomButton(
+                label: 'Agregar descuento',
+                baseColor: AppColors.subButton,
+                onTap: () {
+                  if (cart.cartItems.isEmpty) {
+                    Functions.showErrorSnackBar(
+                      context,
+                      'No hay productos en el pedido',
+                    );
+                    return;
+                  }
+                  cart.discountStep = 1;
+                },
+              ),
+            ] else if (step == 1) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  SizedBox(
+                    width: 150,
+                    child: CustomDropdown(
+                      options: [
+                        '5%',
+                        '10%',
+                        '20%',
+                        '30%',
+                        '40%',
+                        '50%',
+                        '60%',
+                        '70%',
+                        '80%',
+                        '90%',
+                        '100%',
+                      ],
+                      selectedValue: cart.selectedDiscount,
+                      label: 'Descuento',
+                      onChanged: (value) {
+                        if (value != null) cart.selectedDiscount = value;
+                      },
+                    ),
+                  ),
+
+                  IconActionButton(
+                    icon: HugeIcons.strokeRoundedDelete02,
+                    onPressed: () {
+                      cart.discountStep = 0;
+                      cart.selectedDiscount = 'N/A';
+                    },
+                    color: Colors.red,
+                  ),
+                ],
+              ),
+            ],
 
             const SizedBox(height: 20),
 
@@ -193,7 +244,15 @@ class NewOrder extends StatelessWidget {
                 color: AppColors.text,
               ),
             ),
+
             LabelValueRow(label: 'Impuesto al consumo', value: '(8%)'),
+
+            if (cart.selectedDiscount != 'N/A')
+              LabelValueRow(
+                label: 'Descuento aplicado',
+                value: cart.selectedDiscount,
+              ),
+            
             LabelValueRow(
               label: 'Total',
               value: Functions.formatCurrency(cart.total),

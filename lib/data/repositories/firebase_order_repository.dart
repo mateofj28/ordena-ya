@@ -17,7 +17,14 @@ class FirebaseOrderRepository implements ClientRepository {
 
   @override
   Future<List<Order>> getAllOrders() async {
-    final querySnapshot = await firestore.collection('orders').get();
+    final querySnapshot =
+        await firestore
+            .collection('orders')
+            .orderBy(
+              'orderDate',
+              descending: true,
+            ) // 👈 orden por fecha, de más reciente a más antigua
+            .get();
     return querySnapshot.docs
         .map((doc) => OrderModel.fromJson(doc.data()).toEntity())
         .toList();
