@@ -6,12 +6,15 @@ import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
 import 'package:ordena_ya/presentation/pages/OrderSetupScreen.dart';
 import 'package:ordena_ya/presentation/providers/OrderSetupProvider.dart';
 import 'package:ordena_ya/presentation/providers/ToggleButtonProvider.dart';
+import 'package:ordena_ya/presentation/widgets/AdjustValue.dart';
+import 'package:ordena_ya/presentation/widgets/BadgeContainer.dart';
 import 'package:ordena_ya/presentation/widgets/CustomButton.dart';
 import 'package:ordena_ya/presentation/widgets/CustomDropDown.dart';
 import 'package:ordena_ya/presentation/widgets/IconActionButton.dart';
 import 'package:ordena_ya/presentation/widgets/LabelValueColumn.dart';
 import 'package:ordena_ya/presentation/widgets/LabelValueRow.dart';
 import 'package:ordena_ya/presentation/widgets/OrderProduct.dart';
+import 'package:ordena_ya/presentation/widgets/SelectableCard.dart';
 import 'package:provider/provider.dart';
 
 class NewOrder extends StatelessWidget {
@@ -32,275 +35,100 @@ class NewOrder extends StatelessWidget {
     }
   }
 
+  final List<Color> _pageColors = [
+    Colors.blue,
+    Colors.green,
+    Colors.orange,
+    Colors.purple,
+  ];
+
+  final PageController _pageController = PageController();
+
+  final List<String> _pageTitles = [
+    'Página 1',
+    'Página 2',
+    'Página 3',
+    'Página 4',
+  ];
+
   @override
   Widget build(BuildContext context) {
     final cart = Provider.of<OrderSetupProvider>(context);
     final step = cart.discountStep;
     return Scaffold(
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            ChangeNotifierProvider(
-              create: (_) => ToggleButtonProvider(),
-              child: Consumer<ToggleButtonProvider>(
-                builder: (context, toggleProvider, child) {
-                  final currentColor =
-                      toggleProvider.isPressed
-                          ? Functions.getPressedColor(AppColors.subButton)
-                          : AppColors.subButton;
+      body: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              AdjustValue(label: 'Mesa:'),
+              AdjustValue(label: 'Personas:'),
+            ],
+          ),
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 10,
-                    ),
-                    child: GestureDetector(
-                      onTap: () {
-                        Functions.navigateWithSlideUp(
-                          context,
-                          OrderSetupScreen(),
-                        );
-                      },
-                      onTapDown: (_) => toggleProvider.setPressed(true),
-                      onTapUp: (_) => toggleProvider.setPressed(false),
-                      onTapCancel: () => toggleProvider.setPressed(false),
-                      child: Container(
-                        height: 150,
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: currentColor,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                LabelValueColumn(
-                                  title: 'Entrega', // Para el tipo de entrega
-                                  value:
-                                      cart.deliveryType == 0
-                                          ? 'Recoger en tienda'
-                                          : deliveryTypeToString(
-                                            cart.deliveryType,
-                                          ),
-                                ),
+          SizedBox(height: 10),
 
-                                SizedBox(height: 10),
-
-                                LabelValueColumn(
-                                  title: 'Mesa', // Para la mesa seleccionada
-                                  value: cart.selectedTable,
-                                ),
-                              ],
-                            ),
-
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
-                              children: [
-                                LabelValueColumn(
-                                  title:
-                                      'Personas', // Para cantidad de personas
-                                  value: cart.selectedPeople,
-                                ),
-
-                                SizedBox(height: 10),
-
-                                LabelValueColumn(
-                                  title: 'Cliente', // Para cliente seleccionado
-                                  value:
-                                      cart.selectedClient.isNotEmpty
-                                          ? cart.selectedClient
-                                          : 'Sin cliente',
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              SelectableCard(
+                icon: HugeIcons.strokeRoundedHome07,
+                title: 'Mesa',
               ),
-            ),
-
-            SizedBox(
-              height: 300,
-              child: Consumer<OrderSetupProvider>(
-                builder: (context, cart, _) {
-                  final products = cart.cartItems;
-
-                  if (products.isEmpty) {
-                    return Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        HugeIcon(
-                          icon: HugeIcons.strokeRoundedPackage,
-                          size: 50,
-                          color: AppColors.text,
-                        ),
-
-                        Text(
-                          'No hay productos en el pedido',
-                          style: TextStyle(fontSize: 16, color: AppColors.text),
-                        ),
-                      ],
-                    );
-                  }
-
-                  return ListView.builder(
-                    itemCount: products.length,
-                    itemBuilder: (context, index) {
-                      return OrderProduct(
-                        product: products[index],
-                        index: index,
-                      );
-                    },
-                  );
-                },
+              SelectableCard(
+                icon: HugeIcons.strokeRoundedDeliveryTruck01,
+                title: 'Domicilio',
               ),
-            ),
-
-            const SizedBox(height: 10),
-
-            if (step == 0) ...[
-              // Encabezado
-              CustomButton(
-                label: 'Agregar descuento',
-                baseColor: AppColors.subButton,
-                onTap: () {
-                  if (cart.cartItems.isEmpty) {
-                    Functions.showErrorSnackBar(
-                      context,
-                      'No hay productos en el pedido',
-                    );
-                    return;
-                  }
-                  cart.discountStep = 1;
-                },
-              ),
-            ] else if (step == 1) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  SizedBox(
-                    width: 150,
-                    child: CustomDropdown(
-                      options: [
-                        '5%',
-                        '10%',
-                        '20%',
-                        '30%',
-                        '40%',
-                        '50%',
-                        '60%',
-                        '70%',
-                        '80%',
-                        '90%',
-                        '100%',
-                      ],
-                      selectedValue: cart.selectedDiscount,
-                      label: 'Descuento',
-                      onChanged: (value) {
-                        if (value != null) cart.selectedDiscount = value;
-                      },
-                    ),
-                  ),
-
-                  IconActionButton(
-                    icon: HugeIcons.strokeRoundedDelete02,
-                    onPressed: () {
-                      cart.discountStep = 0;
-                      cart.selectedDiscount = 'N/A';
-                    },
-                    color: Colors.red,
-                  ),
-                ],
+              SelectableCard(
+                icon: HugeIcons.strokeRoundedPackage,
+                title: 'Para llevar',
               ),
             ],
+          ),
 
-            const SizedBox(height: 20),
+          SizedBox(height: 15),
 
-            LabelValueRow(
-              label: 'Artículos',
-              value: cart.totalItems.toString(),
-              valueStyle: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.normal,
-                color: AppColors.text,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              BadgeContainer(
+                title: 'Productos',
+                showBadge: true,
+                badgeCount: 26,
               ),
-            ),
-            LabelValueRow(
-              label: 'Subtotal',
-              value:
-                  cart.subtotal == 0
-                      ? '0.00'
-                      : Functions.formatCurrency(cart.subtotal),
-
-              valueStyle: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.normal,
-                color: AppColors.text,
+              BadgeContainer(
+                title: 'Carrito',
+                showBadge: true,
+                badgeCount: 26,
               ),
-            ),
-
-            LabelValueRow(label: 'Impuesto al consumo', value: '(8%)'),
-
-            if (cart.selectedDiscount != 'N/A')
-              LabelValueRow(
-                label: 'Descuento aplicado',
-                value: cart.selectedDiscount,
+              BadgeContainer(
+                title: 'Pedidos',
+                showBadge: true,
+                badgeCount: 26,
               ),
-            
-            LabelValueRow(
-              label: 'Total',
-              value: Functions.formatCurrency(cart.total),
+            ],
+          ),
+
+          SizedBox(height: 15),
+
+          Expanded(
+            child: PageView.builder(
+              controller: _pageController,
+              itemCount: 3,
+              itemBuilder: (context, index) {
+                return Container(
+                  color: _pageColors[index],
+                  child: Center(
+                    child: Text(
+                      _pageTitles[index],
+                      style: TextStyle(fontSize: 24, color: Colors.white),
+                    ),
+                  ),
+                );
+              },
             ),
-
-            const SizedBox(height: 20),
-
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                CustomButton(
-                  label: 'Cuenta',
-                  baseColor: AppColors.primaryButton,
-                  onTap: () {},
-                ),
-
-                CustomButton(
-                  label: 'Factura y pago',
-                  baseColor: AppColors.subButton,
-                  onTap: () {
-                    cart.createOrder(context);
-                  },
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 10),
-
-            CustomButton(
-              label: 'Facturar e imprimir recibo',
-              baseColor: AppColors.tertiaryButton,
-              onTap: () {},
-            ),
-
-            const SizedBox(height: 10),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Functions.navigateWithSlideUp(context, MenuScreen());
-        },
-        tooltip: 'Agregar producto',
-        backgroundColor: AppColors.primaryButton,
-        child: const HugeIcon(
-          icon: HugeIcons.strokeRoundedPackageAdd,
-          color: Colors.black,
-        ),
+          ),
+        ],
       ),
     );
   }

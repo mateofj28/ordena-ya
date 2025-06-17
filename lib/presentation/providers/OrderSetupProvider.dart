@@ -30,6 +30,12 @@ class OrderSetupProvider with ChangeNotifier {
   int _clienteStep = 0;
   int _discountStep = 0;
 
+  // nuevo estado
+  // Mapa de los títulos seleccionados
+  final Map<String, bool> _selectedItems = {};
+
+
+
   // State
   final List<Map<String, dynamic>> _cartItems = [];
   int _selectedTabIndex = 0;
@@ -111,6 +117,11 @@ class OrderSetupProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  bool isSelected(String title) {
+    return _selectedItems[title] ?? false;
+  }
+
+
   set selectedDiscount(String value) {
     _selectedDiscount = value;
     _discount = _discountTypeMap[value]!;
@@ -146,6 +157,12 @@ class OrderSetupProvider with ChangeNotifier {
   bool validateForm() {
     return formKey.currentState?.validate() ?? false;
   }
+
+  void toggleSelection(String title) {
+    _selectedItems[title] = !_selectedItems[title]!;
+    notifyListeners(); // Notifica a los widgets que escuchan este modelo
+  }
+
 
   void saveForm(BuildContext context) async {
     formKey.currentState?.save();
