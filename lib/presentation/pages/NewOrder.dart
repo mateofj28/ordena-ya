@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:ordena_ya/core/constants/AppColors.dart';
 import 'package:ordena_ya/core/constants/utils/Functions.dart';
+import 'package:ordena_ya/presentation/pages/CartScreen.dart';
 import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
 import 'package:ordena_ya/presentation/pages/OrderSetupScreen.dart';
+import 'package:ordena_ya/presentation/pages/OrdersScreen.dart';
+import 'package:ordena_ya/presentation/pages/ProductsScreen.dart';
 import 'package:ordena_ya/presentation/providers/OrderSetupProvider.dart';
 import 'package:ordena_ya/presentation/providers/ToggleButtonProvider.dart';
 import 'package:ordena_ya/presentation/widgets/AdjustValue.dart';
@@ -44,25 +47,45 @@ class NewOrder extends StatelessWidget {
 
   final PageController _pageController = PageController();
 
-  final List<String> _pageTitles = [
-    'Página 1',
-    'Página 2',
-    'Página 3',
-    'Página 4',
+  final List _pages = [
+    ProductsScreen(),
+    CartScreen(),
+    OrdersScreen()
   ];
+
+  final List<Map<String, dynamic>> options = [
+    {"icon": HugeIcons.strokeRoundedHome07, "label": 'Mesa'},
+    {"icon": HugeIcons.strokeRoundedDeliveryTruck01, "label": 'Domicilio'},
+    {"icon": HugeIcons.strokeRoundedPackage, "label": 'Para llevar'},
+  ];
+
+  final List<String> titles = ['Productos', 'Carrito', 'Pedidos'];
 
   @override
   Widget build(BuildContext context) {
-    final cart = Provider.of<OrderSetupProvider>(context);
-    final step = cart.discountStep;
+    final provider = Provider.of<OrderSetupProvider>(context);
+    final selectedIndex = provider.selectedIndex;
+    final tableIndex = provider.tableIndex;
+    final peopleIndex = provider.peopleCount;
+    final step = provider.discountStep;
     return Scaffold(
       body: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              AdjustValue(label: 'Mesa:'),
-              AdjustValue(label: 'Personas:'),
+              AdjustValue(
+                label: 'Mesa:',
+                index: tableIndex,
+                increase: () => provider.increaseTable(),
+                decrease: () => provider.decreaseTable(),
+              ),
+              AdjustValue(
+                label: 'Personas:',
+                index: peopleIndex,
+                increase: () => provider.increasePeople(),
+                decrease: () => provider.decreasePeople(),
+              ),
             ],
           ),
 
@@ -70,43 +93,36 @@ class NewOrder extends StatelessWidget {
 
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              SelectableCard(
-                icon: HugeIcons.strokeRoundedHome07,
-                title: 'Mesa',
-              ),
-              SelectableCard(
-                icon: HugeIcons.strokeRoundedDeliveryTruck01,
-                title: 'Domicilio',
-              ),
-              SelectableCard(
-                icon: HugeIcons.strokeRoundedPackage,
-                title: 'Para llevar',
-              ),
-            ],
+            children: List.generate(options.length, (index) {
+              final isSelected = selectedIndex == index;
+
+              return SelectableCard(
+                icon: options[index]['icon'],
+                title: options[index]['label'],
+                index: index,
+                isSelected: isSelected,
+              );
+            }),
           ),
 
           SizedBox(height: 15),
 
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              BadgeContainer(
-                title: 'Productos',
-                showBadge: true,
-                badgeCount: 26,
-              ),
-              BadgeContainer(
-                title: 'Carrito',
-                showBadge: true,
-                badgeCount: 26,
-              ),
-              BadgeContainer(
-                title: 'Pedidos',
-                showBadge: true,
-                badgeCount: 26,
-              ),
-            ],
+            children: List.generate(titles.length, (index) {
+              return BadgeContainer(
+                title: titles[index],
+                isSelected: provider.currentIndex == index,
+                onTap: () {
+                  provider.updateIndex(index);
+                  _pageController.animateToPage(
+                    index,
+                    duration: Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+              );
+            }),
           ),
 
           SizedBox(height: 15),
@@ -114,17 +130,12 @@ class NewOrder extends StatelessWidget {
           Expanded(
             child: PageView.builder(
               controller: _pageController,
-              itemCount: 3,
+              itemCount: titles.length,
               itemBuilder: (context, index) {
-                return Container(
-                  color: _pageColors[index],
-                  child: Center(
-                    child: Text(
-                      _pageTitles[index],
-                      style: TextStyle(fontSize: 24, color: Colors.white),
-                    ),
-                  ),
-                );
+                return _pages[index];
+              },
+              onPageChanged: (index) {
+                provider.updateIndex(index);
               },
             ),
           ),

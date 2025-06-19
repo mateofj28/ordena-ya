@@ -32,9 +32,11 @@ class OrderSetupProvider with ChangeNotifier {
 
   // nuevo estado
   // Mapa de los títulos seleccionados
-  final Map<String, bool> _selectedItems = {};
-
-
+  int _selectedIndex = -1;
+  int _currentIndex = 0;
+  int _currentMenu = 0;
+  int _tableIndex = 1; // M1, M2, ...
+  int _peopleCount = 1;
 
   // State
   final List<Map<String, dynamic>> _cartItems = [];
@@ -82,6 +84,9 @@ class OrderSetupProvider with ChangeNotifier {
   String get selectedPeople => _selectedPeople;
   String get selectedClient => _selectedClient;
   bool get isLoadingAllOrders => _isLoadingAllOrders;
+  int get currentMenu => _currentMenu;
+  int get tableIndex => _tableIndex;
+  int get peopleCount => _peopleCount;
   List<Order> get orders => _orders;
   int get deliveryType => _deliveryType;
   int get totalItems {
@@ -106,6 +111,9 @@ class OrderSetupProvider with ChangeNotifier {
 
   int get clienteStep => _clienteStep;
   int get discountStep => _discountStep;
+  int get selectedIndex => _selectedIndex;
+  int get currentIndex => _currentIndex;
+
 
   set clienteStep(int step) {
     _clienteStep = step;
@@ -117,14 +125,24 @@ class OrderSetupProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  bool isSelected(String title) {
-    return _selectedItems[title] ?? false;
+  void select(int index) {
+    _selectedIndex = index;
+    notifyListeners();
   }
-
 
   set selectedDiscount(String value) {
     _selectedDiscount = value;
     _discount = _discountTypeMap[value]!;
+    notifyListeners();
+  }
+
+  void updateIndex(int index) {
+    _currentIndex = index;
+    notifyListeners();
+  }
+
+  void updateMenu(int index){
+    _currentMenu = index;
     notifyListeners();
   }
 
@@ -158,10 +176,30 @@ class OrderSetupProvider with ChangeNotifier {
     return formKey.currentState?.validate() ?? false;
   }
 
-  void toggleSelection(String title) {
-    _selectedItems[title] = !_selectedItems[title]!;
-    notifyListeners(); // Notifica a los widgets que escuchan este modelo
+  void increaseTable() {
+    _tableIndex++;
+    notifyListeners();
   }
+
+  void decreaseTable() {
+    if (_tableIndex > 1) {
+      _tableIndex--;
+      notifyListeners();
+    }
+  }
+
+  void increasePeople() {
+    _peopleCount++;
+    notifyListeners();
+  }
+
+  void decreasePeople() {
+    if (_peopleCount > 1) {
+      _peopleCount--;
+      notifyListeners();
+    }
+  }
+
 
 
   void saveForm(BuildContext context) async {
