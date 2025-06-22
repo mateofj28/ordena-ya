@@ -15,7 +15,6 @@ import 'package:provider/provider.dart';
 import 'domain/usecases/create_order.dart';
 
 import 'package:firebase_core/firebase_core.dart'; // <-- Esto también falta
-// Asegúrate de tener el archivo firebase_options.dart si usas FlutterFire CLI
 import 'firebase_options.dart';
 
 void main() async {

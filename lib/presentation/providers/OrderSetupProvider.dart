@@ -37,9 +37,16 @@ class OrderSetupProvider with ChangeNotifier {
   int _currentMenu = 0;
   int _tableIndex = 1; // M1, M2, ...
   int _peopleCount = 1;
+  int _productCount = 1;
 
   // State
-  final List<Map<String, dynamic>> _cartItems = [];
+  final List<Map<String, dynamic>> _cartItems = [
+    {'id': '1', 'name': 'Pizza Margherita', 'quantity': 2, 'price': 8.50},
+    {'id': '2', 'name': 'Ensalada César', 'quantity': 1, 'price': 6.99},
+    {'id': '3', 'name': 'Spaghetti Bolognese', 'quantity': 3, 'price': 10.25},
+    {'id': '4', 'name': 'Agua Mineral', 'quantity': 4, 'price': 1.50},
+    {'id': '5', 'name': 'Tiramisú', 'quantity': 2, 'price': 4.75},
+  ];
   int _selectedTabIndex = 0;
   double _discount = 0.0;
   String _selectedTable = 'N/A';
@@ -87,6 +94,7 @@ class OrderSetupProvider with ChangeNotifier {
   int get currentMenu => _currentMenu;
   int get tableIndex => _tableIndex;
   int get peopleCount => _peopleCount;
+  int get productCount => _productCount;
   List<Order> get orders => _orders;
   int get deliveryType => _deliveryType;
   int get totalItems {
@@ -114,7 +122,6 @@ class OrderSetupProvider with ChangeNotifier {
   int get selectedIndex => _selectedIndex;
   int get currentIndex => _currentIndex;
 
-
   set clienteStep(int step) {
     _clienteStep = step;
     notifyListeners();
@@ -141,7 +148,7 @@ class OrderSetupProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void updateMenu(int index){
+  void updateMenu(int index) {
     _currentMenu = index;
     notifyListeners();
   }
@@ -152,8 +159,8 @@ class OrderSetupProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void updateSelectedPeople(String people) {
-    _selectedPeople = people;
+  void updateProductCount(int index) {
+    _productCount = index;
     notifyListeners();
   }
 
@@ -188,6 +195,18 @@ class OrderSetupProvider with ChangeNotifier {
     }
   }
 
+  void increaseProduct() {
+    _productCount++;
+    notifyListeners();
+  }
+
+  void decreaseProduct() {
+    if (_productCount > 1) {
+      _productCount--;
+      notifyListeners();
+    }
+  }
+
   void increasePeople() {
     _peopleCount++;
     notifyListeners();
@@ -199,8 +218,6 @@ class OrderSetupProvider with ChangeNotifier {
       notifyListeners();
     }
   }
-
-
 
   void saveForm(BuildContext context) async {
     formKey.currentState?.save();

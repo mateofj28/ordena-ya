@@ -5,7 +5,6 @@ import 'package:ordena_ya/presentation/content/BuildClientSearch.dart';
 import 'package:ordena_ya/presentation/content/BuildClientSummary.dart';
 
 import 'package:ordena_ya/presentation/providers/OrderSetupProvider.dart';
-import 'package:ordena_ya/presentation/widgets/CustomDropDown.dart';
 
 import 'package:ordena_ya/presentation/widgets/IconSubtitle.dart';
 import 'package:ordena_ya/presentation/widgets/LabeledRadioOption.dart';
@@ -92,34 +91,13 @@ class OrderSetupScreen extends StatelessWidget {
 
                   Text('Mesa', style: labelStyle),
                   const SizedBox(height: 8),
-                  CustomDropdown(
-                    options: [
-                      'Mesa 1',
-                      'Mesa 2',
-                      'Mesa 3',
-                      'Mesa 4',
-                      'Mesa 5',
-                      'Mesa 6',
-                    ],
-                    selectedValue: provider.selectedTable,
-                    label: 'Mesa',
-                    onChanged: (value) {
-                      if (value != null) provider.updateSelectedTable(value);
-                    },
-                  ),
+
 
                   const SizedBox(height: 20),
 
                   Text('Cantidad de personas', style: labelStyle),
                   const SizedBox(height: 8),
-                  CustomDropdown(
-                    options: ['1', '2', '3', '4', '5', '6'],
-                    selectedValue: provider.selectedPeople,
-                    label: 'Personas',
-                    onChanged: (value) {
-                      if (value != null) provider.updateSelectedPeople(value);
-                    },
-                  ),
+
 
                   const SizedBox(height: 24),
                   // Aquí iría la tabla o detalle del pedido

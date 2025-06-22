@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:ordena_ya/presentation/widgets/CircleIconLabel.dart';
+import 'package:ordena_ya/presentation/widgets/ProductModal.dart';
 import 'package:provider/provider.dart';
 
 import '../providers/OrderSetupProvider.dart';
@@ -39,7 +40,6 @@ class ProductsScreen extends StatelessWidget {
       "time": "5 min",
       "category": "Postres",
     },
-    // Agrega más productos con su categoría...
   ];
 
   List<Map<String, dynamic>> getFilteredProducts(int selectedIndex) {
@@ -83,7 +83,20 @@ class ProductsScreen extends StatelessWidget {
                     price: product['price'],
                     estimatedTime: product['time'],
                     onAdd: () {
-                      // Lógica para agregar al carrito
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return ProductModal(
+                            productImage:
+                                'https://wallpaperaccess.com/full/7672780.jpg',
+                            productName: 'Pizza Margherita',
+                            description:
+                                'Deliciosa pizza con salsa de tomate fresca, mozzarella de búfala, albahaca fresca y aceite de oliva extra virgen.',
+                            price: 15.99,
+                            preparationTime: '15-20 min',
+                          );
+                        },
+                      );
                     },
                   );
                 },
