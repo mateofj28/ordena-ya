@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:ordena_ya/core/constants/AppColors.dart';
 import 'package:provider/provider.dart';
-
 import '../providers/OrderSetupProvider.dart';
 
 class AdjustValue extends StatelessWidget {
@@ -31,7 +31,7 @@ class AdjustValue extends StatelessWidget {
           height: 50,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
-            color: Colors.grey[300],
+            color: AppColors.lightGray,
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,

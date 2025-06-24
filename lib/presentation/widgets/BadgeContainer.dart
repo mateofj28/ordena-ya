@@ -9,7 +9,7 @@ class BadgeContainer extends StatelessWidget {
   final Function() onTap;
 
   // Constructor
-  BadgeContainer({
+  const BadgeContainer({super.key,
     required this.title,
     this.showBadge = false, // Por defecto no mostrar el badge
     this.badgeCount = 0,
@@ -20,14 +20,14 @@ class BadgeContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    final color = isSelected ? AppColors.primaryButton : Colors.grey[300];
+    final color = isSelected ? AppColors.redPrimary : Colors.grey[300];
 
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: color,
+          color: Colors.white,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Stack(
@@ -35,7 +35,7 @@ class BadgeContainer extends StatelessWidget {
             // Texto principal (por ejemplo, "Productos")
             Text(
               title,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
             ),
             // Si se debe mostrar el badge, lo agregamos en la esquina superior derecha
             if (showBadge && badgeCount > 0)

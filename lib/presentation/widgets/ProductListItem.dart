@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:ordena_ya/core/constants/utils/Functions.dart';
+
+import '../../core/constants/AppColors.dart';
 
 class ProductListItem extends StatelessWidget {
   final String imageUrl;
   final String title;
-  final String price;
+  final double price;
   final String estimatedTime;
   final VoidCallback onAdd;
 
@@ -68,8 +72,8 @@ class ProductListItem extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  price,
-                  style: const TextStyle(fontSize: 14, color: Colors.green),
+                  Functions.formatCurrency(price),
+                  style: const TextStyle(fontSize: 14, color: AppColors.redPrimary, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -83,9 +87,10 @@ class ProductListItem extends StatelessWidget {
                       onPressed: onAdd,
                       style: ElevatedButton.styleFrom(
                         shape: const CircleBorder(),
+                        backgroundColor: AppColors.redPrimary,
                         padding: const EdgeInsets.all(8),
                       ),
-                      child: const Icon(Icons.add),
+                      child: const Icon(HugeIcons.strokeRoundedAdd01, size: 25, color: Colors.white,),
                     ),
                   ],
                 ),

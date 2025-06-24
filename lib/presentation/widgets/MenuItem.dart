@@ -23,7 +23,7 @@ class MenuItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isSelected = index == selectedIndex;
-    final color = isSelected ? AppColors.primaryButtonText : Colors.grey;
+    final color = isSelected ? AppColors.redTotal : Colors.grey;
     final fontWeight = isSelected ? FontWeight.bold : FontWeight.normal;
 
     return GestureDetector(

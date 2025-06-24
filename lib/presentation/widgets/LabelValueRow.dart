@@ -24,8 +24,18 @@ class LabelValueRow extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: labelStyle ?? const TextStyle(fontSize: 16, color: AppColors.text)),
-          Text(value, style: valueStyle ?? const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text(
+            label,
+            style:
+                labelStyle ??
+                const TextStyle(fontSize: 16, color: AppColors.textPrimary),
+          ),
+          Text(
+            value,
+            style:
+                valueStyle ??
+                const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
         ],
       ),
     );

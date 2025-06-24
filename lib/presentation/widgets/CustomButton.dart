@@ -8,12 +8,15 @@ import 'package:provider/provider.dart';
 class CustomButton extends StatelessWidget {
   final String label;
   final Color baseColor;
+  final Color textColor;
+
   final VoidCallback onTap;
 
   const CustomButton({
     super.key,
     required this.label,
     required this.baseColor,
+    required this.textColor,
     required this.onTap,
   });
 
@@ -38,15 +41,15 @@ class CustomButton extends StatelessWidget {
             onTapCancel: () => toggleProvider.setPressed(false),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 100),
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 77, vertical: 12),
               decoration: BoxDecoration(
                 color: currentColor,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 label,
-                style: const TextStyle(
-                  color: Colors.black,
+                style: TextStyle(
+                  color: textColor,
                   fontWeight: FontWeight.bold,
                 ),
               ),

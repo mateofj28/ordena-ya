@@ -53,7 +53,7 @@ class MenuScreen extends StatelessWidget {
                 },
                 label: Text('${orderProvider.cartItems.length}'),
                 icon: const Icon(Icons.shopping_cart),
-                backgroundColor: AppColors.primaryButton,
+                backgroundColor: AppColors.redPrimary,
               ),
             ),
           );
@@ -86,7 +86,7 @@ class ConsumerTabBar extends StatelessWidget {
         indicator: UnderlineTabIndicator(
           borderSide: BorderSide(
             width: 3.0,
-            color: AppColors.primaryButtonText,
+            color: AppColors.redPrimary,
           ),
           insets: EdgeInsets.symmetric(horizontal: 16.0),
         ), // necesitarías definirla,
@@ -94,7 +94,7 @@ class ConsumerTabBar extends StatelessWidget {
         indicatorSize: TabBarIndicatorSize.label,
         labelPadding: const EdgeInsets.symmetric(horizontal: 16),
         overlayColor: MaterialStateProperty.all(Colors.transparent),
-        labelColor: AppColors.primaryButtonText,
+        labelColor: AppColors.redPrimary,
         unselectedLabelColor: Colors.grey,
       ),
     );

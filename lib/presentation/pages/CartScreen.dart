@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
+
+import '../../core/constants/AppColors.dart';
+import '../../core/constants/utils/Functions.dart';
 import '../providers/OrderSetupProvider.dart';
 import '../widgets/CartProduct.dart';
+import '../widgets/CustomButton.dart';
 import '../widgets/LabelValueRow.dart';
 
 class CartScreen extends StatelessWidget {
@@ -12,7 +16,12 @@ class CartScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = Provider.of<OrderSetupProvider>(context);
 
+    int table = provider.tableIndex;
+    int people = provider.peopleCount;
+    double total = provider.total;
+
     return Scaffold(
+      backgroundColor: AppColors.lightGray,
       body: provider.cartItems.isEmpty
           ? const EmptyCartView()
           : Padding(
@@ -28,7 +37,7 @@ class CartScreen extends StatelessWidget {
                 fontSize: 20,
               ),
             ),
-            const Text('Mesa: 1 · 1 persona'),
+            Text('Mesa: $table · $people persona'),
             const SizedBox(height: 10),
 
             // 🧾 Lista de items del carrito
@@ -44,11 +53,20 @@ class CartScreen extends StatelessWidget {
                 },
               ),
             ),
-
             const SizedBox(height: 5),
             LabelValueRow(
               label: 'Total',
-              value: '34.000',
+              labelStyle: TextStyle(
+                fontSize: 16,
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
+              value: Functions.formatCurrency(total),
+              valueStyle: TextStyle(
+                fontSize: 20,
+                color: AppColors.redPrimary,
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 5),
           ],
@@ -66,12 +84,12 @@ class EmptyCartView extends StatelessWidget {
     final provider = Provider.of<OrderSetupProvider>(context, listen: false);
 
     return Column(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Icon(
           HugeIcons.strokeRoundedShoppingCartRemove02,
           size: 80,
-          color: Colors.grey[600],
+          color: Colors.white,
         ),
         const SizedBox(height: 16),
         const Text(
@@ -91,24 +109,14 @@ class EmptyCartView extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
-        ElevatedButton(
-          onPressed: () {
-            provider.updateIndex(0); // Redirige a la pestaña de productos
+        CustomButton(
+          label: 'Ir a Productos',
+          baseColor: AppColors.redPrimary,
+          textColor: Colors.white,
+          onTap: () {
+            provider.updateMenu(1);
           },
-          style: ElevatedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 32,
-              vertical: 12,
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          child: const Text(
-            'Ver productos',
-            style: TextStyle(fontSize: 16),
-          ),
-        ),
+        )
       ],
     );
   }

@@ -4,6 +4,7 @@ import 'package:ordena_ya/presentation/widgets/CircleIconLabel.dart';
 import 'package:ordena_ya/presentation/widgets/ProductModal.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/constants/AppColors.dart';
 import '../providers/OrderSetupProvider.dart';
 import '../widgets/ProductListItem.dart';
 
@@ -22,21 +23,21 @@ class ProductsScreen extends StatelessWidget {
     {
       "imageUrl": "https://wallpaperaccess.com/full/767277.jpg",
       "title": "Hamburguesa",
-      "price": "\$25.000",
+      "price": 25000.0,
       "time": "15 min",
       "category": "Platos",
     },
     {
       "imageUrl": "https://wallpaperaccess.com/full/767278.jpg",
       "title": "Gaseosa",
-      "price": "\$5.000",
+      "price": 5000.0,
       "time": "1 min",
       "category": "Bebidas",
     },
     {
       "imageUrl": "https://wallpaperaccess.com/full/767279.jpg",
       "title": "Helado",
-      "price": "\$8.000",
+      "price": 8000.0,
       "time": "5 min",
       "category": "Postres",
     },
@@ -72,6 +73,7 @@ class ProductsScreen extends StatelessWidget {
           ),
           Expanded(
             child: Container(
+              color: AppColors.lightGray,
               padding: EdgeInsets.all(8),
               child: ListView.builder(
                 itemCount: filteredProducts.length,
@@ -87,13 +89,11 @@ class ProductsScreen extends StatelessWidget {
                         context: context,
                         builder: (BuildContext context) {
                           return ProductModal(
-                            productImage:
-                                'https://wallpaperaccess.com/full/7672780.jpg',
-                            productName: 'Pizza Margherita',
-                            description:
-                                'Deliciosa pizza con salsa de tomate fresca, mozzarella de búfala, albahaca fresca y aceite de oliva extra virgen.',
-                            price: 15.99,
-                            preparationTime: '15-20 min',
+                            productImage: product['imageUrl'],
+                            productName: product['title'],
+                            description: 'Deliciosa pizza con salsa de tomate fresca, mozzarella de búfala, albahaca fresca y aceite de oliva extra virgen.',
+                            price: product['price'],
+                            preparationTime: product['time'],
                           );
                         },
                       );

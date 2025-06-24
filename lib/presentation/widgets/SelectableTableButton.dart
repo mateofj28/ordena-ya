@@ -19,7 +19,7 @@ class SelectableTableButton extends StatelessWidget {
       child: AnimatedContainer(
         duration: Duration(milliseconds: 200),
         decoration: BoxDecoration(
-          color: isSelected ? AppColors.primaryButton : Colors.grey[300],
+          color: isSelected ? AppColors.redTotal : Colors.grey[300],
           borderRadius: BorderRadius.circular(12),
           
         ),

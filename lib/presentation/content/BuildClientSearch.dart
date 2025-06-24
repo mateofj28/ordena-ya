@@ -30,7 +30,8 @@ class BuildClientSearch extends StatelessWidget {
 
         CustomButton(
           label: 'Agregar cliente',
-          baseColor: AppColors.primaryButton,
+          baseColor: AppColors.redPrimary,
+          textColor: Colors.white,
           onTap: () {
             provider.clienteStep = 1;
           },

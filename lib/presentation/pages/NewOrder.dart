@@ -11,7 +11,7 @@ import 'package:ordena_ya/presentation/widgets/SelectableCard.dart';
 import 'package:provider/provider.dart';
 
 class NewOrder extends StatelessWidget {
-  NewOrder({required this.product});
+  NewOrder({super.key, required this.product});
 
   final Product product;
 
@@ -61,22 +61,26 @@ class NewOrder extends StatelessWidget {
     return Scaffold(
       body: Column(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              AdjustValue(
-                label: 'Mesa:',
-                index: tableIndex,
-                increase: () => provider.increaseTable(),
-                decrease: () => provider.decreaseTable(),
-              ),
-              AdjustValue(
-                label: 'Personas:',
-                index: peopleIndex,
-                increase: () => provider.increasePeople(),
-                decrease: () => provider.decreasePeople(),
-              ),
-            ],
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+
+                AdjustValue(
+                  label: 'Mesa',
+                  index: tableIndex,
+                  increase: () => provider.increaseTable(),
+                  decrease: () => provider.decreaseTable(),
+                ),
+                AdjustValue(
+                  label: 'Personas',
+                  index: peopleIndex,
+                  increase: () => provider.increasePeople(),
+                  decrease: () => provider.decreasePeople(),
+                ),
+              ],
+            ),
           ),
 
           SizedBox(height: 10),
@@ -115,7 +119,6 @@ class NewOrder extends StatelessWidget {
             }),
           ),
 
-          SizedBox(height: 15),
 
           Expanded(
             child: PageView.builder(

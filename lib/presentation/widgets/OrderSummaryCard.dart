@@ -27,7 +27,7 @@ class OrderSummaryCard extends StatelessWidget {
     required this.status,
     required this.total,
     this.headerColor = const Color(0xFFBBDEFB), // Azul claro por defecto
-    this.backgroundColor = AppColors.subButton,
+    this.backgroundColor = AppColors.yellowStatus,
     this.titleStyle,
     this.totalStyle,
   }) : super(key: key);

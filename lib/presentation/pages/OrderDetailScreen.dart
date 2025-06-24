@@ -22,7 +22,7 @@ class OrderDetailScreen extends StatelessWidget {
     final provider = Provider.of<OrderSetupProvider>(context);
     var items = provider.cartItems;
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.whiteBackground,
       appBar: AppBar(title: Text("Detalle del pedido"), centerTitle: true),
       body: Column(
         children: [
@@ -34,7 +34,7 @@ class OrderDetailScreen extends StatelessWidget {
               height: 100,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
-                color: AppColors.primaryButtonText,
+                color: AppColors.textPrimary,
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -110,7 +110,7 @@ class OrderDetailScreen extends StatelessWidget {
             valueStyle: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: AppColors.tertiaryButtonText,
+              color: AppColors.redTotal,
             ),
           ),
       
@@ -118,9 +118,11 @@ class OrderDetailScreen extends StatelessWidget {
       
           CustomButton(
             label: "Enviar a caja",
+            textColor: Colors.white,
+
             baseColor:
                 AppColors
-                    .primaryButtonText, // oscuro → se aclarará al presionar
+                    .redTotal, // oscuro → se aclarará al presionar
             onTap: () {},
           ),
       

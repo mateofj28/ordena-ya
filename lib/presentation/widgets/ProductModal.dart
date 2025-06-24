@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:ordena_ya/core/constants/utils/Functions.dart';
+import 'package:ordena_ya/presentation/widgets/CustomButton.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/constants/AppColors.dart';
 import '../providers/OrderSetupProvider.dart';
 import 'AdjustValue.dart';
 
@@ -24,6 +27,7 @@ class ProductModal extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = Provider.of<OrderSetupProvider>(context);
     return Dialog(
+      backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       child: Container(
         constraints: BoxConstraints(
@@ -52,19 +56,26 @@ class ProductModal extends StatelessWidget {
                   ),
 
                   Container(
-                    width: 32,
-                    height: 32,
+                    width: 30, // ancho del círculo
+                    height: 30, // alto del círculo
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.grey[200],
+                      color: Colors.white,
                       border: Border.all(color: Colors.black),
                     ),
-                    child: Center(
-                      child: IconButton(
-                        onPressed: () => Navigator.of(context).pop(),
-                        icon: const Icon(Icons.close, size: 15),
-                        color: Colors.black,
+                    child: IconButton(
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      splashRadius: 20,
+                      onPressed: () => {
+                        Navigator.of(context).pop(),
+                        provider.updateProductCount(1)
+                      },
+                      icon: const Icon(
+                        Icons.close,
+                        size: 20, // tamaño más pequeño
                       ),
+                      color: Colors.black,
                     ),
                   ),
                 ],
@@ -109,11 +120,11 @@ class ProductModal extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '\$${price.toStringAsFixed(2)}',
+                      Functions.formatCurrency(price),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.green[700],
+                        color: AppColors.redPrimary,
                       ),
                     ),
 
@@ -121,18 +132,14 @@ class ProductModal extends StatelessWidget {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          Icons.access_time,
-                          color: Colors.orange[700],
-                          size: 20,
-                        ),
+                        Icon(Icons.access_time, color: Colors.black, size: 20),
                         const SizedBox(width: 8),
                         Text(
                           preparationTime,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
-                            color: Colors.orange[700],
+                            color: Colors.black,
                           ),
                         ),
                       ],
@@ -171,7 +178,7 @@ class ProductModal extends StatelessWidget {
                         width: double.infinity,
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(8),
-                          color: Colors.grey[300],
+                          color: AppColors.lightGray,
                         ),
                         padding: EdgeInsets.symmetric(horizontal: 12),
                         child: TextField(
@@ -190,33 +197,26 @@ class ProductModal extends StatelessWidget {
 
               // Botones de acción
               Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  children: [
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Aquí puedes agregar la lógica para añadir al carrito
-                          Navigator.of(context).pop();
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Producto añadido al carrito'),
-                            ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue[600],
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(25),
-                          ),
-                        ),
-                        child: const Text('Añadir al carrito'),
-                      ),
-                    ),
-                  ],
+                padding: const EdgeInsets.all(8.0),
+                child: CustomButton(
+                  label: 'Añadir al carrito',
+                  baseColor: AppColors.redPrimary,
+                  textColor: Colors.white,
+                  onTap: () {
+                    print(provider.productCount);
+
+                    final Map<String, dynamic> product = {
+                      "productImage": productImage,
+                      "productName": productName,
+                      "description": description,
+                      "price": price,
+                      "preparationTime": preparationTime,
+                      "quantity": provider.productCount, // tipo int para represent la cantidad
+                    };
+
+                    provider.addProductToCart(product);
+                    Navigator.of(context).pop();
+                  } ,
                 ),
               ),
             ],

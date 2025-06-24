@@ -53,7 +53,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'OrdenaYa',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryButton),
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.redPrimary),
+        scaffoldBackgroundColor: AppColors.whiteBackground,
         textTheme: GoogleFonts.nunitoTextTheme(
           Theme.of(context).textTheme,
         ),

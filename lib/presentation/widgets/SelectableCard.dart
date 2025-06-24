@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:ordena_ya/presentation/providers/OrderSetupProvider.dart';
 import 'package:provider/provider.dart';
 
+import '../../core/constants/AppColors.dart';
+
 class SelectableCard extends StatelessWidget {
   final IconData icon;
   final String title;
@@ -31,7 +33,7 @@ class SelectableCard extends StatelessWidget {
             width: width,
             height: height,
             decoration: BoxDecoration(
-              color: isSelected ? Colors.red : Colors.grey[300],
+              color: isSelected ? AppColors.redPrimary : AppColors.lightGray,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(

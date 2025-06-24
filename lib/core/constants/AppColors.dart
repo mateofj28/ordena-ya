@@ -6,11 +6,8 @@ class AppColors {
   // static const Color button2BackgroundColor = Color(0xFFebeafe); // Fondo de botones
   // static const Color textColor = Color(0xFFC8C8C8); // Texto
 
-  // Fondo principal
-  static const Color background = Color(0xFFFFFFFF);
-
   // Color para los títulos
-  static const Color title = Color(0xFF374151);
+  /* static const Color title = Color(0xFF374151);
 
   // Botones principales
   static const Color primaryButton = Color(0xFFAFE67F);
@@ -28,7 +25,29 @@ class AppColors {
   static const Color tertiaryButton = Color(0xFFE0EFFF);
 
   // Texto del tercer botón
-  static const Color tertiaryButtonText = Color(0xFF004CA3);
+  static const Color tertiaryButtonText = Color(0xFF004CA3);*/
+
+  // Rojo principal
+  static const Color redPrimary = Color(
+    0xFFFF4C4C,
+  ); // Ejemplo tono coral / rojo botón
+
+  // Amarillo para estado
+  static const Color yellowStatus = Color(0xFFFFC107); // Amarillo tipo warning
+
+  // Gris oscuro texto
+  static const Color textPrimary = Colors.black87;
+
+  // Blanco
+  static const Color whiteBackground = Colors.white;
+
+  // Gris claro (botones destabilises / borders)
+  static final Color lightGray = Colors.grey[300]!;
+
+  // Rojo total
+  static const Color redTotal = Color(
+    0xFFFF3D00,
+  ); // Rojo más faeries para el total
 
   // Colores de estado de órdenes
   static const Color deliveredColor = Color(0xFFDDF3EC); // Entregado

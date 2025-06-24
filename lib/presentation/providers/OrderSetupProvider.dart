@@ -32,21 +32,58 @@ class OrderSetupProvider with ChangeNotifier {
 
   // nuevo estado
   // Mapa de los títulos seleccionados
+  // para definir el tipo de entrega
   int _selectedIndex = -1;
   int _currentIndex = 0;
   int _currentMenu = 0;
+  // definir la numero de mesa
   int _tableIndex = 1; // M1, M2, ...
+  // definir el numero de personas
   int _peopleCount = 1;
   int _productCount = 1;
 
   // State
-  final List<Map<String, dynamic>> _cartItems = [
-    {'id': '1', 'name': 'Pizza Margherita', 'quantity': 2, 'price': 8.50},
-    {'id': '2', 'name': 'Ensalada César', 'quantity': 1, 'price': 6.99},
-    {'id': '3', 'name': 'Spaghetti Bolognese', 'quantity': 3, 'price': 10.25},
-    {'id': '4', 'name': 'Agua Mineral', 'quantity': 4, 'price': 1.50},
-    {'id': '5', 'name': 'Tiramisú', 'quantity': 2, 'price': 4.75},
+  final List<Map<String, dynamic>> _cartItems = [];
+
+  // variable temporary boar a futuro.
+  final _products = [
+    {
+      'name': 'Mesa 1',
+      'people': '2 Personas',
+      'date': '21/06/2025',
+      'time': '7:34 pm',
+      'total': 18500,
+    },
+    {
+      'name': 'Mesa 2',
+      'people': '3 Personas',
+      'date': '21/06/2025',
+      'time': '8:15 pm',
+      'total': 24500,
+    },
+    {
+      'name': 'Mesa 3',
+      'people': '4 Personas',
+      'date': '21/06/2025',
+      'time': '8:50 pm',
+      'total': 35000,
+    },
+    {
+      'name': 'Mesa 4',
+      'people': '5 Personas',
+      'date': '21/06/2025',
+      'time': '9:10 pm',
+      'total': 42500,
+    },
+    {
+      'name': 'Mesa 5',
+      'people': '6 Personas',
+      'date': '21/06/2025',
+      'time': '9:35 pm',
+      'total': 58000,
+    },
   ];
+
   int _selectedTabIndex = 0;
   double _discount = 0.0;
   String _selectedTable = 'N/A';
@@ -67,7 +104,7 @@ class OrderSetupProvider with ChangeNotifier {
     'María López',
   ];
 
-  Map<int, String> deliveryTypeMap = {0: 'Local', 1: 'Recoger', 2: 'Entregar'};
+  Map<int, String> deliveryTypeMap = {0: 'Local', 1: 'Entregar', 2: 'Recoger'};
   final Map<String, double> _discountTypeMap = {
     '5%': 0.05,
     '10%': 0.10,
@@ -96,6 +133,8 @@ class OrderSetupProvider with ChangeNotifier {
   int get peopleCount => _peopleCount;
   int get productCount => _productCount;
   List<Order> get orders => _orders;
+  List get products => _products;
+
   int get deliveryType => _deliveryType;
   int get totalItems {
     return _cartItems.fold(0, (sum, item) => sum + (item['quantity'] as int));
@@ -106,7 +145,7 @@ class OrderSetupProvider with ChangeNotifier {
       0.0,
       (sum, item) =>
           sum +
-          ((item['unitPrice'] as num).toDouble() *
+          ((item['price'] as num).toDouble() *
               (item['quantity'] as num).toDouble()),
     );
   }
@@ -259,21 +298,29 @@ class OrderSetupProvider with ChangeNotifier {
   }
 
   // a futuro cambiar este por buscar por id
+  //
   void addProductToCart(Map<String, dynamic> product) {
+    /*var data = {
+      'mesa': _tableIndex,
+      'personas': _peopleCount,
+      'tipo_entrega': deliveryTypeMap[_selectedIndex],
+      'products': _cartItems
+    };*/
+
     final existingProductIndex = _cartItems.indexWhere(
-      (item) => item['name'] == product['name'],
+      (item) => item['productName'] == product['productName'],
     );
 
     if (existingProductIndex != -1) {
       // Ya existe en el carrito, incrementamos la cantidad
       _cartItems[existingProductIndex]['quantity'] += 1;
     } else {
-      // No existe, lo agregamos con cantidad 1
-      final newProduct = Map<String, dynamic>.from(product);
-      newProduct['quantity'] = 1;
-      _cartItems.add(newProduct);
+      _cartItems.add(product);
     }
 
+    _productCount = 1;
+
+    print(_cartItems);
     notifyListeners();
   }
 
@@ -286,14 +333,12 @@ class OrderSetupProvider with ChangeNotifier {
 
   void increaseProductQuantity(Map<String, dynamic> product) {
     product['quantity'] = (product['quantity'] ?? 0) + 1;
-    product['total'] = product['unitPrice'] * product['quantity'];
     notifyListeners();
   }
 
   void decreaseProductQuantity(Map<String, dynamic> product) {
     if ((product['quantity'] ?? 0) > 1) {
       product['quantity']--;
-      product['total'] = product['unitPrice'] * product['quantity'];
       notifyListeners();
     }
   }

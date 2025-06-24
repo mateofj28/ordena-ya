@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ordena_ya/core/constants/AppColors.dart';
 
 class CircleIconLabel extends StatelessWidget {
   final IconData icon;
@@ -28,14 +29,14 @@ class CircleIconLabel extends StatelessWidget {
               shape: BoxShape.circle,
               color: Colors.white,
               border: Border.all(
-                color: isSelected ? Colors.green : Colors.grey.shade400,
+                color: isSelected ? AppColors.redPrimary : Colors.grey.shade400,
                 width: 2,
               ),
             ),
             child: Icon(
               icon,
               size: 30,
-              color: isSelected ? Colors.green : Colors.grey,
+              color: isSelected ? AppColors.redPrimary : Colors.grey,
             ),
           ),
           const SizedBox(height: 8),
@@ -43,7 +44,7 @@ class CircleIconLabel extends StatelessWidget {
             label,
             style: TextStyle(
               fontSize: 14,
-              color: isSelected ? Colors.green : Colors.grey,
+              color: isSelected ? AppColors.redPrimary : Colors.grey,
               fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
             ),
           ),
