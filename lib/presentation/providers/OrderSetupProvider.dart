@@ -34,7 +34,7 @@ class OrderSetupProvider with ChangeNotifier {
   // nuevo estado
   // Mapa de los títulos seleccionados
   // para definir el tipo de entrega
-  int _selectedIndex = -1;
+  int _selectedIndex = 0;
   int _currentIndex = 0;
   int _currentMenu = 0;
   // definir la numero de mesa
@@ -43,6 +43,7 @@ class OrderSetupProvider with ChangeNotifier {
   int _peopleCount = 1;
   int _productCount = 1;
   List<Order> _orders = [];
+  final PageController _pageController = PageController();
 
   // State
   final List<Map<String, dynamic>> _cartItems = [];
@@ -131,11 +132,12 @@ class OrderSetupProvider with ChangeNotifier {
   bool get isLoadingAllOrders => _isLoadingAllOrders;
   int get currentMenu => _currentMenu;
   int get tableIndex => _tableIndex;
+
   int get peopleCount => _peopleCount;
   int get productCount => _productCount;
   List<Order> get orders => _orders;
   List get products => _products;
-
+  get pageController => _pageController;
   int get deliveryType => _deliveryType;
   int get totalItems {
     return _cartItems.fold(0, (sum, item) => sum + (item['quantity'] as int));
@@ -261,6 +263,12 @@ class OrderSetupProvider with ChangeNotifier {
       updateLastOrderWithTablesOrPeople();
       notifyListeners();
     }
+  }
+
+  // utils/page_view_utils.dart
+
+  Future<void> goToPage(int index) async {
+    _pageController.jumpToPage(index);
   }
 
   void saveForm(BuildContext context) async {

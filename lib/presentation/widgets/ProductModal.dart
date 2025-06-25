@@ -203,8 +203,6 @@ class ProductModal extends StatelessWidget {
                   baseColor: AppColors.redPrimary,
                   textColor: Colors.white,
                   onTap: () {
-                    print(provider.productCount);
-
                     final Map<String, dynamic> product = {
                       "productImage": productImage,
                       "productName": productName,
@@ -215,6 +213,7 @@ class ProductModal extends StatelessWidget {
                     };
 
                     provider.addProductToCart(product);
+                    provider.goToPage(1);
                     Navigator.of(context).pop();
                   } ,
                 ),

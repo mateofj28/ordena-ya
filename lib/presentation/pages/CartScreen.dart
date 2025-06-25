@@ -81,7 +81,7 @@ class EmptyCartView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<OrderSetupProvider>(context, listen: false);
+    final provider = Provider.of<OrderSetupProvider>(context);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -114,7 +114,8 @@ class EmptyCartView extends StatelessWidget {
           baseColor: AppColors.redPrimary,
           textColor: Colors.white,
           onTap: () {
-            provider.updateMenu(1);
+            provider.updateMenu(0);
+            provider.goToPage(0);
           },
         )
       ],

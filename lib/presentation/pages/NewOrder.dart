@@ -35,13 +35,9 @@ class NewOrder extends StatelessWidget {
     Colors.purple,
   ];
 
-  final PageController _pageController = PageController();
 
-  final List _pages = [
-    ProductsScreen(),
-    CartScreen(),
-    OrdersScreen()
-  ];
+
+  final List _pages = [ProductsScreen(), CartScreen(), OrdersScreen()];
 
   final List<Map<String, dynamic>> options = [
     {"icon": HugeIcons.strokeRoundedHome07, "label": 'Mesa'},
@@ -57,7 +53,8 @@ class NewOrder extends StatelessWidget {
     final selectedIndex = provider.selectedIndex;
     final tableIndex = provider.tableIndex;
     final peopleIndex = provider.peopleCount;
-    final step = provider.discountStep;
+    final pageController = provider.pageController;
+
     return Scaffold(
       body: Column(
         children: [
@@ -66,7 +63,6 @@ class NewOrder extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-
                 AdjustValue(
                   label: 'Mesa',
                   index: tableIndex,
@@ -101,41 +97,41 @@ class NewOrder extends StatelessWidget {
 
           SizedBox(height: 15),
 
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: List.generate(titles.length, (index) {
-              return BadgeContainer(
-                title: titles[index],
-                isSelected: provider.currentIndex == index,
-                showBadge: index == 1 && provider.cartItems.isNotEmpty || index == 2 && provider.orders.isNotEmpty,
-                badgeCount: index == 1
-                    ? provider.cartItems.length
-                    : index == 2
-                    ? provider.orders.length
-                    : 0,
-                onTap: () {
-                  provider.updateIndex(index);
-                  _pageController.animateToPage(
-                    index,
-                    duration: Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
+          Consumer<OrderSetupProvider>(
+            builder: (context, provider, child) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: List.generate(titles.length, (index) {
+                  return BadgeContainer(
+                    title: titles[index],
+                    isSelected: provider.currentIndex == index,
+                    showBadge:
+                        index == 1 && provider.cartItems.isNotEmpty ||
+                        index == 2 && provider.orders.isNotEmpty,
+                    badgeCount:
+                        index == 1
+                            ? provider.cartItems.length
+                            : index == 2
+                            ? provider.orders.length
+                            : 0,
+                    onTap: () {
+                      provider.goToPage(index);
+                    },
                   );
-                },
+                }),
               );
-            }),
+            },
           ),
-
-
 
           Expanded(
             child: PageView.builder(
-              controller: _pageController,
+              controller: pageController,
               itemCount: titles.length,
               itemBuilder: (context, index) {
                 return _pages[index];
               },
               onPageChanged: (index) {
-                provider.updateIndex(index);
+               provider.updateIndex(index);
               },
             ),
           ),
