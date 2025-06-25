@@ -9,7 +9,8 @@ class BadgeContainer extends StatelessWidget {
   final Function() onTap;
 
   // Constructor
-  const BadgeContainer({super.key,
+  const BadgeContainer({
+    super.key,
     required this.title,
     this.showBadge = false, // Por defecto no mostrar el badge
     this.badgeCount = 0,
@@ -19,7 +20,6 @@ class BadgeContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final color = isSelected ? AppColors.redPrimary : Colors.grey[300];
 
     return GestureDetector(
@@ -35,7 +35,11 @@ class BadgeContainer extends StatelessWidget {
             // Texto principal (por ejemplo, "Productos")
             Text(
               title,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
             ),
             // Si se debe mostrar el badge, lo agregamos en la esquina superior derecha
             if (showBadge && badgeCount > 0)
@@ -45,7 +49,7 @@ class BadgeContainer extends StatelessWidget {
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                   decoration: BoxDecoration(
-                    color: Colors.red,
+                    color: title == 'Carrito' ? AppColors.redPrimary : Colors.blue,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(

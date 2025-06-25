@@ -12,7 +12,7 @@ class OrderCard extends StatelessWidget {
   final String date;
   final String time;
   final List<OrderItemRow> items;
-  final int total;
+  final double total;
 
   const OrderCard({
     super.key,
@@ -39,19 +39,19 @@ class OrderCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                tableName,
+                'Mesa $tableName',
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(width: 10),
-              Text(people, style: const TextStyle(fontSize: 13)),
+              Text('$people Personas' , style: const TextStyle(fontSize: 13)),
             ],
           ),
           Row(
             children: [
-              const Icon(Icons.calendar_today),
+              const Icon(HugeIcons.strokeRoundedCalendar03),
               const SizedBox(width: 10),
               Text('$date,', style: const TextStyle(fontSize: 13)),
               const SizedBox(width: 10),
@@ -69,7 +69,7 @@ class OrderCard extends StatelessWidget {
               color: AppColors.textPrimary,
               fontWeight: FontWeight.bold,
             ),
-            value: Functions.formatCurrencyINT(total) ,
+            value: Functions.formatCurrency(total) ,
             valueStyle: TextStyle(
               fontSize: 16,
               color: AppColors.redPrimary,

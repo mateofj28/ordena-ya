@@ -8,6 +8,7 @@ import 'package:ordena_ya/domain/usecases/get_all_orders.dart';
 import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
 import 'package:ordena_ya/presentation/pages/OrderDetailScreen.dart';
 
+import '../../domain/entities/ordered_product.dart';
 import '../../domain/usecases/create_order.dart';
 
 class OrderSetupProvider with ChangeNotifier {
@@ -41,6 +42,7 @@ class OrderSetupProvider with ChangeNotifier {
   // definir el numero de personas
   int _peopleCount = 1;
   int _productCount = 1;
+  List<Order> _orders = [];
 
   // State
   final List<Map<String, dynamic>> _cartItems = [];
@@ -91,7 +93,6 @@ class OrderSetupProvider with ChangeNotifier {
   String _selectedPeople = 'N/A';
   String _selectedClient = '';
   int _deliveryType = 0;
-  List<Order> _orders = [];
 
   bool _isLoadingAllOrders = true;
 
@@ -224,12 +225,14 @@ class OrderSetupProvider with ChangeNotifier {
 
   void increaseTable() {
     _tableIndex++;
+    updateLastOrderWithTablesOrPeople();
     notifyListeners();
   }
 
   void decreaseTable() {
     if (_tableIndex > 1) {
       _tableIndex--;
+      updateLastOrderWithTablesOrPeople();
       notifyListeners();
     }
   }
@@ -248,12 +251,14 @@ class OrderSetupProvider with ChangeNotifier {
 
   void increasePeople() {
     _peopleCount++;
+    updateLastOrderWithTablesOrPeople();
     notifyListeners();
   }
 
   void decreasePeople() {
     if (_peopleCount > 1) {
       _peopleCount--;
+      updateLastOrderWithTablesOrPeople();
       notifyListeners();
     }
   }
@@ -297,16 +302,35 @@ class OrderSetupProvider with ChangeNotifier {
     }
   }
 
-  // a futuro cambiar este por buscar por id
-  //
-  void addProductToCart(Map<String, dynamic> product) {
-    /*var data = {
-      'mesa': _tableIndex,
-      'personas': _peopleCount,
-      'tipo_entrega': deliveryTypeMap[_selectedIndex],
-      'products': _cartItems
-    };*/
+  Order createNewOrder() {
+    return Order(
+      orderNumber: "",
+      assignedTable: _tableIndex.toString(),
+      deliveryType: deliveryTypeMap[selectedIndex]!,
+      numberOfPeople: peopleCount,
+      clientId: "",
+      deliveryAddress: "",
+      orderedProducts: List<OrderedProduct>.from(
+        _cartItems.map(
+          (item) => OrderedProduct(
+            null,
+            name: item['productName'],
+            price: item['price'],
+            quantity: item['quantity'],
+          ),
+        ),
+      ),
+      discountApplied: 0,
+      totalValue: 0,
+      paymentMethod: "",
+      orderStatus: "",
+      orderDate: DateTime.now(),
+      statusUpdatedAt: DateTime.now(),
+    );
+  }
 
+  // a futuro cambiar este por buscar por id
+  void addProductToCart(Map<String, dynamic> product) {
     final existingProductIndex = _cartItems.indexWhere(
       (item) => item['productName'] == product['productName'],
     );
@@ -318,27 +342,71 @@ class OrderSetupProvider with ChangeNotifier {
       _cartItems.add(product);
     }
 
+    // ¿Ya tenemos orders?
+    if (_orders.isEmpty) {
+      _orders.add(createNewOrder());
+    } else {
+      print('pase por aqui ....');
+      // Actualizamos solo el orderedProducts de la order existente
+      updateLastOrderWithCartItems();
+    }
+
     _productCount = 1;
 
-    print(_cartItems);
     notifyListeners();
   }
 
   void removeProductFromCart(int index) {
     if (index >= 0 && index < _cartItems.length) {
       _cartItems.removeAt(index);
+
+      updateLastOrderWithCartItems();
+      final orderFinal = _orders.last;
+      if (orderFinal.orderedProducts.isEmpty) {
+        _orders.removeLast();
+      }
+
       notifyListeners();
     }
   }
 
+  void updateLastOrderWithCartItems() {
+    if (_orders.isEmpty) return;
+
+    _orders.last = _orders.last.copyWith(
+      orderedProducts: List<OrderedProduct>.from(
+        _cartItems.map(
+          (item) => OrderedProduct(
+            null,
+            name: item['productName'],
+            price: item['price'],
+            quantity: item['quantity'],
+          ),
+        ),
+      ),
+      statusUpdatedAt: DateTime.now(),
+    );
+  }
+
+  void updateLastOrderWithTablesOrPeople() {
+    if (_orders.isEmpty) return;
+
+    _orders.last = _orders.last.copyWith(
+      assignedTable: _tableIndex.toString(),
+      numberOfPeople: _peopleCount,
+    );
+  }
+
   void increaseProductQuantity(Map<String, dynamic> product) {
     product['quantity'] = (product['quantity'] ?? 0) + 1;
+    updateLastOrderWithCartItems();
     notifyListeners();
   }
 
   void decreaseProductQuantity(Map<String, dynamic> product) {
     if ((product['quantity'] ?? 0) > 1) {
       product['quantity']--;
+      updateLastOrderWithCartItems();
       notifyListeners();
     }
   }

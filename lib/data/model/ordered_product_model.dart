@@ -4,7 +4,7 @@ class OrderedProductModel extends OrderedProduct {
   OrderedProductModel(
     super.id, {
     required super.name,
-    required super.unitPrice,
+    required super.price,
     required super.quantity,
   });
 
@@ -19,7 +19,7 @@ class OrderedProductModel extends OrderedProduct {
       return OrderedProductModel(
         json['id'],
         name: json['name'],
-        unitPrice:
+        price:
             (json['unitPrice'] as num).toDouble(), // seguro si es int o double
         quantity:
             json['quantity'] is int
@@ -38,7 +38,7 @@ class OrderedProductModel extends OrderedProduct {
     return OrderedProductModel(
       entity.id,
       name: entity.name,
-      unitPrice: entity.unitPrice,
+      price: entity.price,
       quantity: entity.quantity,
     );
   }
@@ -47,7 +47,7 @@ class OrderedProductModel extends OrderedProduct {
     return {
       'id': id,
       'name': name,
-      'unitPrice': unitPrice,
+      'unitPrice': price,
       'quantity': quantity,
     };
   }

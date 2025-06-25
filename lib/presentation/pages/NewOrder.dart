@@ -107,6 +107,12 @@ class NewOrder extends StatelessWidget {
               return BadgeContainer(
                 title: titles[index],
                 isSelected: provider.currentIndex == index,
+                showBadge: index == 1 && provider.cartItems.isNotEmpty || index == 2 && provider.orders.isNotEmpty,
+                badgeCount: index == 1
+                    ? provider.cartItems.length
+                    : index == 2
+                    ? provider.orders.length
+                    : 0,
                 onTap: () {
                   provider.updateIndex(index);
                   _pageController.animateToPage(
@@ -118,6 +124,7 @@ class NewOrder extends StatelessWidget {
               );
             }),
           ),
+
 
 
           Expanded(

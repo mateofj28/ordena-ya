@@ -2,6 +2,7 @@ import 'package:ordena_ya/data/model/ordered_product_model.dart';
 
 import '../../domain/entities/order.dart';
 
+import '../../domain/entities/ordered_product.dart';
 import 'product_model.dart';
 
 class OrderModel extends Order {

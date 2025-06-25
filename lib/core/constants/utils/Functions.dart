@@ -52,6 +52,24 @@ class Functions {
     return '\$${formatter.format(amount.truncate())}';
   }
 
+  static String getDate(String dateTimeString) {
+    final dateTime = DateTime.parse(dateTimeString);
+    final date =
+        '${dateTime.day.toString().padLeft(2, '0')}/'
+        '${dateTime.month.toString().padLeft(2, '0')}/'
+        '${dateTime.year}';
+    return date;
+  }
+
+  static String getTime(String dateTimeString) {
+    final dateTime = DateTime.parse(dateTimeString);
+    final hour12 = dateTime.hour % 12 == 0 ? 12 : dateTime.hour % 12;
+    final period = dateTime.hour < 12 ? 'am' : 'pm';
+    final time =
+        '$hour12:${dateTime.minute.toString().padLeft(2, '0')} $period';
+    return time;
+  }
+
   static String formatCurrencyINT(int amount) {
     final formatter = NumberFormat.decimalPattern('es_CO');
     return '\$${formatter.format(amount)}';
