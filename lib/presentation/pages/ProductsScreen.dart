@@ -41,7 +41,50 @@ class ProductsScreen extends StatelessWidget {
       "time": "5 min",
       "category": "Postres",
     },
+    {
+      "imageUrl": "https://images.unsplash.com/photo-1586190848861-99aa4a171e90",
+      "title": "Pizza",
+      "price": 30000.0,
+      "time": "20 min",
+      "category": "Platos",
+    },
+    {
+      "imageUrl": "https://images.unsplash.com/photo-1564758866819-83c2b5cd2e84",
+      "title": "Cerveza",
+      "price": 7000.0,
+      "time": "1 min",
+      "category": "Bebidas",
+    },
+    {
+      "imageUrl": "https://images.unsplash.com/photo-1603079832603-08d628f7f87f",
+      "title": "Brownie con helado",
+      "price": 12000.0,
+      "time": "7 min",
+      "category": "Postres",
+    },
+    {
+      "imageUrl": "https://images.unsplash.com/photo-1571091718767-18b5b1457add",
+      "title": "Ensalada César",
+      "price": 18000.0,
+      "time": "10 min",
+      "category": "Platos",
+    },
+    {
+      "imageUrl": "https://images.unsplash.com/photo-1585238342028-031c4a7763b3",
+      "title": "Jugo natural",
+      "price": 6000.0,
+      "time": "3 min",
+      "category": "Bebidas",
+    },
+    {
+      "imageUrl": "https://images.unsplash.com/photo-1578985545062-69928b1d9587",
+      "title": "Torta de chocolate",
+      "price": 10000.0,
+      "time": "6 min",
+      "category": "Postres",
+    },
   ];
+
 
   List<Map<String, dynamic>> getFilteredProducts(int selectedIndex) {
     if (selectedIndex == 0) return allProducts;

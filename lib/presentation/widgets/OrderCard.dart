@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:ordena_ya/presentation/widgets/ShowOrderModal.dart';
 
 import '../../core/constants/AppColors.dart';
 import '../../core/constants/utils/Functions.dart';
@@ -80,21 +81,40 @@ class OrderCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: AppColors.lightGray,
-                ),
-                child: IconLabel(
-                  icon: HugeIcons.strokeRoundedView,
-                  label: 'Ver',
-                  color: Colors.black,
+              GestureDetector(
+                onTap: (){
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      final order = {
+                        "tableName": tableName,
+                        "people": people,
+                        "date": date,
+                        "time": time,
+                        "items": items,
+                        "total": total,
+                      };
+
+                      return ShowOrderModal(order: order);
+                    },
+                  );
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.lightGray,
+                  ),
+                  child: IconLabel(
+                    icon: HugeIcons.strokeRoundedView,
+                    label: 'Ver',
+                    color: Colors.black,
+                  ),
                 ),
               ),
 
               Container(
-                padding: EdgeInsets.all(5),
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   color: AppColors.lightGray,
@@ -107,7 +127,7 @@ class OrderCard extends StatelessWidget {
               ),
 
               Container(
-                padding: EdgeInsets.all(5),
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
                   color: AppColors.lightGray,
