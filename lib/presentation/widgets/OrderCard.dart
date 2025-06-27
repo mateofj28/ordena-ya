@@ -6,6 +6,7 @@ import '../../core/constants/AppColors.dart';
 import '../../core/constants/utils/Functions.dart';
 import 'IconLabel.dart';
 import 'LabelValueRow.dart';
+import 'PrintOrderModal.dart';
 
 class OrderCard extends StatelessWidget {
   final String tableName;
@@ -113,16 +114,35 @@ class OrderCard extends StatelessWidget {
                 ),
               ),
 
-              Container(
-                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(8),
-                  color: AppColors.lightGray,
-                ),
-                child: IconLabel(
-                  icon: HugeIcons.strokeRoundedPrinter,
-                  label: 'Imprimir',
-                  color: Colors.black,
+              GestureDetector(
+                onTap: (){
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      final order = {
+                        "tableName": tableName,
+                        "people": people,
+                        "date": date,
+                        "time": time,
+                        "items": items,
+                        "total": total,
+                      };
+
+                      return PrintOrderModal(order: order);
+                    },
+                  );
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(8),
+                    color: AppColors.lightGray,
+                  ),
+                  child: IconLabel(
+                    icon: HugeIcons.strokeRoundedPrinter,
+                    label: 'Imprimir',
+                    color: Colors.black,
+                  ),
                 ),
               ),
 
