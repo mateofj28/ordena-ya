@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../core/constants/AppColors.dart';
 import '../providers/OrderSetupProvider.dart';
 import 'AdjustValue.dart';
+import 'CircularCloseButton.dart';
 
 class ProductModal extends StatelessWidget {
   final String productImage;
@@ -55,29 +56,13 @@ class ProductModal extends StatelessWidget {
                     ),
                   ),
 
-                  Container(
-                    width: 30, // ancho del círculo
-                    height: 30, // alto del círculo
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white,
-                      border: Border.all(color: Colors.black),
-                    ),
-                    child: IconButton(
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                      splashRadius: 20,
-                      onPressed: () => {
-                        Navigator.of(context).pop(),
-                        provider.updateProductCount(1)
-                      },
-                      icon: const Icon(
-                        Icons.close,
-                        size: 20, // tamaño más pequeño
-                      ),
-                      color: Colors.black,
-                    ),
+                  CircularCloseButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      provider.updateProductCount(1);
+                    },
                   ),
+
                 ],
               ),
 

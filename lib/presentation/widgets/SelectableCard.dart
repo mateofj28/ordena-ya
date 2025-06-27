@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ordena_ya/presentation/providers/OrderSetupProvider.dart';
+import 'package:ordena_ya/presentation/widgets/RegisterClientModal.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/AppColors.dart';
@@ -28,6 +29,14 @@ class SelectableCard extends StatelessWidget {
         return GestureDetector(
           onTap: () {
             selectionModel.select(index);
+            if (index == 1) {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return RegisterClientModal();
+                },
+              );
+            }
           },
           child: Container(
             width: width,

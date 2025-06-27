@@ -4,11 +4,12 @@ import 'package:ordena_ya/presentation/pages/CartScreen.dart';
 import 'package:ordena_ya/presentation/pages/OrdersScreen.dart';
 import 'package:ordena_ya/presentation/pages/ProductsScreen.dart';
 import 'package:ordena_ya/presentation/providers/OrderSetupProvider.dart';
-
 import 'package:ordena_ya/presentation/widgets/AdjustValue.dart';
 import 'package:ordena_ya/presentation/widgets/BadgeContainer.dart';
 import 'package:ordena_ya/presentation/widgets/SelectableCard.dart';
 import 'package:provider/provider.dart';
+
+import '../widgets/SquareButton.dart';
 
 class NewOrder extends StatelessWidget {
   NewOrder({super.key, required this.product});
@@ -28,21 +29,12 @@ class NewOrder extends StatelessWidget {
     }
   }
 
-  final List<Color> _pageColors = [
-    Colors.blue,
-    Colors.green,
-    Colors.orange,
-    Colors.purple,
-  ];
-
-
-
   final List _pages = [ProductsScreen(), CartScreen(), OrdersScreen()];
 
   final List<Map<String, dynamic>> options = [
     {"icon": HugeIcons.strokeRoundedHome07, "label": 'Mesa'},
     {"icon": HugeIcons.strokeRoundedDeliveryTruck01, "label": 'Domicilio'},
-    {"icon": HugeIcons.strokeRoundedPackage, "label": 'Para llevar'},
+    {"icon": HugeIcons.strokeRoundedPackage, "label": 'Recoger'},
   ];
 
   final List<String> titles = ['Productos', 'Carrito', 'Pedidos'];
@@ -136,6 +128,34 @@ class NewOrder extends StatelessWidget {
             ),
           ),
         ],
+      ),
+      bottomNavigationBar: Container(
+        padding: EdgeInsets.all(12),
+        color: Colors.white,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Expanded(
+              child: SquareButton(
+                label: 'Enviar a Cocina',
+                icon: HugeIcons.strokeRoundedSent,
+                onPressed: () {
+                  // Tu lógica aquí
+                },
+              )
+            ),
+            SizedBox(width: 12),
+            Expanded(
+              child: SquareButton(
+                label: 'Cerrar Cuenta',
+                icon: HugeIcons.strokeRoundedInvoice04,
+                onPressed: () {
+                  // Tu lógica aquí
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
