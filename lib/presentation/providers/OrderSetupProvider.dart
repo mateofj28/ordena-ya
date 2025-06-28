@@ -31,6 +31,11 @@ class OrderSetupProvider with ChangeNotifier {
   int _clienteStep = 0;
   int _discountStep = 0;
 
+  bool _enableSendToKitchen = false;
+  bool _enableCloseBill = false;
+  bool _isLastOrderClosed =
+      false; // comienza como false porque la primera no está cerrada
+
   // nuevo estado
   // Mapa de los títulos seleccionados
   // para definir el tipo de entrega
@@ -132,7 +137,8 @@ class OrderSetupProvider with ChangeNotifier {
   bool get isLoadingAllOrders => _isLoadingAllOrders;
   int get currentMenu => _currentMenu;
   int get tableIndex => _tableIndex;
-
+  bool get enableSendToKitchen => _enableSendToKitchen;
+  bool get enableCloseBill => _enableCloseBill;
   int get peopleCount => _peopleCount;
   int get productCount => _productCount;
   List<Order> get orders => _orders;
@@ -169,6 +175,16 @@ class OrderSetupProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  set enableSendToKitchen(bool value) {
+    _enableSendToKitchen = value;
+    notifyListeners();
+  }
+
+  set enableCloseBill(bool value) {
+    _enableCloseBill = value;
+    notifyListeners();
+  }
+
   set discountStep(int step) {
     _discountStep = step;
     notifyListeners();
@@ -192,6 +208,12 @@ class OrderSetupProvider with ChangeNotifier {
 
   void updateMenu(int index) {
     _currentMenu = index;
+    notifyListeners();
+  }
+
+  void clearCart() {
+    _cartItems.clear();
+    _isLastOrderClosed = true;
     notifyListeners();
   }
 
@@ -337,7 +359,7 @@ class OrderSetupProvider with ChangeNotifier {
     );
   }
 
-  // a futuro cambiar este por buscar por id
+  // metodo que agrega los productos al carrito
   void addProductToCart(Map<String, dynamic> product) {
     final existingProductIndex = _cartItems.indexWhere(
       (item) => item['productName'] == product['productName'],
@@ -349,12 +371,13 @@ class OrderSetupProvider with ChangeNotifier {
     } else {
       _cartItems.add(product);
     }
+    enableSendToKitchen = true;
 
     // ¿Ya tenemos orders?
-    if (_orders.isEmpty) {
+    if (_orders.isEmpty || _isLastOrderClosed) {
       _orders.add(createNewOrder());
+      _isLastOrderClosed = false; // la nueva orden está abierta
     } else {
-      print('pase por aqui ....');
       // Actualizamos solo el orderedProducts de la order existente
       updateLastOrderWithCartItems();
     }
@@ -375,6 +398,20 @@ class OrderSetupProvider with ChangeNotifier {
       }
 
       notifyListeners();
+    }
+  }
+
+  Future<void> advanceOrderedProductsStates() async {
+    Order lastOrder = _orders.last;
+    List<OrderedProduct> products = lastOrder.orderedProducts;
+
+    for (final product in products) {
+      while (!product.isDelivered) {
+        await Future.delayed(Duration(seconds: 5));
+        product.advanceState();
+        print('New state: ${product.name} ${product.state}');
+        notifyListeners();
+      }
     }
   }
 

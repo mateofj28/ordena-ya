@@ -7,8 +7,10 @@ import 'package:ordena_ya/presentation/providers/OrderSetupProvider.dart';
 import 'package:ordena_ya/presentation/widgets/AdjustValue.dart';
 import 'package:ordena_ya/presentation/widgets/BadgeContainer.dart';
 import 'package:ordena_ya/presentation/widgets/SelectableCard.dart';
+import 'package:ordena_ya/presentation/widgets/SendToKitchenModal.dart';
 import 'package:provider/provider.dart';
 
+import '../widgets/CloseBillModal.dart';
 import '../widgets/SquareButton.dart';
 
 class NewOrder extends StatelessWidget {
@@ -46,6 +48,8 @@ class NewOrder extends StatelessWidget {
     final tableIndex = provider.tableIndex;
     final peopleIndex = provider.peopleCount;
     final pageController = provider.pageController;
+    final enableSendToKitchen = provider.enableSendToKitchen;
+    final enableCloseBill = provider.enableCloseBill;
 
     return Scaffold(
       body: Column(
@@ -123,7 +127,7 @@ class NewOrder extends StatelessWidget {
                 return _pages[index];
               },
               onPageChanged: (index) {
-               provider.updateIndex(index);
+                provider.updateIndex(index);
               },
             ),
           ),
@@ -139,8 +143,14 @@ class NewOrder extends StatelessWidget {
               child: SquareButton(
                 label: 'Enviar a Cocina',
                 icon: HugeIcons.strokeRoundedSent,
-                onPressed: () {
-                  // Tu lógica aquí
+                isEnabled: enableSendToKitchen,
+                onPressed: (){
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return SendTokitchenModal();
+                    },
+                  );
                 },
               )
             ),
@@ -149,8 +159,15 @@ class NewOrder extends StatelessWidget {
               child: SquareButton(
                 label: 'Cerrar Cuenta',
                 icon: HugeIcons.strokeRoundedInvoice04,
-                onPressed: () {
-                  // Tu lógica aquí
+                backgroundColor: Colors.green,
+                isEnabled: enableCloseBill,
+                onPressed: (){
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return CloseBillModal();
+                    },
+                  );
                 },
               ),
             ),

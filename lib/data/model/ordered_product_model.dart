@@ -6,6 +6,7 @@ class OrderedProductModel extends OrderedProduct {
     required super.name,
     required super.price,
     required super.quantity,
+    required super.state,
   });
 
   factory OrderedProductModel.fromJson(Map<String, dynamic> json) {
@@ -20,12 +21,13 @@ class OrderedProductModel extends OrderedProduct {
         json['id'],
         name: json['name'],
         price:
-            (json['unitPrice'] as num).toDouble(), // seguro si es int o double
+            (json['unitPrice'] as num).toDouble(),
         quantity:
             json['quantity'] is int
                 ? json['quantity']
                 : int.tryParse(json['quantity'].toString()) ??
-                    1, // por si viene como string
+                    1,
+        state: json['state']
       );
     } catch (e, stacktrace) {
       print('❌ Error en OrderedProductModel.fromJson: $e');
@@ -40,15 +42,11 @@ class OrderedProductModel extends OrderedProduct {
       name: entity.name,
       price: entity.price,
       quantity: entity.quantity,
+      state: entity.state,
     );
   }
 
   toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'unitPrice': price,
-      'quantity': quantity,
-    };
+    return {'id': id, 'name': name, 'unitPrice': price, 'quantity': quantity};
   }
 }

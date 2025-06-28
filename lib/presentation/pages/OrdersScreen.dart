@@ -31,6 +31,7 @@ class OrdersScreen extends StatelessWidget {
                         itemCount: provider.orders.length,
                         itemBuilder: (context, index) {
                           final order = provider.orders[index];
+                          print("la orden es:");
                           print(order);
 
                           return OrderCard(
@@ -44,13 +45,13 @@ class OrdersScreen extends StatelessWidget {
                                   sum + (product.price * product.quantity),
                             ),
                             items:
-                                order.orderedProducts.map((product) {
-                                  return OrderItemRow(
-                                    label:
-                                        "${product.quantity} x ${product.name}",
-                                    value: product.price * product.quantity,
-                                  );
-                                }).toList(),
+                              order.orderedProducts.map((product) {
+                                return OrderItemRow(
+                                  label: "${product.quantity} x ${product.name}",
+                                  value: product.price * product.quantity,
+                                  state: product.state,
+                                );
+                              }).toList(),
                           );
                         },
                       ),

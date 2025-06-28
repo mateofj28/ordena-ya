@@ -48,7 +48,7 @@ class OrderCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              Text('$people Personas' , style: const TextStyle(fontSize: 13)),
+              Text('$people Personas', style: const TextStyle(fontSize: 13)),
             ],
           ),
           Row(
@@ -71,7 +71,7 @@ class OrderCard extends StatelessWidget {
               color: AppColors.textPrimary,
               fontWeight: FontWeight.bold,
             ),
-            value: Functions.formatCurrency(total) ,
+            value: Functions.formatCurrency(total),
             valueStyle: TextStyle(
               fontSize: 16,
               color: AppColors.redPrimary,
@@ -83,7 +83,7 @@ class OrderCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               GestureDetector(
-                onTap: (){
+                onTap: () {
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
@@ -115,7 +115,7 @@ class OrderCard extends StatelessWidget {
               ),
 
               GestureDetector(
-                onTap: (){
+                onTap: () {
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
@@ -170,11 +170,18 @@ class OrderCard extends StatelessWidget {
 class OrderItemRow extends StatelessWidget {
   final String label;
   final double value;
+  final String state;
 
-  const OrderItemRow({super.key, required this.label, required this.value});
+  const OrderItemRow({
+    super.key,
+    required this.label,
+    required this.value,
+    required this.state,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final config = getStateUIConfig(state);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -197,9 +204,9 @@ class OrderItemRow extends StatelessWidget {
           ],
         ),
         IconLabel(
-          icon: HugeIcons.strokeRoundedTrolley01,
-          label: "pendent",
-          color: AppColors.yellowStatus,
+          icon: config.icon,
+          label: config.label,
+          color: config.color,
         ),
         const SizedBox(height: 10),
       ],
@@ -207,44 +214,49 @@ class OrderItemRow extends StatelessWidget {
   }
 }
 
-// Widget para los íconos de acción
-/* class IconLabelButton extends StatelessWidget {
+class StateUIConfig {
   final IconData icon;
   final String label;
   final Color color;
-  final Color backgroundColor;
-  final VoidCallback onPressed;
 
-  const IconLabelButton({
-    Key? key,
+  const StateUIConfig({
     required this.icon,
     required this.label,
     required this.color,
-    required this.backgroundColor,
-    required this.onPressed,
-  }) : super(key: key);
+  });
+}
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onPressed,
-      child: Container(
-        padding: const EdgeInsets.all(5),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          color: backgroundColor,
-        ),
-        child: Row(
-          children: [
-            Icon(icon, color: color, size: 18),
-            const SizedBox(width: 5),
-            Text(
-              label,
-              style: TextStyle(color: color),
-            ),
-          ],
-        ),
-      ),
-    );
+StateUIConfig getStateUIConfig(String state) {
+  switch (state) {
+    case 'pendiente':
+      return StateUIConfig(
+        icon: HugeIcons.strokeRoundedTrolley01,
+        label: 'pendiente',
+        color: AppColors.yellowStatus,
+      );
+    case 'en preparación':
+      return StateUIConfig(
+        icon: HugeIcons.strokeRoundedPackageProcess,
+        label: 'en preparación',
+        color: AppColors.redPrimary,
+      );
+    case 'listo para entregar':
+      return StateUIConfig(
+        icon: HugeIcons.strokeRoundedTrolley02,
+        label: 'Ready to Deliver',
+        color: Colors.yellow,
+      );
+    case 'entregado':
+      return StateUIConfig(
+        icon: HugeIcons.strokeRoundedPackageDelivered,
+        label: 'entregado',
+        color: Colors.green,
+      );
+    default:
+      return StateUIConfig(
+        icon: Icons.help_outline,
+        label: 'Unknown',
+        color: Colors.grey,
+      );
   }
-}*/
+}
