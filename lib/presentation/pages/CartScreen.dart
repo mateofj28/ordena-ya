@@ -55,6 +55,20 @@ class CartScreen extends StatelessWidget {
             ),
             const SizedBox(height: 5),
             LabelValueRow(
+              label: 'HPC',
+              labelStyle: TextStyle(
+
+                color: AppColors.textPrimary,
+                fontWeight: FontWeight.bold,
+              ),
+              value: "(8%)",
+              valueStyle: TextStyle(
+
+                color: Colors.grey,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            LabelValueRow(
               label: 'Total',
               labelStyle: TextStyle(
                 fontSize: 16,

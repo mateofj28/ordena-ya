@@ -35,23 +35,25 @@ class OrdersScreen extends StatelessWidget {
                           print(order);
 
                           return OrderCard(
-                            tableName: order.assignedTable! ?? '1',
+                            tableName: order.assignedTable!,
                             people: order.numberOfPeople.toString(),
                             date: Functions.getDate(order.orderDate.toString()),
                             time: Functions.getTime(order.orderDate.toString()),
                             total: order.orderedProducts.fold(
-                              0,
+                              0.0,
                               (sum, product) =>
-                                  sum + (product.price * product.quantity),
+                                  sum +
+                                  (product.price * product.quantity * 1.08),
                             ),
                             items:
-                              order.orderedProducts.map((product) {
-                                return OrderItemRow(
-                                  label: "${product.quantity} x ${product.name}",
-                                  value: product.price * product.quantity,
-                                  state: product.state,
-                                );
-                              }).toList(),
+                                order.orderedProducts.map((product) {
+                                  return OrderItemRow(
+                                    label:
+                                        "${product.quantity} x ${product.name}",
+                                    value: product.price * product.quantity,
+                                    state: product.state,
+                                  );
+                                }).toList(),
                           );
                         },
                       ),
