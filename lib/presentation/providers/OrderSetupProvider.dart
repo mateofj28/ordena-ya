@@ -6,7 +6,6 @@ import 'package:ordena_ya/domain/entities/order.dart';
 import 'package:ordena_ya/domain/usecases/create_client.dart';
 import 'package:ordena_ya/domain/usecases/get_all_orders.dart';
 import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
-import 'package:ordena_ya/presentation/pages/OrderDetailScreen.dart';
 
 import '../../domain/entities/ordered_product.dart';
 import '../../domain/usecases/create_order.dart';
@@ -332,6 +331,14 @@ class OrderSetupProvider with ChangeNotifier {
     }
   }
 
+  bool hasPendingProducts() {
+    return _orders.any(
+      (order) => order.orderedProducts.any(
+        (product) => product.units.any((unit) => unit.state == 'pendiente'),
+      ),
+    );
+  }
+
   Order createNewOrder() {
     return Order(
       orderNumber: "",
@@ -346,7 +353,10 @@ class OrderSetupProvider with ChangeNotifier {
             null,
             name: item['productName'],
             price: item['price'],
-            quantity: item['quantity'],
+            units: List.generate(
+              item['quantity'],
+              (_) => OrderedProductUnit(state: item['state'] ?? 'pendiente'),
+            ),
           ),
         ),
       ),
@@ -359,7 +369,6 @@ class OrderSetupProvider with ChangeNotifier {
     );
   }
 
-  // metodo que agrega los productos al carrito
   void addProductToCart(Map<String, dynamic> product) {
     final existingProductIndex = _cartItems.indexWhere(
       (item) => item['productName'] == product['productName'],
@@ -369,66 +378,144 @@ class OrderSetupProvider with ChangeNotifier {
       // Ya existe en el carrito, incrementamos la cantidad
       _cartItems[existingProductIndex]['quantity'] += 1;
     } else {
+      print('Agregando producto al carrito:');
+      product['state'] = 'pendiente';
       _cartItems.add(product);
     }
+
     enableSendToKitchen = true;
 
-    // ¿Ya tenemos orders?
     if (_orders.isEmpty || _isLastOrderClosed) {
+      print('Creando nueva orden');
       _orders.add(createNewOrder());
-      _isLastOrderClosed = false; // la nueva orden está abierta
+      _isLastOrderClosed = false;
     } else {
-      // Actualizamos solo el orderedProducts de la order existente
+      print('Actualizando orden');
       updateLastOrderWithCartItems();
     }
 
     _productCount = 1;
+    notifyListeners();
+  }
+
+  void removeProductFromCart(String productName) {
+    if (_orders.isEmpty) return;
+
+    // Eliminar del carrito
+    _cartItems.removeWhere((item) => item['productName'] == productName);
+
+    // Buscar orden que contiene el producto
+    int ordenIndex = _orders.indexWhere(
+      (order) => order.orderedProducts.any((p) => p.name == productName),
+    );
+
+    if (ordenIndex == -1) return;
+
+    final orden = _orders[ordenIndex];
+    final producto = orden.orderedProducts.firstWhere(
+      (p) => p.name == productName,
+    );
+
+    // ❌ Si alguna unidad está entregada, no eliminar
+    final hasDeliveredUnits = producto.units.any((u) => u.isDelivered);
+    if (hasDeliveredUnits) {
+      print(
+        'No se puede eliminar un producto que contiene unidades entregadas.',
+      );
+      return;
+    }
+
+    // ✅ Eliminar producto
+    orden.orderedProducts.removeWhere((p) => p.name == productName);
+
+    // Si la orden queda vacía, se elimina
+    if (orden.orderedProducts.isEmpty) {
+      _orders.removeAt(ordenIndex);
+      _isLastOrderClosed = true;
+    }
+
+    // Actualizar estado del botón "Enviar a cocina"
+    enableSendToKitchen = hasPendingProducts();
 
     notifyListeners();
   }
 
-  void removeProductFromCart(int index) {
-    if (index >= 0 && index < _cartItems.length) {
-      _cartItems.removeAt(index);
-
-      updateLastOrderWithCartItems();
-      final orderFinal = _orders.last;
-      if (orderFinal.orderedProducts.isEmpty) {
-        _orders.removeLast();
+  void advanceOrderedProductsStates() {
+    for (final order in _orders) {
+      for (final product in order.orderedProducts) {
+        for (final unit in product.units) {
+          if (!unit.isDelivered) {
+            _startUnitStateTransition(unit, product.name);
+          }
+        }
       }
-
-      notifyListeners();
     }
   }
 
-  Future<void> advanceOrderedProductsStates() async {
-    Order lastOrder = _orders.last;
-    List<OrderedProduct> products = lastOrder.orderedProducts;
+  final Set<OrderedProductUnit> _unitsInProgress = {};
 
-    for (final product in products) {
-      while (!product.isDelivered) {
-        await Future.delayed(Duration(seconds: 5));
-        product.advanceState();
-        print('New state: ${product.name} ${product.state}');
-        notifyListeners();
-      }
+  void _startUnitStateTransition(
+    OrderedProductUnit unit,
+    String productName,
+  ) async {
+    if (_unitsInProgress.contains(unit)) return;
+
+    _unitsInProgress.add(unit);
+
+    while (!unit.isDelivered) {
+      await Future.delayed(Duration(seconds: 5));
+      unit.advanceState();
+      print('Product "$productName" advanced to: ${unit.state}');
+      notifyListeners();
     }
+
+    _unitsInProgress.remove(unit);
   }
 
   void updateLastOrderWithCartItems() {
     if (_orders.isEmpty) return;
 
-    _orders.last = _orders.last.copyWith(
-      orderedProducts: List<OrderedProduct>.from(
-        _cartItems.map(
-          (item) => OrderedProduct(
+    final lastOrder = _orders.last;
+    final existingProducts = lastOrder.orderedProducts;
+    final updatedProducts = [...existingProducts];
+
+    for (final item in _cartItems) {
+      final index = updatedProducts.indexWhere(
+        (p) => p.name == item['productName'],
+      );
+
+      if (index == -1) {
+        // Nuevo producto
+        updatedProducts.add(
+          OrderedProduct(
             null,
             name: item['productName'],
             price: item['price'],
-            quantity: item['quantity'],
+            units: List.generate(
+              item['quantity'],
+              (_) => OrderedProductUnit(state: item['state'] ?? 'pendiente'),
+            ),
           ),
-        ),
-      ),
+        );
+      } else {
+        final existing = updatedProducts[index];
+        final currentQty = existing.units.length;
+        final newQty = item['quantity'];
+
+        if (newQty > currentQty) {
+          // Agregar solo las unidades nuevas como pendientes
+          for (int i = 0; i < (newQty - currentQty); i++) {
+            existing.units.add(OrderedProductUnit(state: 'pendiente'));
+          }
+        } else if (newQty < currentQty) {
+          // Quitar unidades (opcionalmente solo las no entregadas)
+          existing.units.removeRange(newQty, currentQty);
+        }
+      }
+    }
+
+    _orders.last = lastOrder.copyWith(
+      orderedProducts: updatedProducts,
       statusUpdatedAt: DateTime.now(),
     );
   }
@@ -444,14 +531,46 @@ class OrderSetupProvider with ChangeNotifier {
 
   void increaseProductQuantity(Map<String, dynamic> product) {
     product['quantity'] = (product['quantity'] ?? 0) + 1;
-    updateLastOrderWithCartItems();
+
+    for (final order in _orders) {
+      final index = order.orderedProducts.indexWhere(
+        (p) => p.name == product['productName'],
+      );
+      if (index != -1) {
+        final prod = order.orderedProducts[index];
+        prod.units.add(OrderedProductUnit(state: 'pendiente'));
+        enableSendToKitchen = true;
+        break;
+      }
+    }
+
     notifyListeners();
   }
 
   void decreaseProductQuantity(Map<String, dynamic> product) {
     if ((product['quantity'] ?? 0) > 1) {
       product['quantity']--;
-      updateLastOrderWithCartItems();
+
+      for (final order in _orders) {
+        final index = order.orderedProducts.indexWhere(
+          (p) => p.name == product['productName'],
+        );
+        if (index != -1) {
+          final prod = order.orderedProducts[index];
+
+          // Opcional: eliminar la última unidad que NO esté entregada
+          final indexToRemove = prod.units.lastIndexWhere(
+            (u) => !u.isDelivered,
+          );
+          if (indexToRemove != -1) {
+            prod.units.removeAt(indexToRemove);
+          }
+
+          break;
+        }
+      }
+
+      enableSendToKitchen = hasPendingProducts();
       notifyListeners();
     }
   }
@@ -548,9 +667,7 @@ class OrderSetupProvider with ChangeNotifier {
     _navigateWithSlideTransition(context, MenuScreen());
   }
 
-  void navigateToOrderDetailScreen(BuildContext context) {
-    _navigateWithSlideTransition(context, OrderDetailScreen());
-  }
+  void navigateToOrderDetailScreen(BuildContext context) {}
 
   void _navigateWithSlideTransition(BuildContext context, Widget destination) {
     Navigator.of(context).push(

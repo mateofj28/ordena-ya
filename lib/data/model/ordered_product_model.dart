@@ -4,9 +4,8 @@ class OrderedProductModel extends OrderedProduct {
   OrderedProductModel(
     super.id, {
     required super.name,
-    required super.price,
-    required super.quantity,
-    required super.state,
+    required super.price, 
+    required super.units,
   });
 
   factory OrderedProductModel.fromJson(Map<String, dynamic> json) {
@@ -20,18 +19,11 @@ class OrderedProductModel extends OrderedProduct {
       return OrderedProductModel(
         json['id'],
         name: json['name'],
-        price:
-            (json['unitPrice'] as num).toDouble(),
-        quantity:
-            json['quantity'] is int
-                ? json['quantity']
-                : int.tryParse(json['quantity'].toString()) ??
-                    1,
-        state: json['state']
+        price: (json['unitPrice'] as num).toDouble(),
+        units: []
       );
     } catch (e, stacktrace) {
       print('❌ Error en OrderedProductModel.fromJson: $e');
-      print(stacktrace);
       rethrow;
     }
   }
@@ -40,9 +32,8 @@ class OrderedProductModel extends OrderedProduct {
     return OrderedProductModel(
       entity.id,
       name: entity.name,
-      price: entity.price,
-      quantity: entity.quantity,
-      state: entity.state,
+      price: entity.price, 
+      units: [],
     );
   }
 

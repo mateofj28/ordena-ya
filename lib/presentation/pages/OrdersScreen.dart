@@ -18,50 +18,48 @@ class OrdersScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.lightGray,
       body:
-          provider.orders.isEmpty
-              ? const EmptyCartView()
-              : Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 🧾 Lista de items del carrito
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: provider.orders.length,
-                        itemBuilder: (context, index) {
-                          final order = provider.orders[index];
-                          print("la orden es:");
-                          print(order);
+        provider.orders.isEmpty
+          ? const EmptyCartView()
+          : Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 15),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 🧾 Lista de items del carrito
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: provider.orders.length,
+                    itemBuilder: (context, index) {
+                      final order = provider.orders[index];
+                      print("la orden es:");
+                      print(order);
 
-                          return OrderCard(
-                            tableName: order.assignedTable!,
-                            people: order.numberOfPeople.toString(),
-                            date: Functions.getDate(order.orderDate.toString()),
-                            time: Functions.getTime(order.orderDate.toString()),
-                            total: order.orderedProducts.fold(
-                              0.0,
-                              (sum, product) =>
-                                  sum +
-                                  (product.price * product.quantity * 1.08),
-                            ),
-                            items:
-                                order.orderedProducts.map((product) {
-                                  return OrderItemRow(
-                                    label:
-                                        "${product.quantity} x ${product.name}",
-                                    value: product.price * product.quantity,
-                                    state: product.state,
-                                  );
-                                }).toList(),
+                      return OrderCard(
+                        tableName: order.assignedTable!,
+                        people: order.numberOfPeople.toString(),
+                        date: Functions.getDate(order.orderDate.toString()),
+                        time: Functions.getTime(order.orderDate.toString()),
+                        total: order.orderedProducts.fold(
+                          0.0,
+                          (sum, product) =>
+                              sum +
+                              (product.price * product.quantity * 1.08),
+                        ),
+                        items: order.orderedProducts.map((product) {
+                          return OrderItemRow(
+                            label: "${product.quantity} x ${product.name}",
+                            value: product.price * product.quantity,
+                            states: product.units.map((u) => u.state).toList(),
                           );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                  ],
+                        }).toList(),
+                      );
+                    },
+                  ),
                 ),
-              ),
+                const SizedBox(height: 15),
+              ],
+            ),
+          ),
     );
   }
 }

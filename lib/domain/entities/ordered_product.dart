@@ -6,26 +6,33 @@ const List<String> states = [
 ];
 
 class OrderedProduct {
-  final String? id; // optional
+  final String? id;
   final String name;
   final double price;
-  final int quantity;
-  String state;
+  final List<OrderedProductUnit> units;
   final double total;
 
   OrderedProduct(
-      this.id, {
-        required this.name,
-        required this.price,
-        required this.quantity,
-        this.state = 'pendiente',
-      }) : total = price * quantity;
+    this.id, {
+    required this.name,
+    required this.price,
+    required this.units,
+  }) : total = price * units.length;
+
+  int get quantity => units.length;
+
+  bool get isFullyDelivered => units.every((u) => u.isDelivered);
 
   @override
   String toString() {
-    return 'OrderedProduct(name: $name, quantity: $quantity, price: $price, total: $total, state: $state)';
+    return 'OrderedProduct(name: $name, quantity: $quantity, total: $total, states: ${units.map((u) => u.state).toList()})';
   }
+}
 
+class OrderedProductUnit {
+  String state;
+
+  OrderedProductUnit({this.state = 'pendiente'});
 
   void advanceState() {
     final index = states.indexOf(state);

@@ -166,25 +166,30 @@ class OrderCard extends StatelessWidget {
   }
 }
 
-// Widget para un solo ítem
 class OrderItemRow extends StatelessWidget {
   final String label;
   final double value;
-  final String state;
+  final List<String> states; // nuevo
 
   const OrderItemRow({
     super.key,
     required this.label,
     required this.value,
-    required this.state,
+    required this.states,
   });
 
   @override
   Widget build(BuildContext context) {
-    final config = getStateUIConfig(state);
+    final stateCount = <String, int>{};
+
+    for (final state in states) {
+      stateCount[state] = (stateCount[state] ?? 0) + 1;
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Título y precio
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -203,10 +208,19 @@ class OrderItemRow extends StatelessWidget {
             ),
           ],
         ),
-        IconLabel(
-          icon: config.icon,
-          label: config.label,
-          color: config.color,
+
+        // Muestra los estados con sus íconos
+        Wrap(
+          spacing: 10,
+          children:
+              stateCount.entries.map((entry) {
+                final config = getStateUIConfig(entry.key);
+                return IconLabel(
+                  icon: config.icon,
+                  label: "${config.label} (${entry.value})",
+                  color: config.color,
+                );
+              }).toList(),
         ),
         const SizedBox(height: 10),
       ],

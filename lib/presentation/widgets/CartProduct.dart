@@ -84,7 +84,7 @@ class CartProduct extends StatelessWidget {
               ),
               IconButton(
                 onPressed: () {
-                  provider.removeProductFromCart(index);
+                  provider.removeProductFromCart(product['productName']);
                 },
                 icon: HugeIcon(
                   icon: HugeIcons.strokeRoundedDelete02,
