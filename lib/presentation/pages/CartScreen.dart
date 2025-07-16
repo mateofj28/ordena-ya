@@ -55,13 +55,13 @@ class CartScreen extends StatelessWidget {
             ),
             const SizedBox(height: 5),
             LabelValueRow(
-              label: 'HPC',
+              label: 'Impuesto al consumo',
               labelStyle: TextStyle(
 
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.bold,
               ),
-              value: "(8%)",
+              value: "8%",
               valueStyle: TextStyle(
 
                 color: Colors.grey,
