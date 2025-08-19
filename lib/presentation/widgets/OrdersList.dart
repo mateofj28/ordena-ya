@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ordena_ya/core/constants/AppColors.dart';
-import 'package:ordena_ya/domain/entities/order.dart';
+import 'package:ordena_ya/domain/entity/order.dart';
 import 'package:ordena_ya/presentation/widgets/OrderSummaryCard.dart';
 
 class OrdersList extends StatelessWidget {

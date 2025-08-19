@@ -1,36 +1,23 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ordena_ya/core/constants/AppColors.dart';
-import 'package:ordena_ya/data/repositories/firebase_client_repository.dart';
-import 'package:ordena_ya/data/repositories/firebase_order_repository.dart';
-import 'package:ordena_ya/domain/usecases/create_client.dart';
-import 'package:ordena_ya/domain/usecases/get_all_orders.dart';
+import 'package:ordena_ya/data/repository/firebase_client_repository.dart';
+import 'package:ordena_ya/data/repository/firebase_order_repository.dart';
+import 'package:ordena_ya/domain/usecase/create_client.dart';
+import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
 import 'package:ordena_ya/presentation/pages/HomeScreen.dart';
 import 'package:ordena_ya/presentation/providers/MenuProvider.dart';
-import 'package:ordena_ya/presentation/providers/OrderSetupProvider.dart';
+import 'package:ordena_ya/presentation/providers/order_provider.dart';
 import 'package:ordena_ya/presentation/providers/ToggleButtonProvider.dart';
 import 'package:provider/provider.dart';
 
-import 'domain/usecases/create_order.dart';
+import 'domain/usecase/create_order.dart';
 
-import 'package:firebase_core/firebase_core.dart'; // <-- Esto también falta
-import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
-
-  final firestore = FirebaseFirestore.instance;
-  final orderRepository = FirebaseOrderRepository(firestore);
-  final clientRepository = FirebaseClientRepository(firestore);
-
-  final createOrderUseCase = CreateOrder(orderRepository);
-  final createClientUseCase = CreateClient(clientRepository);
-  final getAllOrdersUseCase = GetAllOrders(orderRepository);
-
+  
   runApp(
     MultiProvider(
       providers: [

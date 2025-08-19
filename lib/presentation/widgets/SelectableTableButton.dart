@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ordena_ya/core/constants/AppColors.dart';
-import 'package:ordena_ya/presentation/providers/OrderSetupProvider.dart';
+import 'package:ordena_ya/presentation/providers/order_provider.dart';
 import 'package:provider/provider.dart';
 
 

@@ -1,4 +1,4 @@
-import '../../domain/entities/client.dart';
+import '../../domain/entity/client.dart';
 
 class ClientModel extends Client {
   ClientModel({

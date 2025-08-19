@@ -5,7 +5,7 @@ import 'package:ordena_ya/presentation/widgets/ProductModal.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/AppColors.dart';
-import '../providers/OrderSetupProvider.dart';
+import '../providers/order_provider.dart';
 import '../widgets/ProductListItem.dart';
 
 class ProductsScreen extends StatelessWidget {

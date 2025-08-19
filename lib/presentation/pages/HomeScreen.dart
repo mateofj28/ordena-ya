@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:ordena_ya/presentation/pages/NewOrder.dart';
 import 'package:ordena_ya/presentation/pages/ViewAllOrders.dart';
 import 'package:ordena_ya/presentation/providers/MenuProvider.dart';
-import 'package:ordena_ya/presentation/providers/OrderSetupProvider.dart';
+import 'package:ordena_ya/presentation/providers/order_provider.dart';
 import 'package:ordena_ya/presentation/widgets/TopMenu.dart';
 import 'package:provider/provider.dart';
 

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:ordena_ya/core/constants/AppColors.dart';
-import 'package:ordena_ya/core/constants/utils/Functions.dart';
+import 'package:ordena_ya/core/utils/Functions.dart';
 import 'package:ordena_ya/presentation/widgets/IconTextRow.dart';
 
 class OrderSummaryCard extends StatelessWidget {

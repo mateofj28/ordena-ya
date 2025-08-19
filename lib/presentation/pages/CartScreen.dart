@@ -3,8 +3,8 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/AppColors.dart';
-import '../../core/constants/utils/Functions.dart';
-import '../providers/OrderSetupProvider.dart';
+import '../../core/utils/Functions.dart';
+import '../providers/order_provider.dart';
 import '../widgets/CartProduct.dart';
 import '../widgets/CustomButton.dart';
 import '../widgets/LabelValueRow.dart';

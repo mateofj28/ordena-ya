@@ -1,4 +1,4 @@
-import 'package:ordena_ya/domain/entities/ordered_product.dart';
+import 'package:ordena_ya/domain/entity/ordered_product.dart';
 
 class Order {
   String? id;

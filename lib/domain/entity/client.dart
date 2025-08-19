@@ -15,3 +15,5 @@ class Client {
     required this.updatedAt,
   });
 }
+
+// aqui solo va las propiedades y el constructor, nada de metodos.

@@ -3,7 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:ordena_ya/presentation/pages/CartScreen.dart';
 import 'package:ordena_ya/presentation/pages/OrdersScreen.dart';
 import 'package:ordena_ya/presentation/pages/ProductsScreen.dart';
-import 'package:ordena_ya/presentation/providers/OrderSetupProvider.dart';
+import 'package:ordena_ya/presentation/providers/order_provider.dart';
 import 'package:ordena_ya/presentation/widgets/AdjustValue.dart';
 import 'package:ordena_ya/presentation/widgets/BadgeContainer.dart';
 import 'package:ordena_ya/presentation/widgets/SelectableCard.dart';

@@ -1,9 +1,9 @@
 // domain/usecases/create_order.dart
-import '../entities/order.dart';
-import '../repositories/order_repository.dart';
+import '../entity/order.dart';
+import '../repository/order_repository.dart';
 
 class CreateOrder {
-  final ClientRepository repository;
+  final OrderRepository repository;
 
   CreateOrder(this.repository);
 

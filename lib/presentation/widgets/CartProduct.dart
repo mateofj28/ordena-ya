@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:ordena_ya/presentation/providers/OrderSetupProvider.dart';
+import 'package:ordena_ya/presentation/providers/order_provider.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/constants/utils/Functions.dart';
+import '../../core/utils/Functions.dart';
 import 'AdjustValue.dart';
 
 class CartProduct extends StatelessWidget {

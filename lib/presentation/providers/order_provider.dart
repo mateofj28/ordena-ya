@@ -1,25 +1,31 @@
 import 'package:flutter/material.dart';
-import 'package:ordena_ya/core/constants/utils/Functions.dart';
+import 'package:ordena_ya/core/utils/Functions.dart';
 import 'package:ordena_ya/data/model/client_model.dart';
 import 'package:ordena_ya/data/model/order_model.dart';
-import 'package:ordena_ya/domain/entities/order.dart';
-import 'package:ordena_ya/domain/usecases/create_client.dart';
-import 'package:ordena_ya/domain/usecases/get_all_orders.dart';
+import 'package:ordena_ya/domain/entity/order.dart';
+import 'package:ordena_ya/domain/usecase/create_client.dart';
+import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
 import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
 
-import '../../domain/entities/ordered_product.dart';
-import '../../domain/usecases/create_order.dart';
+import '../../domain/entity/ordered_product.dart';
+import '../../domain/usecase/create_order.dart';
+
+enum OrderStatus { initial, loading, success, error }
+
 
 class OrderSetupProvider with ChangeNotifier {
   final CreateOrder createOrderUseCase;
   final CreateClient createClientUseCase;
-  final GetAllOrders getAllOrdersUseCase;
+  final GetOrdersUseCase getAllOrdersUseCase;
 
   OrderSetupProvider({
     required this.createOrderUseCase,
     required this.createClientUseCase,
     required this.getAllOrdersUseCase,
   });
+
+  OrderStatus status = OrderStatus.initial;
+  String errorMessage = '';
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
@@ -646,13 +652,28 @@ class OrderSetupProvider with ChangeNotifier {
   }
 
   getAllOrders(BuildContext context) async {
+    // en si no deberia tener try catch porque el usecase ya lo tiene, pero lo dejo por si acaso
     try {
-      _isLoadingAllOrders = true;
+      status = OrderStatus.loading;
       notifyListeners();
 
-      _orders = await getAllOrdersUseCase.call();
-      _isLoadingAllOrders = false;
-      notifyListeners();
+      var result = await getAllOrdersUseCase.call();
+
+      result.fold(
+        (failure) {
+          status = OrderStatus.error;
+          errorMessage = failure.message;
+          notifyListeners();
+          Functions.showErrorSnackBar(context, 'Error al obtener las ordenes: $errorMessage');
+        },
+        (orders) {
+          _orders = orders;
+          status = OrderStatus.success;
+          errorMessage = '';
+          _isLoadingAllOrders = false;
+          notifyListeners();
+        },
+      );
     } catch (e) {
       Functions.showErrorSnackBar(context, 'Error al traer las ordenes: $e');
     }

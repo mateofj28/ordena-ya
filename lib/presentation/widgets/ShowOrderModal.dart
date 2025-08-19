@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:ordena_ya/core/constants/utils/Functions.dart';
-import 'package:ordena_ya/presentation/widgets/CustomButton.dart';
+import 'package:ordena_ya/core/utils/Functions.dart';
 import 'package:provider/provider.dart';
-
-import '../../core/constants/AppColors.dart';
-import '../providers/OrderSetupProvider.dart';
-import 'AdjustValue.dart';
+import '../providers/order_provider.dart';
 import 'OrderCard.dart';
 
 class ShowOrderModal extends StatelessWidget {

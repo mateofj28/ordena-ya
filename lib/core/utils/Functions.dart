@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+
+
 class Functions {
   static void navigateWithSlideUp(BuildContext context, Widget screen) {
     Navigator.of(context).push(

@@ -1,6 +1,6 @@
 // domain/usecases/create_order.dart
-import 'package:ordena_ya/domain/entities/client.dart';
-import 'package:ordena_ya/domain/repositories/client_repository.dart';
+import 'package:ordena_ya/domain/entity/client.dart';
+import 'package:ordena_ya/domain/repository/client_repository.dart';
 
 
 class CreateClient {
