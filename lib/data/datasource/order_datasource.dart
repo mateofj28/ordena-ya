@@ -1,11 +1,34 @@
 import 'package:ordena_ya/data/model/order_model.dart';
+import '../../core/network/api_client.dart';
 
-class OrderDatasource {
+abstract class OrderRemoteDataSource {
+  Future<List<OrderModel>> fetchOrders();
+  Future<OrderModel> createOrder(OrderModel order);
+  Future<OrderModel> updateOrder(OrderModel order);
+}
 
-  Future<List<OrderModel>> getOrders() async {
-    // ejecutar el endpoint
-    // convertir la respuesta a una lista de OrderModel
-    // retornar la lista
-    return [];
+class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
+  final ApiClient apiClient;
+
+  OrderRemoteDataSourceImpl({
+    required this.apiClient,
+  });
+
+  @override
+  Future<OrderModel> createOrder(OrderModel order) async {
+    final response = await apiClient.post('/orders', order.toJson());
+    return OrderModel.fromJson(response);
+  }
+
+  @override
+  Future<List<OrderModel>> fetchOrders() async {
+    final jsonList = await apiClient.get('/orders');
+    return jsonList.map((e) => OrderModel.fromJson(e)).toList();
+  }
+
+  @override
+  Future<OrderModel> updateOrder(OrderModel order) {
+    // TODO: implement updateOrder
+    throw UnimplementedError();
   }
 }
