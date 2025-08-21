@@ -17,7 +17,7 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
   @override
   Future<OrderModel> createOrder(OrderModel order) async {
     final response = await apiClient.post('/orders', order.toJson());
-    return OrderModel.fromJson(response);
+    return OrderModel.fromJson(response['order']);
   }
 
   @override

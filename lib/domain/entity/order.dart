@@ -1,6 +1,4 @@
-import 'package:ordena_ya/domain/entity/ordered_product.dart';
-
-class Order {
+/*class Order {
   String? id;
   String orderNumber;
   String deliveryType;
@@ -74,5 +72,53 @@ class Order {
       'orderDate: $orderDate, '
       'statusUpdatedAt: $statusUpdatedAt'
       ')';
+  }
+}*/
+
+class Order {
+  final int? id;
+  final int tenantId;
+  final int tableId;
+  final int waiterId;
+  final String customerName;
+  final String type; // ejemplo: dine_in, take_out
+  final String? status; // ejemplo: pending, completed, cancelled
+  final double subtotal;
+  final double tax;
+  final double total;
+  final DateTime createdAt;
+  final DateTime? updatedAt;
+
+  const Order({
+    this.id,
+    required this.tenantId,
+    required this.tableId,
+    required this.waiterId,
+    required this.customerName,
+    required this.type,
+    this.status,
+    required this.subtotal,
+    required this.tax,
+    required this.total,
+    required this.createdAt,
+    this.updatedAt,
+  });
+
+  @override
+  String toString() {
+    return 'Order('
+        'id: $id, '
+        'tenantId: $tenantId, '
+        'tableId: $tableId, '
+        'waiterId: $waiterId, '
+        'customerName: $customerName, '
+        'type: $type, '
+        'status: $status, '
+        'subtotal: $subtotal, '
+        'tax: $tax, '
+        'total: $total, '
+        'createdAt: $createdAt, '
+        'updatedAt: $updatedAt'
+        ')';
   }
 }

@@ -17,7 +17,9 @@ class OrderRepositoryImpl implements OrderRepository {
     try {
       final created = await datasource.createOrder(OrderModel.fromEntity(order));
       return Right(created);
-    } catch (e) {
+    } catch (e, stack) {
+      print('Error: $e');          // mensaje del error
+      print('Stacktrace: $stack');
       return Left(ServerFailure(e.toString()));
     }
   }

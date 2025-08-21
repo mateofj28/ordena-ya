@@ -12,7 +12,7 @@ class SelectableTableButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<OrderSetupProvider>(context);
-    final isSelected = provider.isTableSelected(tableName);
+    final isSelected = false; /*provider.isTableSelected(tableName);*/
 
     return GestureDetector(
       onTap: () => {},

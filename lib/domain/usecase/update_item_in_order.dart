@@ -8,7 +8,7 @@ class UpdateItemInOrderUseCase {
 
   UpdateItemInOrderUseCase(this.repository);
 
-  Future<Either<Failure, OrderItem>> call(String orderId, String itemId, OrderItem item) {
+  Future<Either<Failure, OrderItem>> call(int orderId, int itemId, OrderItem item) {
     return repository.updateItemInOrder(orderId, itemId, item);
   }
 }

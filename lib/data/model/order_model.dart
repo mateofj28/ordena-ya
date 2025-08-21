@@ -1,102 +1,66 @@
-import 'package:ordena_ya/data/model/ordered_product_model.dart';
-
 import '../../domain/entity/order.dart';
 
 class OrderModel extends Order {
   OrderModel({
-    super.id,
-    required super.orderNumber,
-    required super.deliveryType,
-    super.assignedTable,
-    required super.numberOfPeople,
-    required super.clientId,
-    required super.deliveryAddress,
-    required super.orderedProducts,
-    required super.discountApplied,
-    required super.totalValue,
-    required super.paymentMethod,
-    required super.orderStatus,
-    required super.orderDate,
-    required super.statusUpdatedAt,
+    required super.id,
+    required super.tenantId,
+    required super.tableId,
+    required super.waiterId,
+    required super.customerName,
+    required super.type,
+    required super.subtotal,
+    required super.tax,
+    required super.total,
+    required super.createdAt,
+    required super.updatedAt,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
-    try {
-      print("orderNumber: ${json['orderNumber']}");
-      print("deliveryType: ${json['deliveryType']}");
-      print("assignedTable: ${json['assignedTable']}");
-      print("numberOfPeople: ${json['numberOfPeople']}");
-      print("clientId: ${json['clientId']}");
-      print("deliveryAddress: ${json['deliveryAddress']}");
-      print("orderedProducts: ${json['orderedProducts']}");
-      print("discountApplied: ${json['discountApplied']}");
-      print("totalValue: ${json['totalValue']}");
-      print("paymentMethod: ${json['paymentMethod']}");
-      print("orderStatus: ${json['orderStatus']}");
-      print("orderDate: ${json['orderDate']}");
-      print("statusUpdatedAt: ${json['statusUpdatedAt']}");
-
-      return OrderModel(
-        orderNumber: json['orderNumber'],
-        deliveryType: json['deliveryType'],
-        assignedTable: json['assignedTable'],
-        numberOfPeople: json['numberOfPeople'],
-        clientId: json['clientId'],
-        deliveryAddress: json['deliveryAddress'] ?? 'Indefinido',
-        orderedProducts:
-            (json['orderedProducts'] as List)
-                .map((item) => OrderedProductModel.fromJson(item))
-                .toList(),
-        discountApplied: json['discountApplied'].toDouble(),
-        totalValue: json['totalValue'].toDouble(),
-        paymentMethod: json['paymentMethod'],
-        orderStatus: json['orderStatus'],
-        orderDate: DateTime.parse(json['orderDate']),
-        statusUpdatedAt: DateTime.parse(json['statusUpdatedAt']),
-      );
-    } catch (e, stacktrace) {
-      print('❌ Error en OrderModel.fromJson: $e');
-      print(stacktrace);
-      rethrow;
-    }
+    return OrderModel(
+      id: json['id'],
+      tenantId: json['tenant_id'],
+      tableId: json['table_id'],
+      waiterId: json['waiter_id'],
+      customerName: json['customer_name'],
+      type: json['type'],
+      subtotal: double.tryParse(json['subtotal'].toString()) ?? 0.0,
+      tax: double.tryParse(json['tax'].toString()) ?? 0.0,
+      total: double.tryParse(json['total'].toString()) ?? 0.0,
+      createdAt: DateTime.parse(json['created_at']),
+      updatedAt: DateTime.parse(json['updated_at']),
+    );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'orderNumber': orderNumber,
-      'deliveryType': deliveryType,
-      'assignedTable': assignedTable,
-      'numberOfPeople': numberOfPeople,
-      'clientId': clientId,
-      'deliveryAddress': deliveryAddress,
-      'orderedProducts':
-          orderedProducts
-              .map((product) => (product as OrderedProductModel).toJson())
-              .toList(),
-      'discountApplied': discountApplied,
-      'totalValue': totalValue,
-      'paymentMethod': paymentMethod,
-      'orderStatus': orderStatus,
-      'orderDate': orderDate.toIso8601String(),
-      'statusUpdatedAt': statusUpdatedAt.toIso8601String(),
+      'tenant_id': tenantId,
+      'table_id': tableId,
+      'waiter_id': waiterId,
+      'customer_name': customerName,
+      'type': type,
+      'status': status,
+      'subtotal': subtotal,
+      'tax': tax,
+      'total': total,
+      'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
     };
   }
 
-  factory OrderModel.fromEntity(Order entity) {
+  /// -------- ENTITY ↔️ MODEL --------
+  factory OrderModel.fromEntity(Order order) {
     return OrderModel(
-      orderNumber: entity.orderNumber,
-      deliveryType: entity.deliveryType,
-      assignedTable: entity.assignedTable,
-      numberOfPeople: entity.numberOfPeople,
-      clientId: entity.clientId,
-      deliveryAddress: entity.deliveryAddress,
-      orderedProducts: entity.orderedProducts,
-      discountApplied: entity.discountApplied,
-      totalValue: entity.totalValue,
-      paymentMethod: entity.paymentMethod,
-      orderStatus: entity.orderStatus,
-      orderDate: entity.orderDate,
-      statusUpdatedAt: entity.statusUpdatedAt,
+      id: order.id,
+      tenantId: order.tenantId,
+      tableId: order.tableId,
+      waiterId: order.waiterId,
+      customerName: order.customerName,
+      type: order.type,
+      subtotal: order.subtotal,
+      tax: order.tax,
+      total: order.total,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
     );
   }
 

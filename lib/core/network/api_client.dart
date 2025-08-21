@@ -26,16 +26,17 @@ class ApiClient {
       String endpoint,
       Map<String, dynamic> body,
       ) async {
+
     final response = await client.post(
       Uri.parse('$baseUrl$endpoint'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInRlbmFudElkIjoxLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NTU3ODEwNjAsImV4cCI6MTc1NTg2NzQ2MH0.rko0O-Vg9mzuub9tZ3jK6h2rsJXJtKrOIlIVEc2Tgj8'},
       body: json.encode(body),
     );
 
     if (response.statusCode == 200 || response.statusCode == 201) {
       return json.decode(response.body);
     } else {
-      throw Exception('Error POST $endpoint: ${response.statusCode}');
+      throw Exception('Error POST $endpoint: ${response.statusCode} - ${response.body}');
     }
   }
 

@@ -37,7 +37,8 @@ class OrdersList extends StatelessWidget {
             onTap: () {
               // Navegar a detalles, si aplica
             },
-            child: OrderSummaryCard(
+            /*
+            OrderSummaryCard(
               orderId: order.orderNumber,
               table:
                   order.assignedTable?.isNotEmpty == true
@@ -48,8 +49,9 @@ class OrdersList extends StatelessWidget {
               date: DateFormat('dd/MM/yyyy – hh:mm a').format(order.orderDate),
               status: order.orderStatus,
               total: order.totalValue,
-              headerColor: getStatusColor(order.orderStatus),
-            ),
+              headerColor: getStatusColor(order.orderStatus),*/
+
+            child: Container()
           ),
         );
       },

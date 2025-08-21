@@ -2,8 +2,8 @@ import '../../core/network/api_client.dart';
 import '../model/order_item_model.dart';
 
 abstract class OrderItemRemoteDataSource {
-  Future<OrderItemModel> addItemToOrder(String orderId, OrderItemModel item);
-  Future<OrderItemModel> updateItemInOrder(String orderId, String itemId, OrderItemModel item);
+  Future<OrderItemModel> addItemToOrder(int orderId, OrderItemModel item);
+  Future<OrderItemModel> updateItemInOrder(int orderId, int itemId, OrderItemModel item);
 }
 
 class OrderItemRemoteDataSourceImpl implements OrderItemRemoteDataSource {
@@ -14,13 +14,13 @@ class OrderItemRemoteDataSourceImpl implements OrderItemRemoteDataSource {
   });
 
   @override
-  Future<OrderItemModel> addItemToOrder(String orderId, OrderItemModel item) async {
+  Future<OrderItemModel> addItemToOrder(int orderId, OrderItemModel item) async {
     final res = await apiClient.post('/orders/$orderId/items', item.toJson());
-    return OrderItemModel.fromJson(res);
+    return OrderItemModel.fromJson(res['item']);
   }
 
   @override
-  Future<OrderItemModel> updateItemInOrder(String orderId, String itemId, OrderItemModel item) async {
+  Future<OrderItemModel> updateItemInOrder(int orderId, int itemId, OrderItemModel item) async {
     final res = await apiClient.patch('/orders/$orderId/items/$itemId', item.toJson());
     return OrderItemModel.fromJson(res);
   }

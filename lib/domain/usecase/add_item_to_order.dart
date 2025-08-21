@@ -8,7 +8,7 @@ class AddItemToOrderUseCase {
 
   AddItemToOrderUseCase(this.repository);
 
-  Future<Either<Failure, OrderItem>> call(String orderId, OrderItem item) {
+  Future<Either<Failure, OrderItem>> call(int orderId, OrderItem item) {
     return repository.addItemToOrder(orderId, item);
   }
 }

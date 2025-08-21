@@ -4,8 +4,8 @@ import '../entity/order_item.dart';
 
 abstract class OrderItemRepository {
   // Agregar un producto a la orden
-  Future<Either<Failure, OrderItem>> addItemToOrder(String orderId, OrderItem item);
+  Future<Either<Failure, OrderItem>> addItemToOrder(int orderId, OrderItem item);
 
   // Editar un producto que ya está en la orden
-  Future<Either<Failure, OrderItem>> updateItemInOrder(String orderId, String itemId, OrderItem item);
+  Future<Either<Failure, OrderItem>> updateItemInOrder(int orderId, int itemId, OrderItem item);
 }

@@ -1,4 +1,6 @@
 // domain/usecases/create_order.dart
+import '../../core/model/either.dart';
+import '../../core/model/failure.dart';
 import '../entity/order.dart';
 import '../repository/order_repository.dart';
 
@@ -7,7 +9,7 @@ class CreateOrder {
 
   CreateOrder(this.repository);
 
-  Future<void> call(Order order) {
+  Future<Either<Failure, Order>> call(Order order) {
     return repository.createOrder(order);
   }
 }

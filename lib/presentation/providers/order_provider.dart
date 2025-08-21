@@ -3,24 +3,25 @@ import 'package:ordena_ya/core/utils/Functions.dart';
 import 'package:ordena_ya/data/model/client_model.dart';
 import 'package:ordena_ya/data/model/order_model.dart';
 import 'package:ordena_ya/domain/entity/order.dart';
+import 'package:ordena_ya/domain/entity/order_item.dart';
 import 'package:ordena_ya/domain/usecase/create_client.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
 import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
 
 import '../../domain/entity/ordered_product.dart';
+import '../../domain/usecase/add_item_to_order.dart';
 import '../../domain/usecase/create_order.dart';
 
 enum OrderStatus { initial, loading, success, error }
 
-
 class OrderSetupProvider with ChangeNotifier {
   final CreateOrder createOrderUseCase;
-  final CreateClient createClientUseCase;
+  final AddItemToOrderUseCase addItemToOrderUseCase;
   final GetOrdersUseCase getAllOrdersUseCase;
 
   OrderSetupProvider({
     required this.createOrderUseCase,
-    required this.createClientUseCase,
+    required this.addItemToOrderUseCase,
     required this.getAllOrdersUseCase,
   });
 
@@ -116,7 +117,11 @@ class OrderSetupProvider with ChangeNotifier {
     'María López',
   ];
 
-  Map<int, String> deliveryTypeMap = {0: 'Local', 1: 'Entregar', 2: 'Recoger'};
+  Map<int, String> deliveryTypeMap = {
+    0: 'dine_in',
+    1: 'delivery',
+    2: 'take_out',
+  };
   final Map<String, double> _discountTypeMap = {
     '5%': 0.05,
     '10%': 0.10,
@@ -148,7 +153,7 @@ class OrderSetupProvider with ChangeNotifier {
   int get productCount => _productCount;
   List<Order> get orders => _orders;
   List get products => _products;
-  get pageController => _pageController;
+  PageController get pageController => _pageController;
   int get deliveryType => _deliveryType;
   int get totalItems {
     return _cartItems.fold(0, (sum, item) => sum + (item['quantity'] as int));
@@ -308,7 +313,7 @@ class OrderSetupProvider with ChangeNotifier {
 
       final clientEntity = clientModel.toEntity();
 
-      await createClientUseCase.call(clientEntity);
+      // await createClientUseCase.call(clientEntity);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -338,15 +343,41 @@ class OrderSetupProvider with ChangeNotifier {
   }
 
   bool hasPendingProducts() {
-    return _orders.any(
+    /*return _orders.any(
       (order) => order.orderedProducts.any(
         (product) => product.units.any((unit) => unit.state == 'pendiente'),
       ),
+    );*/
+    return true;
+  }
+
+  OrderItem buildOrderItem(Map<String, dynamic> product){
+    return OrderItem(
+        productId: 1,
+        productName: product['productName'],
+        quantity: product['quantity'],
+        price: product['price'],
+        notes: product['description'],
+        status: "pending",
+        createdAt: DateTime.now(),
     );
   }
 
-  Order createNewOrder() {
-    return Order(
+  // recoje toda la informacion para crear la orden
+  Order buildOrder() {
+    Order order = Order(
+      tenantId: 1,
+      tableId: _tableIndex,
+      waiterId: 1,
+      customerName: 'indefinido',
+      type: deliveryTypeMap[selectedIndex]!,
+      subtotal: subtotal,
+      tax: 8000.00,
+      total: total,
+      createdAt: DateTime.now(),
+    );
+
+    /*Order(
       orderNumber: "",
       assignedTable: _tableIndex.toString(),
       deliveryType: deliveryTypeMap[selectedIndex]!,
@@ -372,10 +403,13 @@ class OrderSetupProvider with ChangeNotifier {
       orderStatus: "",
       orderDate: DateTime.now(),
       statusUpdatedAt: DateTime.now(),
-    );
+    );*/
+
+    return order;
   }
 
-  void addProductToCart(Map<String, dynamic> product) {
+  // funcion para agregar producto a la orden y al carrito
+  void addProductToCart(Map<String, dynamic> product) async {
     final existingProductIndex = _cartItems.indexWhere(
       (item) => item['productName'] == product['productName'],
     );
@@ -384,7 +418,7 @@ class OrderSetupProvider with ChangeNotifier {
       // Ya existe en el carrito, incrementamos la cantidad
       _cartItems[existingProductIndex]['quantity'] += 1;
     } else {
-      print('Agregando producto al carrito:');
+
       product['state'] = 'pendiente';
       _cartItems.add(product);
     }
@@ -393,7 +427,13 @@ class OrderSetupProvider with ChangeNotifier {
 
     if (_orders.isEmpty || _isLastOrderClosed) {
       print('Creando nueva orden');
-      _orders.add(createNewOrder());
+      // Crear una nueva orden
+      await createOrder(buildOrder(), product);
+
+      // usar el use case crear order
+      // cojo el id de la order y creo la otra tabla
+      // traigo las ordenes y uso la variable _orders (viene actualizada))
+      _orders.add(buildOrder());
       _isLastOrderClosed = false;
     } else {
       print('Actualizando orden');
@@ -411,7 +451,7 @@ class OrderSetupProvider with ChangeNotifier {
     _cartItems.removeWhere((item) => item['productName'] == productName);
 
     // Buscar orden que contiene el producto
-    int ordenIndex = _orders.indexWhere(
+    /*int ordenIndex = _orders.indexWhere(
       (order) => order.orderedProducts.any((p) => p.name == productName),
     );
 
@@ -442,19 +482,19 @@ class OrderSetupProvider with ChangeNotifier {
 
     // Actualizar estado del botón "Enviar a cocina"
     enableSendToKitchen = hasPendingProducts();
-
+    */
     notifyListeners();
   }
 
   void advanceOrderedProductsStates() {
     for (final order in _orders) {
-      for (final product in order.orderedProducts) {
+      /*for (final product in order.orderedProducts) {
         for (final unit in product.units) {
           if (!unit.isDelivered) {
             _startUnitStateTransition(unit, product.name);
           }
         }
-      }
+      }*/
     }
   }
 
@@ -482,7 +522,7 @@ class OrderSetupProvider with ChangeNotifier {
     if (_orders.isEmpty) return;
 
     final lastOrder = _orders.last;
-    final existingProducts = lastOrder.orderedProducts;
+    /*final existingProducts = lastOrder.orderedProducts;
     final updatedProducts = [...existingProducts];
 
     for (final item in _cartItems) {
@@ -523,23 +563,23 @@ class OrderSetupProvider with ChangeNotifier {
     _orders.last = lastOrder.copyWith(
       orderedProducts: updatedProducts,
       statusUpdatedAt: DateTime.now(),
-    );
+    );*/
   }
 
   void updateLastOrderWithTablesOrPeople() {
     if (_orders.isEmpty) return;
 
-    _orders.last = _orders.last.copyWith(
+    /*_orders.last = _orders.last.copyWith(
       assignedTable: _tableIndex.toString(),
       numberOfPeople: _peopleCount,
-    );
+    );*/
   }
 
   void increaseProductQuantity(Map<String, dynamic> product) {
     product['quantity'] = (product['quantity'] ?? 0) + 1;
 
     for (final order in _orders) {
-      final index = order.orderedProducts.indexWhere(
+      /*final index = order.orderedProducts.indexWhere(
         (p) => p.name == product['productName'],
       );
       if (index != -1) {
@@ -547,7 +587,7 @@ class OrderSetupProvider with ChangeNotifier {
         prod.units.add(OrderedProductUnit(state: 'pendiente'));
         enableSendToKitchen = true;
         break;
-      }
+      }*/
     }
 
     notifyListeners();
@@ -558,7 +598,7 @@ class OrderSetupProvider with ChangeNotifier {
       product['quantity']--;
 
       for (final order in _orders) {
-        final index = order.orderedProducts.indexWhere(
+        /* final index = order.orderedProducts.indexWhere(
           (p) => p.name == product['productName'],
         );
         if (index != -1) {
@@ -573,7 +613,7 @@ class OrderSetupProvider with ChangeNotifier {
           }
 
           break;
-        }
+        }*/
       }
 
       enableSendToKitchen = hasPendingProducts();
@@ -581,7 +621,7 @@ class OrderSetupProvider with ChangeNotifier {
     }
   }
 
-  void createOrder(BuildContext context) async {
+  /*void createOrder(BuildContext context) async {
     // Validaciones
     if (_selectedTable == 'N/A' || _selectedPeople == 'N/A') {
       Functions.showErrorSnackBar(
@@ -649,9 +689,44 @@ class OrderSetupProvider with ChangeNotifier {
       // print(stacktrace);
       Functions.showErrorSnackBar(context, 'Error al crear la orden: $e');
     }
+  }*/
+
+  Future<void> createOrder(Order order, Map<String, dynamic> product) async {
+    final result = await createOrderUseCase.call(order);
+
+    result.fold(
+      (failure) {
+        errorMessage = failure.message;
+      },
+      (order) async {
+        print('---orden desde el caso de uso---');
+        await addProductToOrder(order.id!, buildOrderItem(product));
+        errorMessage = '';
+      },
+    );
+    notifyListeners();
   }
 
-  getAllOrders(BuildContext context) async {
+  Future<void> addProductToOrder(int orderId, OrderItem item) async {
+    final result = await addItemToOrderUseCase.call(orderId, item);
+
+    print('si estoy pasando por aqui!!');
+
+    result.fold(
+      (failure) {
+        print('hay un problema: ${failure.message}');
+        errorMessage = failure.message;
+      },
+      (added) {
+        print('---producto agregado a la orden desde el usecase---');
+        print(added);
+        errorMessage = '';
+      },
+    );
+    notifyListeners();
+  }
+
+  Future<void> getAllOrders(BuildContext context) async {
     // en si no deberia tener try catch porque el usecase ya lo tiene, pero lo dejo por si acaso
     try {
       status = OrderStatus.loading;
@@ -664,7 +739,10 @@ class OrderSetupProvider with ChangeNotifier {
           status = OrderStatus.error;
           errorMessage = failure.message;
           notifyListeners();
-          Functions.showErrorSnackBar(context, 'Error al obtener las ordenes: $errorMessage');
+          Functions.showErrorSnackBar(
+            context,
+            'Error al obtener las ordenes: $errorMessage',
+          );
         },
         (orders) {
           _orders = orders;
@@ -680,8 +758,8 @@ class OrderSetupProvider with ChangeNotifier {
   }
 
   // UI utils
-  bool isTableSelected(String table) => _selectedTable == table;
-  bool isTabSelected(int index) => _selectedTabIndex == index;
+  /*bool isTableSelected(String table) => _selectedTable == table;
+  bool isTabSelected(int index) => _selectedTabIndex == index;*/
 
   // Navigation
   void navigateToMenuScreen(BuildContext context) {
@@ -700,7 +778,7 @@ class OrderSetupProvider with ChangeNotifier {
           const end = Offset.zero;
           const curve = Curves.easeOut;
 
-          final tween = Tween(
+          final tween = Tween<Offset>(
             begin: begin,
             end: end,
           ).chain(CurveTween(curve: curve));

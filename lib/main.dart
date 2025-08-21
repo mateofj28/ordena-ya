@@ -1,9 +1,8 @@
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ordena_ya/core/constants/AppColors.dart';
 import 'package:ordena_ya/core/di/get_it.dart';
-import 'package:ordena_ya/domain/usecase/create_client.dart';
+import 'package:ordena_ya/domain/usecase/add_item_to_order.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
 import 'package:ordena_ya/presentation/pages/HomeScreen.dart';
 import 'package:ordena_ya/presentation/providers/MenuProvider.dart';
@@ -12,22 +11,27 @@ import 'package:ordena_ya/presentation/providers/ToggleButtonProvider.dart';
 import 'package:provider/provider.dart';
 import 'domain/usecase/create_order.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   setupLocator();
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => OrderSetupProvider(createOrderUseCase: getIt<CreateOrder>(), getAllOrdersUseCase: getIt<GetOrdersUseCase>(), createClientUseCase: getIt<CreateClient>())),
+        ChangeNotifierProvider(
+          create:
+              (_) => OrderSetupProvider(
+                createOrderUseCase: getIt<CreateOrder>(),
+                addItemToOrderUseCase: getIt<AddItemToOrderUseCase>(),
+                getAllOrdersUseCase: getIt<GetOrdersUseCase>(),
+              ),
+        ),
         ChangeNotifierProvider(create: (_) => ToggleButtonProvider()),
         ChangeNotifierProvider(create: (_) => MenuProvider()),
       ],
-      child: MyApp()
-    )
+      child: MyApp(),
+    ),
   );
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -40,14 +44,9 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.redPrimary),
         scaffoldBackgroundColor: AppColors.whiteBackground,
-        textTheme: GoogleFonts.nunitoTextTheme(
-          Theme.of(context).textTheme,
-        ),
+        textTheme: GoogleFonts.nunitoTextTheme(Theme.of(context).textTheme),
       ),
       home: HomeScreen(),
     );
   }
 }
-
-
-

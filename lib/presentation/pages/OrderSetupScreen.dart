@@ -3,9 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:ordena_ya/presentation/content/BuildClientRegistration.dart';
 import 'package:ordena_ya/presentation/content/BuildClientSearch.dart';
 import 'package:ordena_ya/presentation/content/BuildClientSummary.dart';
-
 import 'package:ordena_ya/presentation/providers/order_provider.dart';
-
 import 'package:ordena_ya/presentation/widgets/IconSubtitle.dart';
 import 'package:ordena_ya/presentation/widgets/LabeledRadioOption.dart';
 import 'package:provider/provider.dart';

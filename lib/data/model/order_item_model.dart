@@ -4,6 +4,7 @@ class OrderItemModel extends OrderItem {
   OrderItemModel({
     required super.id,
     required super.orderId,
+    required super.productId,
     required super.productName,
     required super.quantity,
     required super.price,
@@ -18,9 +19,10 @@ class OrderItemModel extends OrderItem {
     return OrderItemModel(
       id: json['id'],
       orderId: json['order_id'],
+      productId: json['product_id'],
       productName: json['product_name'],
       quantity: json['quantity'],
-      price: (json['price'] as num).toDouble(),
+      price: (json['unit_price'] as num).toDouble(),
       notes: json['notes'],
       status: json['status'],
       createdAt: DateTime.parse(json['created_at']),
@@ -30,17 +32,19 @@ class OrderItemModel extends OrderItem {
 
   // A JSON
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
+    var json = {
       'order_id': orderId,
+      'product_id': productId,
       'product_name': productName,
       'quantity': quantity,
-      'price': price,
+      'unit_price': price,
       'notes': notes,
       'status': status,
       'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
+      'updated_at': updatedAt?.toIso8601String(),
     };
+    print(json);
+    return json;
   }
 
   // Convierte de entidad a modelo
@@ -48,6 +52,7 @@ class OrderItemModel extends OrderItem {
     return OrderItemModel(
       id: entity.id,
       orderId: entity.orderId,
+      productId: entity.productId,
       productName: entity.productName,
       quantity: entity.quantity,
       price: entity.price,
@@ -63,6 +68,7 @@ class OrderItemModel extends OrderItem {
     return OrderItem(
       id: id,
       orderId: orderId,
+      productId: productId,
       productName: productName,
       quantity: quantity,
       price: price,
