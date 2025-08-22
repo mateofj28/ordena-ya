@@ -713,8 +713,10 @@ class OrderSetupProvider with ChangeNotifier {
     print('si estoy pasando por aqui!!');
 
     result.fold(
-      (failure) {
+      (failure) async {
         print('hay un problema: ${failure.message}');
+        // TODO: no va aqui, por ahora
+        await getAllOrders();
         errorMessage = failure.message;
       },
       (added) {
@@ -726,9 +728,9 @@ class OrderSetupProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> getAllOrders(BuildContext context) async {
+  Future<void> getAllOrders() async {
     // en si no deberia tener try catch porque el usecase ya lo tiene, pero lo dejo por si acaso
-    try {
+
       status = OrderStatus.loading;
       notifyListeners();
 
@@ -739,10 +741,6 @@ class OrderSetupProvider with ChangeNotifier {
           status = OrderStatus.error;
           errorMessage = failure.message;
           notifyListeners();
-          Functions.showErrorSnackBar(
-            context,
-            'Error al obtener las ordenes: $errorMessage',
-          );
         },
         (orders) {
           _orders = orders;
@@ -752,9 +750,7 @@ class OrderSetupProvider with ChangeNotifier {
           notifyListeners();
         },
       );
-    } catch (e) {
-      Functions.showErrorSnackBar(context, 'Error al traer las ordenes: $e');
-    }
+
   }
 
   // UI utils

@@ -29,7 +29,9 @@ class OrderRepositoryImpl implements OrderRepository {
     try {
       final orders = await datasource.fetchOrders();
       return Right(orders);
-    } catch (e) {
+    } catch (e, stack) {
+      print('Error: $e');          // mensaje del error
+      print('Stacktrace: $stack');
       return Left(ServerFailure(e.toString()));
     }
   }

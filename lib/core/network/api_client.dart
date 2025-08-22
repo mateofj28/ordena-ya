@@ -6,6 +6,10 @@ class ApiClient {
   final String baseUrl;
   final http.Client client;
 
+  // constants.dart
+  String apiToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInRlbmFudElkIjoxLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NTU4NTM5ODAsImV4cCI6MTc1NTk0MDM4MH0.6f75Scy4PHwhgEs3UQtnyaNUwL9rY6qaosIUalwftKA";
+
+
   ApiClient({
     required this.baseUrl,
     required this.client,
@@ -13,7 +17,7 @@ class ApiClient {
 
   /// 🔹 GET → retorna un objeto dinámico (mapa o lista)
   Future<dynamic> get(String endpoint) async {
-    final response = await client.get(Uri.parse('$baseUrl$endpoint'));
+    final response = await client.get(Uri.parse('$baseUrl$endpoint'), headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $apiToken'});
     if (response.statusCode == 200) {
       return json.decode(response.body);
     } else {
@@ -29,7 +33,7 @@ class ApiClient {
 
     final response = await client.post(
       Uri.parse('$baseUrl$endpoint'),
-      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInRlbmFudElkIjoxLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NTU3ODEwNjAsImV4cCI6MTc1NTg2NzQ2MH0.rko0O-Vg9mzuub9tZ3jK6h2rsJXJtKrOIlIVEc2Tgj8'},
+      headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer $apiToken'},
       body: json.encode(body),
     );
 

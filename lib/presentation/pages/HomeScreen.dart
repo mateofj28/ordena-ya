@@ -45,7 +45,7 @@ class HomeScreen extends StatelessWidget {
                         if (i == 1){
                           // if (orderProvider.orders.isEmpty) {
                           // }  
-                          orderProvider.getAllOrders(context);
+                          orderProvider.getAllOrders();
                         }
 
                         provider.setIndex(i);

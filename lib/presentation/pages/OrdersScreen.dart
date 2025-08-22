@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:ordena_ya/core/utils/Functions.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/AppColors.dart';
@@ -18,30 +17,34 @@ class OrdersScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.lightGray,
       body:
-        provider.orders.isEmpty
-          ? const EmptyCartView()
-          : Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 15),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 🧾 Lista de items del carrito
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: provider.orders.length,
-                    itemBuilder: (context, index) {
-                      final order = provider.orders[index];
-                      print("la orden es:");
-                      print(order);
+          provider.orders.isEmpty
+              ? const EmptyCartView()
+              : Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 15),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 🧾 Lista de items del carrito
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: provider.orders.length,
+                        itemBuilder: (context, index) {
+                          final order = provider.orders[index];
+                          print("la orden es:");
+                          print(order);
 
-
-                    },
-                  ),
+                          return OrderCard(
+                            people: "2",
+                            items: [],
+                            order: order,
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                  ],
                 ),
-                const SizedBox(height: 15),
-              ],
-            ),
-          ),
+              ),
     );
   }
 }

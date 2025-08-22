@@ -4,30 +4,32 @@ import 'package:ordena_ya/presentation/widgets/ShowOrderModal.dart';
 
 import '../../core/constants/AppColors.dart';
 import '../../core/utils/Functions.dart';
+import '../../domain/entity/order.dart';
 import 'IconLabel.dart';
 import 'LabelValueRow.dart';
 import 'PrintOrderModal.dart';
 
 class OrderCard extends StatelessWidget {
-  final String tableName;
+
   final String people;
-  final String date;
-  final String time;
   final List<OrderItemRow> items;
-  final double total;
+  final Order order;
 
   const OrderCard({
     super.key,
-    required this.tableName,
     required this.people,
-    required this.date,
-    required this.time,
     required this.items,
-    required this.total,
+    required this.order,
   });
 
   @override
   Widget build(BuildContext context) {
+
+    final date = Functions.getDate(order.createdAt);
+    final time = Functions.getTime(order.createdAt);
+    final total = order.total;
+    final tableId = order.tableId;
+
     return Container(
       width: 400,
       padding: const EdgeInsets.all(10),
@@ -41,7 +43,7 @@ class OrderCard extends StatelessWidget {
           Row(
             children: [
               Text(
-                'Mesa $tableName',
+                'Mesa $tableId',
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -55,9 +57,9 @@ class OrderCard extends StatelessWidget {
             children: [
               const Icon(HugeIcons.strokeRoundedCalendar03),
               const SizedBox(width: 10),
-              Text('$date,', style: const TextStyle(fontSize: 13)),
+              Text(Functions.getDate(order.createdAt), style: const TextStyle(fontSize: 13)),
               const SizedBox(width: 10),
-              Text(time, style: const TextStyle(fontSize: 13)),
+              Text(Functions.getTime(order.createdAt), style: const TextStyle(fontSize: 13)),
             ],
           ),
           const Divider(color: Colors.grey, thickness: 1, height: 20),
@@ -71,7 +73,7 @@ class OrderCard extends StatelessWidget {
               color: AppColors.textPrimary,
               fontWeight: FontWeight.bold,
             ),
-            value: Functions.formatCurrency(total),
+            value: total.toString(),
             valueStyle: TextStyle(
               fontSize: 16,
               color: AppColors.redPrimary,
@@ -88,7 +90,7 @@ class OrderCard extends StatelessWidget {
                     context: context,
                     builder: (BuildContext context) {
                       final order = {
-                        "tableName": tableName,
+                        "tableName": tableId,
                         "people": people,
                         "date": date,
                         "time": time,
@@ -120,7 +122,7 @@ class OrderCard extends StatelessWidget {
                     context: context,
                     builder: (BuildContext context) {
                       final order = {
-                        "tableName": tableName,
+                        "tableName": tableId,
                         "people": people,
                         "date": date,
                         "time": time,

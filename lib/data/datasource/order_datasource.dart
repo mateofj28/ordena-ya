@@ -10,9 +10,7 @@ abstract class OrderRemoteDataSource {
 class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
   final ApiClient apiClient;
 
-  OrderRemoteDataSourceImpl({
-    required this.apiClient,
-  });
+  OrderRemoteDataSourceImpl({required this.apiClient});
 
   @override
   Future<OrderModel> createOrder(OrderModel order) async {
@@ -23,7 +21,19 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
   @override
   Future<List<OrderModel>> fetchOrders() async {
     final jsonList = await apiClient.get('/orders');
-    return jsonList.map((e) => OrderModel.fromJson(e)).toList();
+    final List<dynamic> ordersJson = jsonList['orders'];
+    final orders =
+        ordersJson.map<OrderModel>((e) => OrderModel.fromJson(e)).toList();
+    final today = DateTime.now();
+    final filtered =
+        orders.where((OrderModel order) {
+          final createdAt = order.createdAt;
+          return createdAt.year == today.year &&
+              createdAt.month == today.month &&
+              createdAt.day == today.day;
+        }).toList();
+
+    return filtered;
   }
 
   @override
