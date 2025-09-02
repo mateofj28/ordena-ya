@@ -6,6 +6,7 @@ import 'package:ordena_ya/domain/entity/order.dart';
 import 'package:ordena_ya/domain/entity/order_item.dart';
 import 'package:ordena_ya/domain/usecase/create_client.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
+import 'package:ordena_ya/domain/usecase/get_orders_today.dart';
 import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
 
 import '../../domain/entity/ordered_product.dart';
@@ -17,12 +18,12 @@ enum OrderStatus { initial, loading, success, error }
 class OrderSetupProvider with ChangeNotifier {
   final CreateOrder createOrderUseCase;
   final AddItemToOrderUseCase addItemToOrderUseCase;
-  final GetOrdersUseCase getAllOrdersUseCase;
+  final GetOrdersTodayUseCase getOrdersTodayUseCase;
 
   OrderSetupProvider({
     required this.createOrderUseCase,
     required this.addItemToOrderUseCase,
-    required this.getAllOrdersUseCase,
+    required this.getOrdersTodayUseCase,
   });
 
   OrderStatus status = OrderStatus.initial;
@@ -371,7 +372,6 @@ class OrderSetupProvider with ChangeNotifier {
       waiterId: 1,
       customerName: 'indefinido',
       type: deliveryTypeMap[selectedIndex]!,
-      subtotal: subtotal,
       tax: 8000.00,
       total: total,
       createdAt: DateTime.now(),
@@ -433,7 +433,7 @@ class OrderSetupProvider with ChangeNotifier {
       // usar el use case crear order
       // cojo el id de la order y creo la otra tabla
       // traigo las ordenes y uso la variable _orders (viene actualizada))
-      _orders.add(buildOrder());
+      // _orders.add(buildOrder());
       _isLastOrderClosed = false;
     } else {
       print('Actualizando orden');
@@ -734,7 +734,11 @@ class OrderSetupProvider with ChangeNotifier {
       status = OrderStatus.loading;
       notifyListeners();
 
-      var result = await getAllOrdersUseCase.call();
+      final now = DateTime.now();
+      final today = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+
+
+      var result = await getOrdersTodayUseCase.call(today);
 
       result.fold(
         (failure) {
@@ -746,7 +750,6 @@ class OrderSetupProvider with ChangeNotifier {
           _orders = orders;
           status = OrderStatus.success;
           errorMessage = '';
-          _isLoadingAllOrders = false;
           notifyListeners();
         },
       );

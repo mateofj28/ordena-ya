@@ -3,6 +3,7 @@ import '../../core/network/api_client.dart';
 
 abstract class OrderRemoteDataSource {
   Future<List<OrderModel>> fetchOrders();
+  Future<List<OrderModel>> fetchOrdersToday(String date);
   Future<OrderModel> createOrder(OrderModel order);
   Future<OrderModel> updateOrder(OrderModel order);
 }
@@ -34,6 +35,17 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
         }).toList();
 
     return filtered;
+  }
+
+  @override
+  Future<List<OrderModel>> fetchOrdersToday(String date) async {
+    final jsonList = await apiClient.get('/orders/today?date=$date');
+    final List<dynamic> ordersJson = jsonList['orders'];
+
+    List<OrderModel> orders = ordersJson
+      .map((orderJson) => OrderModel.fromJson(orderJson))
+      .toList();
+    return orders;
   }
 
   @override

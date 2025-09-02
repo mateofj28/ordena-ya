@@ -244,25 +244,25 @@ class StateUIConfig {
 
 StateUIConfig getStateUIConfig(String state) {
   switch (state) {
-    case 'pendiente':
+    case 'pending':
       return StateUIConfig(
         icon: HugeIcons.strokeRoundedTrolley01,
         label: 'pendiente',
         color: AppColors.yellowStatus,
       );
-    case 'en preparación':
+    case 'in preparation':
       return StateUIConfig(
         icon: HugeIcons.strokeRoundedPackageProcess,
         label: 'en preparación',
         color: AppColors.redPrimary,
       );
-    case 'listo para entregar':
+    case 'ready to deliver':
       return StateUIConfig(
         icon: HugeIcons.strokeRoundedTrolley02,
         label: 'Ready to Deliver',
         color: Colors.yellow,
       );
-    case 'entregado':
+    case 'delivered':
       return StateUIConfig(
         icon: HugeIcons.strokeRoundedPackageDelivered,
         label: 'entregado',

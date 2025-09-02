@@ -6,4 +6,5 @@ import '../entity/order.dart';
 abstract class OrderRepository {
   Future<Either<Failure, Order>> createOrder(Order order);
   Future<Either<Failure, List<Order>>> getAllOrders();
+  Future<Either<Failure, List<Order>>> getAllOrdersToday(String date);
 }

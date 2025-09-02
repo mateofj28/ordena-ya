@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:ordena_ya/core/constants/AppColors.dart';
 import 'package:ordena_ya/core/di/get_it.dart';
 import 'package:ordena_ya/domain/usecase/add_item_to_order.dart';
-import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
+import 'package:ordena_ya/domain/usecase/get_orders_today.dart';
 import 'package:ordena_ya/presentation/pages/HomeScreen.dart';
 import 'package:ordena_ya/presentation/providers/MenuProvider.dart';
 import 'package:ordena_ya/presentation/providers/order_provider.dart';
@@ -22,7 +22,7 @@ void main() async {
               (_) => OrderSetupProvider(
                 createOrderUseCase: getIt<CreateOrder>(),
                 addItemToOrderUseCase: getIt<AddItemToOrderUseCase>(),
-                getAllOrdersUseCase: getIt<GetOrdersUseCase>(),
+                getOrdersTodayUseCase: getIt<GetOrdersTodayUseCase>(),
               ),
         ),
         ChangeNotifierProvider(create: (_) => ToggleButtonProvider()),

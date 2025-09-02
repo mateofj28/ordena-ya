@@ -75,50 +75,42 @@
   }
 }*/
 
+
+
+
+
+import 'package:ordena_ya/domain/entity/item.dart';
+
 class Order {
   final int? id;
-  final int tenantId;
+  final int? tenantId;
   final int tableId;
-  final int waiterId;
+  final int? waiterId;
   final String customerName;
-  final String type; // ejemplo: dine_in, take_out
-  final String? status; // ejemplo: pending, completed, cancelled
-  final double subtotal;
-  final double tax;
+  final String? status;
+  final String? type;
+  final double? tax;
   final double total;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  final List<Item>? items;
 
-  const Order({
+  Order({
     this.id,
-    required this.tenantId,
+    this.tenantId,  
     required this.tableId,
-    required this.waiterId,
+    this.waiterId,
     required this.customerName,
-    required this.type,
     this.status,
-    required this.subtotal,
-    required this.tax,
+    this.type,
+    this.tax,
     required this.total,
     required this.createdAt,
     this.updatedAt,
+    this.items,
   });
 
-  @override
-  String toString() {
-    return 'Order('
-        'id: $id, '
-        'tenantId: $tenantId, '
-        'tableId: $tableId, '
-        'waiterId: $waiterId, '
-        'customerName: $customerName, '
-        'type: $type, '
-        'status: $status, '
-        'subtotal: $subtotal, '
-        'tax: $tax, '
-        'total: $total, '
-        'createdAt: $createdAt, '
-        'updatedAt: $updatedAt'
-        ')';
-  }
+  
 }
+
+

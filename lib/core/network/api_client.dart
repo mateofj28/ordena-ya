@@ -7,7 +7,7 @@ class ApiClient {
   final http.Client client;
 
   // constants.dart
-  String apiToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInRlbmFudElkIjoxLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NTU4NTM5ODAsImV4cCI6MTc1NTk0MDM4MH0.6f75Scy4PHwhgEs3UQtnyaNUwL9rY6qaosIUalwftKA";
+  String apiToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInRlbmFudElkIjoxLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NTY4NDQzMjMsImV4cCI6MTc1NjkzMDcyM30.2k2qLVKmL-w3AESvUb9XOGfl3CD2V1JP4K0813WvAi4";
 
 
   ApiClient({

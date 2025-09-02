@@ -35,5 +35,17 @@ class OrderRepositoryImpl implements OrderRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+  
+  @override
+  Future<Either<Failure, List<Order>>> getAllOrdersToday(String date) async {
+    try {
+      final orders = await datasource.fetchOrdersToday(date);
+      return Right(orders);
+    } catch (e, stack) {
+      print('Error: $e');          // mensaje del error
+      print('Stacktrace: $stack');
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 
 }
