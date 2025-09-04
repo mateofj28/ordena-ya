@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:ordena_ya/core/utils/Functions.dart';
 import 'package:ordena_ya/data/model/client_model.dart';
-import 'package:ordena_ya/data/model/order_model.dart';
+import 'package:ordena_ya/domain/entity/item.dart';
 import 'package:ordena_ya/domain/entity/order.dart';
 import 'package:ordena_ya/domain/entity/order_item.dart';
-import 'package:ordena_ya/domain/usecase/create_client.dart';
-import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
+import 'package:ordena_ya/domain/usecase/get_order_id.dart';
 import 'package:ordena_ya/domain/usecase/get_orders_today.dart';
+import 'package:ordena_ya/domain/usecase/set_order_id.dart';
+import 'package:ordena_ya/domain/usecase/update_item_in_order.dart';
 import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
-
 import '../../domain/entity/ordered_product.dart';
 import '../../domain/usecase/add_item_to_order.dart';
 import '../../domain/usecase/create_order.dart';
@@ -19,11 +19,17 @@ class OrderSetupProvider with ChangeNotifier {
   final CreateOrder createOrderUseCase;
   final AddItemToOrderUseCase addItemToOrderUseCase;
   final GetOrdersTodayUseCase getOrdersTodayUseCase;
+  final GetOrderIdUseCase getOrderId;
+  final SetOrderIdUseCase setOrderId;
+  final UpdateItemInOrderUseCase editItem;
 
   OrderSetupProvider({
     required this.createOrderUseCase,
     required this.addItemToOrderUseCase,
     required this.getOrdersTodayUseCase,
+    required this.getOrderId,
+    required this.setOrderId,
+    required this.editItem,
   });
 
   OrderStatus status = OrderStatus.initial;
@@ -34,6 +40,7 @@ class OrderSetupProvider with ChangeNotifier {
   String name = '';
   String cedula = '';
   String email = '';
+  int _orderId = 0;
 
   int _clienteStep = 0;
   int _discountStep = 0;
@@ -58,7 +65,7 @@ class OrderSetupProvider with ChangeNotifier {
   final PageController _pageController = PageController();
 
   // State
-  final List<Map<String, dynamic>> _cartItems = [];
+  List<Item> _cartItems = [];
 
   // variable temporary boar a futuro.
   final _products = [
@@ -139,7 +146,7 @@ class OrderSetupProvider with ChangeNotifier {
   };
 
   // Getters
-  List<Map<String, dynamic>> get cartItems => List.unmodifiable(_cartItems);
+  List<Item> get cartItems => List.unmodifiable(_cartItems);
   int get selectedTabIndex => _selectedTabIndex;
   String get selectedTable => _selectedTable;
   String get selectedDiscount => _selectedDiscount;
@@ -157,7 +164,7 @@ class OrderSetupProvider with ChangeNotifier {
   PageController get pageController => _pageController;
   int get deliveryType => _deliveryType;
   int get totalItems {
-    return _cartItems.fold(0, (sum, item) => sum + (item['quantity'] as int));
+    return _cartItems.fold(0, (sum, item) => sum + (item.quantity));
   }
 
   double get subtotal {
@@ -165,8 +172,8 @@ class OrderSetupProvider with ChangeNotifier {
       0.0,
       (sum, item) =>
           sum +
-          ((item['price'] as num).toDouble() *
-              (item['quantity'] as num).toDouble()),
+          ((item.price as num).toDouble() *
+              (item.quantity as num).toDouble()),
     );
   }
 
@@ -352,15 +359,15 @@ class OrderSetupProvider with ChangeNotifier {
     return true;
   }
 
-  OrderItem buildOrderItem(Map<String, dynamic> product){
+  OrderItem buildOrderItem(Map<String, dynamic> product) {
     return OrderItem(
-        productId: 1,
-        productName: product['productName'],
-        quantity: product['quantity'],
-        price: product['price'],
-        notes: product['description'],
-        status: "pending",
-        createdAt: DateTime.now(),
+      productId: 1,
+      productName: product['productName'],
+      quantity: product['quantity'],
+      price: product['price'],
+      notes: product['description'],
+      status: "pending",
+      createdAt: DateTime.now(),
     );
   }
 
@@ -411,16 +418,15 @@ class OrderSetupProvider with ChangeNotifier {
   // funcion para agregar producto a la orden y al carrito
   void addProductToCart(Map<String, dynamic> product) async {
     final existingProductIndex = _cartItems.indexWhere(
-      (item) => item['productName'] == product['productName'],
+      (item) => item.productName == product['productName'],
     );
 
     if (existingProductIndex != -1) {
-      // Ya existe en el carrito, incrementamos la cantidad
-      _cartItems[existingProductIndex]['quantity'] += 1;
+      // Ya existe en el carrito, incrementamos la cantidad (pendiente)
+      // _cartItems[existingProductIndex] += 1;
     } else {
-
       product['state'] = 'pendiente';
-      _cartItems.add(product);
+      _cartItems.add(product as Item);
     }
 
     enableSendToKitchen = true;
@@ -428,16 +434,27 @@ class OrderSetupProvider with ChangeNotifier {
     if (_orders.isEmpty || _isLastOrderClosed) {
       print('Creando nueva orden');
       // Crear una nueva orden
+      // Guardamos el id
       await createOrder(buildOrder(), product);
 
-      // usar el use case crear order
-      // cojo el id de la order y creo la otra tabla
-      // traigo las ordenes y uso la variable _orders (viene actualizada))
-      // _orders.add(buildOrder());
+      
       _isLastOrderClosed = false;
     } else {
       print('Actualizando orden');
-      updateLastOrderWithCartItems();
+      // usamos el id el sharedPreferences
+      final result = await getOrderId();
+
+      result.fold(
+        (failure) {
+          errorMessage = failure.message;
+        },
+        (orderId) async {
+          _orderId = orderId;
+          await addProductToOrder(orderId, buildOrderItem(product));
+          errorMessage = '';
+        },
+      );
+      //updateLastOrderWithCartItems();
     }
 
     _productCount = 1;
@@ -448,7 +465,7 @@ class OrderSetupProvider with ChangeNotifier {
     if (_orders.isEmpty) return;
 
     // Eliminar del carrito
-    _cartItems.removeWhere((item) => item['productName'] == productName);
+    _cartItems.removeWhere((item) => item.productName == productName);
 
     // Buscar orden que contiene el producto
     /*int ordenIndex = _orders.indexWhere(
@@ -575,27 +592,32 @@ class OrderSetupProvider with ChangeNotifier {
     );*/
   }
 
-  void increaseProductQuantity(Map<String, dynamic> product) {
-    product['quantity'] = (product['quantity'] ?? 0) + 1;
+  void increaseProductQuantity(Item product) async {
+    product.quantity++;
 
-    for (final order in _orders) {
-      /*final index = order.orderedProducts.indexWhere(
-        (p) => p.name == product['productName'],
-      );
-      if (index != -1) {
-        final prod = order.orderedProducts[index];
-        prod.units.add(OrderedProductUnit(state: 'pendiente'));
-        enableSendToKitchen = true;
-        break;
-      }*/
-    }
+    var result = await editItem.call(42, product.id, OrderItem(productId: product.productId, productName: product.productName, quantity: product.quantity, price: product.price, notes: product.notes));
 
+    result.fold(
+      (failure) {
+        status = OrderStatus.error;
+        errorMessage = failure.message;
+        notifyListeners();
+      },
+      (orderItem) {
+        print('---producto actualizado (cantidad) en la orden desde el usecase---');
+        print(orderItem);
+        status = OrderStatus.success;
+        errorMessage = '';
+        notifyListeners();
+      },
+    );
+    
     notifyListeners();
   }
 
-  void decreaseProductQuantity(Map<String, dynamic> product) {
-    if ((product['quantity'] ?? 0) > 1) {
-      product['quantity']--;
+  void decreaseProductQuantity(Item product) {
+    if ((product.quantity ?? 0) > 1) {
+      // product.quantity--;
 
       for (final order in _orders) {
         /* final index = order.orderedProducts.indexWhere(
@@ -700,6 +722,7 @@ class OrderSetupProvider with ChangeNotifier {
       },
       (order) async {
         print('---orden desde el caso de uso---');
+        setOrderId(order.id!);
         await addProductToOrder(order.id!, buildOrderItem(product));
         errorMessage = '';
       },
@@ -731,29 +754,34 @@ class OrderSetupProvider with ChangeNotifier {
   Future<void> getAllOrders() async {
     // en si no deberia tener try catch porque el usecase ya lo tiene, pero lo dejo por si acaso
 
-      status = OrderStatus.loading;
-      notifyListeners();
+    status = OrderStatus.loading;
+    notifyListeners();
 
-      final now = DateTime.now();
-      final today = "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
+    final now = DateTime.now();
+    final today =
+        "${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}";
 
+    var result = await getOrdersTodayUseCase.call(today);
 
-      var result = await getOrdersTodayUseCase.call(today);
+    result.fold(
+      (failure) {
+        status = OrderStatus.error;
+        errorMessage = failure.message;
+        notifyListeners();
+      },
+      (orders) {
+        _orders = orders;
+        status = OrderStatus.success;
+        errorMessage = '';
+        notifyListeners();
+      },
+    );
+  }
 
-      result.fold(
-        (failure) {
-          status = OrderStatus.error;
-          errorMessage = failure.message;
-          notifyListeners();
-        },
-        (orders) {
-          _orders = orders;
-          status = OrderStatus.success;
-          errorMessage = '';
-          notifyListeners();
-        },
-      );
-
+  void loadCart(){
+    Order lastOrder = orders.last;
+    _cartItems = lastOrder.items!;
+    notifyListeners();
   }
 
   // UI utils

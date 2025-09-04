@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:ordena_ya/domain/entity/item.dart';
 import 'package:ordena_ya/presentation/providers/order_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -7,7 +8,7 @@ import '../../core/utils/Functions.dart';
 import 'AdjustValue.dart';
 
 class CartProduct extends StatelessWidget {
-  final dynamic product;
+  final Item product;
   final int index;
 
   const CartProduct({super.key, required this.product, required this.index});
@@ -31,13 +32,13 @@ class CartProduct extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  product['productName'],
+                  product.productName,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
                 ),
               ),
-              Text(Functions.formatCurrency(product['price'])),
+              Text(Functions.formatCurrency(product.price)),
             ],
           ),
 
@@ -47,13 +48,13 @@ class CartProduct extends StatelessWidget {
             children: [
               AdjustValue(
                 label: 'Cantidad:',
-                index: product['quantity'],
+                index: product.quantity,
                 increase: () => provider.increaseProductQuantity(product),
                 decrease: () => provider.decreaseProductQuantity(product),
               ),
               Text(
-                Functions.formatCurrency(product['price']*product['quantity']),
-                style: TextStyle(
+                Functions.formatCurrency(product.price * product.quantity),
+                style: TextStyle( 
                   fontWeight: FontWeight.bold,
                   color: Colors.redAccent,
                   fontSize: 18,
@@ -84,7 +85,7 @@ class CartProduct extends StatelessWidget {
               ),
               IconButton(
                 onPressed: () {
-                  provider.removeProductFromCart(product['productName']);
+                  provider.removeProductFromCart(product.productName);
                 },
                 icon: HugeIcon(
                   icon: HugeIcons.strokeRoundedDelete02,

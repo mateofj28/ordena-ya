@@ -7,8 +7,8 @@ class OrderItem {
   final double price;
   final double? discount;
   final String notes;
-  final String status;
-  final DateTime createdAt;
+  final String? status;
+  final DateTime? createdAt;
   final DateTime? updatedAt;
 
   OrderItem({
@@ -20,8 +20,8 @@ class OrderItem {
     required this.price,
     this.discount,
     required this.notes,
-    required this.status,
-    required this.createdAt,
+    this.status,
+    this.createdAt,
     this.updatedAt,
   });
 

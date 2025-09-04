@@ -14,16 +14,18 @@ class OrdersScreen extends StatefulWidget {
   State<OrdersScreen> createState() => _OrdersScreenState();
 }
 
-class _OrdersScreenState extends State<OrdersScreen> {
-  @override
-  void initState() {
-    super.initState();
+  class _OrdersScreenState extends State<OrdersScreen> {
+    @override
+    void initState() {
+      super.initState();
 
-    Future.microtask(() {
-      // ignore: use_build_context_synchronously
-      Provider.of<OrderSetupProvider>(context, listen: false).getAllOrders();
+     Future.microtask(() async {
+      final provider = Provider.of<OrderSetupProvider>(context, listen: false);
+
+      await provider.getAllOrders(); // se espera a que termine
+      provider.loadCart();     // solo se ejecuta después
     });
-  }
+    }
 
   @override
   Widget build(BuildContext context) {

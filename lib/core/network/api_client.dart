@@ -7,7 +7,7 @@ class ApiClient {
   final http.Client client;
 
   // constants.dart
-  String apiToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInRlbmFudElkIjoxLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NTY4NDQzMjMsImV4cCI6MTc1NjkzMDcyM30.2k2qLVKmL-w3AESvUb9XOGfl3CD2V1JP4K0813WvAi4";
+  String apiToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjMsInRlbmFudElkIjoxLCJyb2xlIjoiYWRtaW4iLCJpYXQiOjE3NTY5MzA1MjcsImV4cCI6MTc1NzAxNjkyN30.wMKNeGDTPMLmPx1NiGdY9WfjBBQCs5c_5CHAHxVPsBA";
 
 
   ApiClient({
@@ -67,11 +67,19 @@ class ApiClient {
       String endpoint,
       Map<String, dynamic> body,
       ) async {
+        print('this is a body');
+    print(body);
     final response = await client.patch(
       Uri.parse('$baseUrl$endpoint'),
-      headers: {'Content-Type': 'application/json'},
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $apiToken',
+      },
       body: json.encode(body),
     );
+
+    print(response.body);
 
     if (response.statusCode == 200) {
       return json.decode(response.body);

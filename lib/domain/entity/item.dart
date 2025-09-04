@@ -4,7 +4,7 @@ class Item {
   final int id;
   final int productId;
   final String productName;
-  final int quantity;
+  int quantity;
   final double price;
   final double subtotal;
   final String notes;

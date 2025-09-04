@@ -7,4 +7,6 @@ abstract class OrderRepository {
   Future<Either<Failure, Order>> createOrder(Order order);
   Future<Either<Failure, List<Order>>> getAllOrders();
   Future<Either<Failure, List<Order>>> getAllOrdersToday(String date);
+  Future<Either<Failure, void>> setOrderId(int orderId);
+  Future<Either<Failure, int>> getOrderId();
 }

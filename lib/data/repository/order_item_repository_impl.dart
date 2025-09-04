@@ -26,7 +26,9 @@ class OrderItemRepositoryImpl implements OrderItemRepository {
     try {
       final updated = await datasource.updateItemInOrder(orderId, itemId, OrderItemModel.fromEntity(item));
       return Right(updated.toEntity());
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print(e.toString());
+      print(stackTrace);
       return Left(ServerFailure(e.toString()));
     }
   }

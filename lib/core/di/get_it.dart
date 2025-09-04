@@ -7,7 +7,10 @@ import 'package:ordena_ya/data/repository/order_item_repository_impl.dart';
 import 'package:ordena_ya/data/repository/order_repository_imple.dart';
 import 'package:ordena_ya/domain/repository/order_repository.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
+import 'package:ordena_ya/domain/usecase/get_order_id.dart';
 import 'package:ordena_ya/domain/usecase/get_orders_today.dart';
+import 'package:ordena_ya/domain/usecase/set_order_id.dart';
+import 'package:ordena_ya/domain/usecase/update_item_in_order.dart';
 import '../../domain/repository/order_item_repository.dart';
 import '../../domain/usecase/add_item_to_order.dart';
 import '../../domain/usecase/create_order.dart';
@@ -57,7 +60,21 @@ void setupLocator() {
     () => AddItemToOrderUseCase(getIt<OrderItemRepository>()),
   );
 
+  getIt.registerLazySingleton<UpdateItemInOrderUseCase>(
+    () => UpdateItemInOrderUseCase(getIt<OrderItemRepository>()),
+  );
+
   getIt.registerLazySingleton<GetOrdersTodayUseCase>(
     () => GetOrdersTodayUseCase(getIt<OrderRepository>()),
   );
+
+  getIt.registerLazySingleton<GetOrderIdUseCase>(
+    () => GetOrderIdUseCase(getIt<OrderRepository>()),
+  );
+  
+  getIt.registerLazySingleton<SetOrderIdUseCase>(
+    () => SetOrderIdUseCase(getIt<OrderRepository>()),
+  );
+
+  
 }
