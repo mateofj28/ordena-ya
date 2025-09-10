@@ -14,9 +14,7 @@ import '../widgets/CloseBillModal.dart';
 import '../widgets/SquareButton.dart';
 
 class NewOrder extends StatelessWidget {
-  NewOrder({super.key, required this.product});
-
-  final Product product;
+  NewOrder({super.key});
 
   String deliveryTypeToString(int type) {
     switch (type) {
@@ -178,12 +176,4 @@ class NewOrder extends StatelessWidget {
   }
 }
 
-class Product {
-  final String name;
-  int quantity;
-  final int price;
 
-  Product({required this.name, this.quantity = 1, required this.price});
-
-  int get total => price * quantity;
-}

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ordena_ya/core/app_routes.dart';
 import 'package:ordena_ya/core/constants/AppColors.dart';
 import 'package:ordena_ya/core/di/get_it.dart';
 import 'package:ordena_ya/domain/usecase/add_item_to_order.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
-import 'package:ordena_ya/presentation/pages/HomeScreen.dart';
+import 'package:ordena_ya/presentation/pages/NewOrder.dart';
+import 'package:ordena_ya/presentation/pages/login_screen.dart';
+import 'package:ordena_ya/presentation/pages/register_screen.dart';
 import 'package:ordena_ya/presentation/providers/MenuProvider.dart';
 import 'package:ordena_ya/presentation/providers/order_provider.dart';
 import 'package:ordena_ya/presentation/providers/ToggleButtonProvider.dart';
@@ -46,7 +49,22 @@ class MyApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.whiteBackground,
         textTheme: GoogleFonts.nunitoTextTheme(Theme.of(context).textTheme),
       ),
-      home: HomeScreen(),
+      initialRoute: AppRoutes.login,
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case AppRoutes.login:
+            return MaterialPageRoute(builder: (context) => const LoginScreen());
+          case AppRoutes.register:
+            return MaterialPageRoute(builder: (context) => const RegisterScreen());
+          case AppRoutes.home:
+            return MaterialPageRoute(builder: (context) => NewOrder());
+          default:
+            return null;
+        }
+      },
+
     );
   }
 }
+
+// HomeScreen()
