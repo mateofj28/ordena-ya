@@ -22,7 +22,7 @@ class OrderedProductModel extends OrderedProduct {
         price: (json['unitPrice'] as num).toDouble(),
         units: []
       );
-    } catch (e, stacktrace) {
+    } catch (e) {
       print('❌ Error en OrderedProductModel.fromJson: $e');
       rethrow;
     }

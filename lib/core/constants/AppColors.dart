@@ -38,6 +38,8 @@ class AppColors {
   // Gris oscuro texto
   static const Color textPrimary = Colors.black87;
 
+  static const Color textSecundary = Color(0xFFB4B4B4);
+
   // Blanco
   static const Color whiteBackground = Colors.white;
 
