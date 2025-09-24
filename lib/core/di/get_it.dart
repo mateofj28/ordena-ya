@@ -1,12 +1,19 @@
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:ordena_ya/core/network/api_client.dart';
+import 'package:ordena_ya/core/token/token_storage.dart';
 import 'package:ordena_ya/data/datasource/order_datasource.dart';
 import 'package:ordena_ya/data/datasource/order_item_datasource.dart';
+import 'package:ordena_ya/data/datasource/user_datasource.dart';
 import 'package:ordena_ya/data/repository/order_item_repository_impl.dart';
 import 'package:ordena_ya/data/repository/order_repository_imple.dart';
+import 'package:ordena_ya/data/repository/user_repository_impl.dart';
 import 'package:ordena_ya/domain/repository/order_repository.dart';
+import 'package:ordena_ya/domain/repository/user_repository.dart';
+import 'package:ordena_ya/domain/usecase/create_user.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
+import 'package:ordena_ya/domain/usecase/login.dart';
 import '../../domain/repository/order_item_repository.dart';
 import '../../domain/usecase/add_item_to_order.dart';
 import '../../domain/usecase/create_order.dart';
@@ -14,6 +21,13 @@ import '../../domain/usecase/create_order.dart';
 final getIt = GetIt.instance;
 
 void setupLocator() {
+  getIt.registerLazySingleton<FlutterSecureStorage>(
+    () => const FlutterSecureStorage(),
+  );
+  getIt.registerLazySingleton<TokenStorage>(
+    () => TokenStorage(getIt<FlutterSecureStorage>()),
+  );
+
   // Cliente HTTP
   getIt.registerLazySingleton<http.Client>(() => http.Client());
 
@@ -21,7 +35,8 @@ void setupLocator() {
   getIt.registerLazySingleton<ApiClient>(
     () => ApiClient(
       client: getIt<http.Client>(),
-      baseUrl: 'http://179.33.214.87:3013/api',
+      baseUrl: 'http://205.209.122.84:3013/api',
+      tokenStorage: getIt<TokenStorage>(),
     ),
   );
 
@@ -31,7 +46,11 @@ void setupLocator() {
   );
 
   getIt.registerLazySingleton<OrderItemRemoteDataSource>(
-        () => OrderItemRemoteDataSourceImpl(apiClient: getIt<ApiClient>()),
+    () => OrderItemRemoteDataSourceImpl(apiClient: getIt<ApiClient>()),
+  );
+
+  getIt.registerLazySingleton<UserRemoteDataSource>(
+    () => UserRemoteDataSourceImple(apiClient: getIt<ApiClient>()),
   );
 
   // Repositorio
@@ -40,12 +59,16 @@ void setupLocator() {
   );
 
   getIt.registerLazySingleton<OrderItemRepository>(
-        () => OrderItemRepositoryImpl(getIt<OrderItemRemoteDataSource>()),
+    () => OrderItemRepositoryImpl(getIt<OrderItemRemoteDataSource>()),
+  );
+
+  getIt.registerLazySingleton<UserRepository>(
+    () => UserRepositoryImpl(getIt<UserRemoteDataSource>(), getIt<TokenStorage>()),
   );
 
   // Use Cases
   getIt.registerLazySingleton<CreateOrder>(
-        () => CreateOrder(getIt<OrderRepository>()),
+    () => CreateOrder(getIt<OrderRepository>()),
   );
 
   getIt.registerLazySingleton<GetOrdersUseCase>(
@@ -53,8 +76,14 @@ void setupLocator() {
   );
 
   getIt.registerLazySingleton<AddItemToOrderUseCase>(
-        () => AddItemToOrderUseCase(getIt<OrderItemRepository>()),
+    () => AddItemToOrderUseCase(getIt<OrderItemRepository>()),
   );
 
+  getIt.registerLazySingleton<LoginUseCase>(
+    () => LoginUseCase(getIt<UserRepository>()),
+  );
 
+  getIt.registerLazySingleton<CreateUserUseCase>(
+    () => CreateUserUseCase(getIt<UserRepository>()),
+  );
 }

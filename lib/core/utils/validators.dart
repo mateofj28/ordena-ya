@@ -10,10 +10,12 @@ class CustomValidators {
     if (value == null || value.trim().isEmpty) {
       return 'El correo es requerido';
     }
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+
+    /*final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value)) {
       return 'Formato de correo inválido';
-    }
+    }*/
+
     return null;
   }
 
@@ -29,13 +31,13 @@ class CustomValidators {
       return '$fieldName es requerido';
     }
 
-    if (value.length < minLength) {
+    /*if (value.length < minLength) {
       return 'Debe tener $minLength caracteres';
     }
 
     if (requireUppercase && !RegExp(r'[A-Z]').hasMatch(value)) {
       return 'Al menos una letra mayúscula debe contener';
-    }
+    }*/
 
     /*if (!RegExp(r'[a-z]').hasMatch(value)) {
       return 'Al menos una letra minúscula debe contener';

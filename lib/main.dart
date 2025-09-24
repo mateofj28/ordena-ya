@@ -4,13 +4,16 @@ import 'package:ordena_ya/core/app_routes.dart';
 import 'package:ordena_ya/core/constants/AppColors.dart';
 import 'package:ordena_ya/core/di/get_it.dart';
 import 'package:ordena_ya/domain/usecase/add_item_to_order.dart';
+import 'package:ordena_ya/domain/usecase/create_user.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
+import 'package:ordena_ya/domain/usecase/login.dart';
 import 'package:ordena_ya/presentation/pages/NewOrder.dart';
 import 'package:ordena_ya/presentation/pages/login_screen.dart';
-import 'package:ordena_ya/presentation/pages/register_screen.dart';
+import 'package:ordena_ya/presentation/pages/register_user_screen.dart';
 import 'package:ordena_ya/presentation/providers/MenuProvider.dart';
 import 'package:ordena_ya/presentation/providers/order_provider.dart';
 import 'package:ordena_ya/presentation/providers/ToggleButtonProvider.dart';
+import 'package:ordena_ya/presentation/providers/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'domain/usecase/create_order.dart';
 
@@ -20,6 +23,13 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(
+          create:
+              (_) => UserProvider(
+                loginUseCase: getIt<LoginUseCase>(),
+                registerUserUseCase: getIt<CreateUserUseCase>(),
+              ),
+        ),
         ChangeNotifierProvider(
           create:
               (_) => OrderSetupProvider(
@@ -55,14 +65,15 @@ class MyApp extends StatelessWidget {
           case AppRoutes.login:
             return MaterialPageRoute(builder: (context) => const LoginScreen());
           case AppRoutes.register:
-            return MaterialPageRoute(builder: (context) => const RegisterScreen());
+            return MaterialPageRoute(
+              builder: (context) => const RegisterUserScreen(),
+            );
           case AppRoutes.home:
             return MaterialPageRoute(builder: (context) => NewOrder());
           default:
             return null;
         }
       },
-
     );
   }
 }
