@@ -120,7 +120,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           controller: emailController,
                           hintText: "Correo electronico",
                           keyboardType: TextInputType.emailAddress,
-                          validator: (value) => CustomValidators.email(value),
+                          validator: (value) => CustomValidators.required(value, fieldName: "Correo"),
                         ),
 
                         const SizedBox(height: 10),

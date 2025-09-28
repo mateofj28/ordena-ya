@@ -14,6 +14,7 @@ import 'package:ordena_ya/data/repository/user_repository_impl.dart';
 import 'package:ordena_ya/domain/repository/order_repository.dart';
 import 'package:ordena_ya/domain/repository/restaurant_tables_repository.dart';
 import 'package:ordena_ya/domain/repository/user_repository.dart';
+import 'package:ordena_ya/domain/usecase/create_client.dart';
 import 'package:ordena_ya/domain/usecase/create_user.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
 import 'package:ordena_ya/domain/usecase/get_all_tables.dart';
@@ -110,5 +111,9 @@ void setupLocator() {
 
   getIt.registerLazySingleton<SelectTableUseCase>(
     () => SelectTableUseCase(getIt<RestaurantTableRepository>()),
+  );
+
+  getIt.registerLazySingleton<CreateClient>(
+    () => CreateClient(getIt<UserRepository>()),
   );
 }

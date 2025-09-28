@@ -9,7 +9,7 @@ class CustomTextField extends StatelessWidget {
     super.key,
     required this.hintText,
     required this.inputType,
-    this.controller,
+    this.controller, required Function(dynamic value) validator,
   });
 
   TextInputType _getKeyboardType() {

@@ -11,10 +11,10 @@ class CustomValidators {
       return 'El correo es requerido';
     }
 
-    /*final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
     if (!emailRegex.hasMatch(value)) {
       return 'Formato de correo inválido';
-    }*/
+    }
 
     return null;
   }

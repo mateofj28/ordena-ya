@@ -1,47 +1,31 @@
-import '../../domain/entity/client.dart';
+import 'package:ordena_ya/domain/dto/register_clint_req.dart';
 
-class ClientModel extends Client {
+class ClientModel extends RegisterClientRequest {
   ClientModel({
-    required super.fullName,
-    required super.idNumber,
-    required super.email,
-    required super.phone,
-    required super.registrationDate,
-    required super.updatedAt,
+    super.id,
+    super.fullName,
+    super.deliveryAddress,
+    super.city,
+    super.phoneNumber,
+    super.email,
   });
-
-  factory ClientModel.fromJson(Map<String, dynamic> json) {
-    return ClientModel(
-      fullName: json['fullName'],
-      idNumber: json['nationalId'],
-      email: json['email'],
-      phone: json['phone'] ?? 'No registrado',
-      registrationDate: DateTime.now(),
-      updatedAt: DateTime.now(),
-    );
-  }
-
   Map<String, dynamic> toJson() {
     return {
       'fullName': fullName,
-      'idNumber': idNumber,
+      'deliveryAddress': deliveryAddress,
+      'city': city,
+      'phoneNumber': phoneNumber,
       'email': email,
-      'phone': phone,
-      'registrationDate': registrationDate.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
     };
   }
 
-  factory ClientModel.fromEntity(Client entity) {
-    return ClientModel(
-      fullName: entity.fullName,
-      idNumber: entity.idNumber,
-      email: entity.email,
-      phone: entity.phone,
-      registrationDate: entity.registrationDate,
-      updatedAt: entity.updatedAt,
-    );
+  factory ClientModel.fromJson(Map<String, dynamic> json) {
+    return ClientModel(id: json['clientId']);
   }
 
-  Client toEntity() => this;
+  RegisterClientRequest toEntity() {
+    return RegisterClientRequest(
+      id: id,
+    );
+  }
 }

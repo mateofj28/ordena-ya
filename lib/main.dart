@@ -4,6 +4,7 @@ import 'package:ordena_ya/core/app_routes.dart';
 import 'package:ordena_ya/core/constants/AppColors.dart';
 import 'package:ordena_ya/core/di/get_it.dart';
 import 'package:ordena_ya/domain/usecase/add_item_to_order.dart';
+import 'package:ordena_ya/domain/usecase/create_client.dart';
 import 'package:ordena_ya/domain/usecase/create_user.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
 import 'package:ordena_ya/domain/usecase/get_all_tables.dart';
@@ -31,6 +32,7 @@ void main() async {
               (_) => UserProvider(
                 loginUseCase: getIt<LoginUseCase>(),
                 registerUserUseCase: getIt<CreateUserUseCase>(),
+                registerClientUseCase: getIt<CreateClient>()
               ),
         ),
         ChangeNotifierProvider(

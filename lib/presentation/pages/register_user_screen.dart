@@ -264,12 +264,14 @@ class CustomTextField extends StatelessWidget {
   final String hintText;
   final TextEditingController? controller;
   final TextInputType? keyboardType;
+  final int? maxLength;
   final String? Function(String?)? validator;
 
   const CustomTextField({
     super.key,
     required this.hintText,
     this.controller,
+    this.maxLength,
     this.keyboardType,
     this.validator,
   });
@@ -279,7 +281,8 @@ class CustomTextField extends StatelessWidget {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
-      decoration: kInputDecoration.copyWith(hintText: hintText),
+      maxLength: maxLength,
+      decoration: kInputDecoration.copyWith(hintText: hintText, counterText: ''),
       validator: validator,
     );
   }
