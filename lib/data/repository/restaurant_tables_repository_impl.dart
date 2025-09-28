@@ -3,7 +3,6 @@ import 'package:ordena_ya/core/model/failure.dart';
 import '../../domain/entity/restaurant_table.dart';
 import '../../domain/repository/restaurant_tables_repository.dart';
 import '../datasource/restaurant_tables_datasource.dart';
-import '../model/restaurant_table_model.dart';
 
 class RestaurantTableRepositoryImpl implements RestaurantTableRepository {
   final RestaurantTableRemoteDataSource datasource;
@@ -19,14 +18,12 @@ class RestaurantTableRepositoryImpl implements RestaurantTableRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
-
+  
   @override
-  Future<Either<Failure, RestaurantTable>> updateTable(RestaurantTable table) async {
-    try {
-      final updated = await datasource.updateTable(RestaurantTableModel.fromEntity(table));
-      return Right(updated.toEntity());
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+  Future<Either<Failure, RestaurantTable>> updateTable(RestaurantTable table) {
+    // TODO: implement updateTable
+    throw UnimplementedError();
   }
+
+  
 }

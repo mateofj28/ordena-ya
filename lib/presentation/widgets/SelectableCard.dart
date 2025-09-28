@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ordena_ya/presentation/content/show_available_table.dart';
 import 'package:ordena_ya/presentation/providers/order_provider.dart';
 import 'package:ordena_ya/presentation/widgets/RegisterClientModal.dart';
 import 'package:provider/provider.dart';
@@ -13,7 +14,8 @@ class SelectableCard extends StatelessWidget {
   final double width;
   final double height;
 
-  const SelectableCard({super.key,
+  const SelectableCard({
+    super.key,
     required this.icon,
     required this.title,
     this.width = 110,
@@ -29,6 +31,15 @@ class SelectableCard extends StatelessWidget {
         return GestureDetector(
           onTap: () {
             selectionModel.select(index);
+            if (index == 0) {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return ShowAvailableTable();
+                },
+              );
+            }
+
             if (index == 1) {
               showDialog(
                 context: context,

@@ -50,86 +50,90 @@ class NewOrder extends StatelessWidget {
     final enableCloseBill = provider.enableCloseBill;
 
     return Scaffold(
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                AdjustValue(
-                  label: 'Mesa',
-                  index: tableIndex,
-                  increase: () => provider.increaseTable(),
-                  decrease: () => provider.decreaseTable(),
-                ),
-                AdjustValue(
-                  label: 'Personas',
-                  index: peopleIndex,
-                  increase: () => provider.increasePeople(),
-                  decrease: () => provider.decreasePeople(),
-                ),
-              ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Text('Mesa'),
+                      Text('No definido', style: TextStyle(fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  AdjustValue(
+                    label: 'Personas',
+                    index: peopleIndex,
+                    increase: () => provider.increasePeople(),
+                    decrease: () => provider.decreasePeople(),
+                  ),
+                ],
+              ),
             ),
-          ),
-
-          SizedBox(height: 10),
-
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(options.length, (index) {
-              final isSelected = selectedIndex == index;
-
-              return SelectableCard(
-                icon: options[index]['icon'],
-                title: options[index]['label'],
-                index: index,
-                isSelected: isSelected,
-              );
-            }),
-          ),
-
-          SizedBox(height: 15),
-
-          Consumer<OrderSetupProvider>(
-            builder: (context, provider, child) {
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: List.generate(titles.length, (index) {
-                  return BadgeContainer(
-                    title: titles[index],
-                    isSelected: provider.currentIndex == index,
-                    showBadge:
-                        index == 1 && provider.cartItems.isNotEmpty ||
-                        index == 2 && provider.orders.isNotEmpty,
-                    badgeCount:
-                        index == 1
-                            ? provider.cartItems.length
-                            : index == 2
-                            ? provider.orders.length
-                            : 0,
-                    onTap: () {
-                      provider.goToPage(index);
-                    },
-                  );
-                }),
-              );
-            },
-          ),
-
-          Expanded(
-            child: PageView.builder(
-              controller: pageController,
-              itemCount: titles.length,
-              itemBuilder: (context, index) {
-                return _pages[index];
-              },
-              onPageChanged: (index) {
-                provider.updateIndex(index);
+        
+            SizedBox(height: 10),
+        
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(options.length, (index) {
+                final isSelected = selectedIndex == index;
+        
+                return SelectableCard(
+                  icon: options[index]['icon'],
+                  title: options[index]['label'],
+                  index: index,
+                  isSelected: isSelected,
+                );
+              }),
+            ),
+        
+            SizedBox(height: 15),
+        
+            Consumer<OrderSetupProvider>(
+              builder: (context, provider, child) {
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: List.generate(titles.length, (index) {
+                    return BadgeContainer(
+                      title: titles[index],
+                      isSelected: provider.currentIndex == index,
+                      showBadge:
+                          index == 1 && provider.cartItems.isNotEmpty ||
+                          index == 2 && provider.orders.isNotEmpty,
+                      badgeCount:
+                          index == 1
+                              ? provider.cartItems.length
+                              : index == 2
+                              ? provider.orders.length
+                              : 0,
+                      onTap: () {
+                        provider.goToPage(index);
+                      },
+                    );
+                  }),
+                );
               },
             ),
-          ),
-        ],
+        
+            Expanded(
+              child: PageView.builder(
+                controller: pageController,
+                itemCount: titles.length,
+                itemBuilder: (context, index) {
+                  return _pages[index];
+                },
+                onPageChanged: (index) {
+                  provider.updateIndex(index);
+                },
+              ),
+            ),
+          ],
+        ),
       ),
       bottomNavigationBar: Container(
         padding: EdgeInsets.all(12),

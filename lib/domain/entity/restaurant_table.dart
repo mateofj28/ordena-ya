@@ -1,19 +1,17 @@
 class RestaurantTable {
   final int id;
-  final int restaurantId;
-  final String name;
+  final int tenantId;
+  final String tableNumber;
   final int capacity;
   final String status;
-  final DateTime createdAt;
-  final DateTime updatedAt;
+  final String location;
 
   RestaurantTable({
     required this.id,
-    required this.restaurantId,
-    required this.name,
+    required this.tenantId,
+    required this.tableNumber,
     required this.capacity,
     required this.status,
-    required this.createdAt,
-    required this.updatedAt,
+    required this.location,
   });
 }
