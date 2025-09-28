@@ -8,6 +8,7 @@ import 'package:ordena_ya/domain/usecase/create_user.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
 import 'package:ordena_ya/domain/usecase/get_all_tables.dart';
 import 'package:ordena_ya/domain/usecase/login.dart';
+import 'package:ordena_ya/domain/usecase/select_table.dart';
 import 'package:ordena_ya/presentation/pages/NewOrder.dart';
 import 'package:ordena_ya/presentation/pages/login_screen.dart';
 import 'package:ordena_ya/presentation/pages/register_user_screen.dart';
@@ -25,7 +26,6 @@ void main() async {
   runApp(
     MultiProvider(
       providers: [
-        
         ChangeNotifierProvider(
           create:
               (_) => UserProvider(
@@ -41,7 +41,13 @@ void main() async {
                 getAllOrdersUseCase: getIt<GetOrdersUseCase>(),
               ),
         ),
-        ChangeNotifierProvider(create: (_) => TablesProvider(getTablesUseCase: getIt<GetTablesUseCase>())),
+        ChangeNotifierProvider(
+          create:
+              (_) => TablesProvider(
+                getTablesUseCase: getIt<GetTablesUseCase>(),
+                selectTableUseCase: getIt<SelectTableUseCase>(),
+              ),
+        ),
         ChangeNotifierProvider(create: (_) => ToggleButtonProvider()),
         ChangeNotifierProvider(create: (_) => MenuProvider()),
       ],

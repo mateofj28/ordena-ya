@@ -64,7 +64,7 @@ class ApiClient {
     }
   }
 
-  /// PUT → devuelve Map<String, dynamic> o {} en 204
+  
   Future<Map<String, dynamic>> put(String endpoint, Map<String, dynamic> body) async {
     final response = await client.put(
       Uri.parse('$baseUrl$endpoint'),

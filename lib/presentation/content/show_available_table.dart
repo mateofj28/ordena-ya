@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ordena_ya/data/model/select_table_model.dart';
 import 'package:ordena_ya/domain/entity/restaurant_table.dart';
 import 'package:ordena_ya/presentation/providers/tables_provider.dart';
 import 'package:ordena_ya/presentation/widgets/CircularCloseButton.dart';
@@ -130,32 +131,53 @@ class ShowAvailableTable extends StatelessWidget {
             itemCount: tables.length,
             itemBuilder: (context, index) {
               final table = tables[index];
-              return Container(
-                decoration: BoxDecoration(
-                  color: _getColor(table.status),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      table.tableNumber,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                        fontSize: 14,
+              return GestureDetector(
+                onTap: () {
+                  if (table.status != 'occupied') {
+                    context.read<TablesProvider>().selectTable(table.id, 
+                      SelectTableModel(
+                        number: table.tableNumber,
+                        capacity: table.capacity,
+                        location: table.location,
+                        status: 'occupied',
                       ),
-                    ),
-                    Text(
-                      "${table.capacity} personas",
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                    ),
-                    Text(
-                      _translateStatus(table.status),
-                      style: const TextStyle(color: Colors.white, fontSize: 14),
-                    ),
-                  ],
+                    );
+                    Navigator.pop(context);                
+                  }
+                },
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: _getColor(table.status),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        table.tableNumber,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Text(
+                        "${table.capacity} personas",
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                      Text(
+                        _translateStatus(table.status),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             },

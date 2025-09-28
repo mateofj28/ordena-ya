@@ -4,10 +4,12 @@ import 'package:ordena_ya/presentation/pages/CartScreen.dart';
 import 'package:ordena_ya/presentation/pages/OrdersScreen.dart';
 import 'package:ordena_ya/presentation/pages/ProductsScreen.dart';
 import 'package:ordena_ya/presentation/providers/order_provider.dart';
+import 'package:ordena_ya/presentation/providers/tables_provider.dart';
 import 'package:ordena_ya/presentation/widgets/AdjustValue.dart';
 import 'package:ordena_ya/presentation/widgets/BadgeContainer.dart';
 import 'package:ordena_ya/presentation/widgets/SelectableCard.dart';
 import 'package:ordena_ya/presentation/widgets/SendToKitchenModal.dart';
+import 'package:ordena_ya/presentation/widgets/loading_dots_text.dart';
 import 'package:provider/provider.dart';
 
 import '../widgets/CloseBillModal.dart';
@@ -26,6 +28,32 @@ class NewOrder extends StatelessWidget {
         return 'Para recoger';
       default:
         return 'Tipo desconocido';
+    }
+  }
+
+  Widget _buildTableSelectionState(BuildContext context) {
+    final provider = context.watch<TablesProvider>();
+    switch (provider.selectTableState) {
+      case TablesState.loading:
+        return LoadingDotsText();
+
+      case TablesState.success:
+        return Text(
+          'Perfecto, estas en la ${provider.table!.tableNumber}',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        );
+
+      case TablesState.failure:
+        return Text(
+          "Error: ${provider.errorMessage}",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        );
+
+      case TablesState.initial:
+        return Text(
+          'No definido',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        );
     }
   }
 
@@ -63,7 +91,7 @@ class NewOrder extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       Text('Mesa'),
-                      Text('No definido', style: TextStyle(fontWeight: FontWeight.bold)),
+                      _buildTableSelectionState(context),
                     ],
                   ),
                   AdjustValue(
@@ -75,14 +103,14 @@ class NewOrder extends StatelessWidget {
                 ],
               ),
             ),
-        
+
             SizedBox(height: 10),
-        
+
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: List.generate(options.length, (index) {
                 final isSelected = selectedIndex == index;
-        
+
                 return SelectableCard(
                   icon: options[index]['icon'],
                   title: options[index]['label'],
@@ -91,9 +119,9 @@ class NewOrder extends StatelessWidget {
                 );
               }),
             ),
-        
+
             SizedBox(height: 15),
-        
+
             Consumer<OrderSetupProvider>(
               builder: (context, provider, child) {
                 return Row(
@@ -119,7 +147,7 @@ class NewOrder extends StatelessWidget {
                 );
               },
             ),
-        
+
             Expanded(
               child: PageView.builder(
                 controller: pageController,
@@ -146,7 +174,7 @@ class NewOrder extends StatelessWidget {
                 label: 'Enviar a Cocina',
                 icon: HugeIcons.strokeRoundedSent,
                 isEnabled: enableSendToKitchen,
-                onPressed: (){
+                onPressed: () {
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
@@ -154,7 +182,7 @@ class NewOrder extends StatelessWidget {
                     },
                   );
                 },
-              )
+              ),
             ),
             SizedBox(width: 12),
             Expanded(
@@ -163,7 +191,7 @@ class NewOrder extends StatelessWidget {
                 icon: HugeIcons.strokeRoundedInvoice04,
                 backgroundColor: Colors.green,
                 isEnabled: enableCloseBill,
-                onPressed: (){
+                onPressed: () {
                   showDialog(
                     context: context,
                     builder: (BuildContext context) {
@@ -179,5 +207,3 @@ class NewOrder extends StatelessWidget {
     );
   }
 }
-
-
