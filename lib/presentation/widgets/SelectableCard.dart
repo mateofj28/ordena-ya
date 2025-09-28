@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ordena_ya/presentation/content/show_available_table.dart';
 import 'package:ordena_ya/presentation/providers/order_provider.dart';
+import 'package:ordena_ya/presentation/providers/tables_provider.dart';
 import 'package:ordena_ya/presentation/widgets/RegisterClientModal.dart';
 import 'package:provider/provider.dart';
 
@@ -32,6 +33,7 @@ class SelectableCard extends StatelessWidget {
           onTap: () {
             selectionModel.select(index);
             if (index == 0) {
+              context.read<TablesProvider>().getTables();
               showDialog(
                 context: context,
                 builder: (BuildContext context) {

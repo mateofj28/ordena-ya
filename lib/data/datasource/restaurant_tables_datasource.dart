@@ -15,8 +15,8 @@ class RestaurantTableRemoteDataSourceImpl implements RestaurantTableRemoteDataSo
   @override
   Future<List<TableModel>> fetchTables() async {
     final res = await apiClient.get('/tables');
-    Map<String, dynamic> tableListMap = res['tables'];
-    return (tableListMap as List).map((e) => TableModel.fromJson(e)).toList();
+    List<dynamic> tableListMap = res['tables'];
+    return tableListMap.map((e) => TableModel.fromJson(e)).toList();
   }
 
   // @override

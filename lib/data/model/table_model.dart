@@ -14,7 +14,7 @@ class TableModel extends RestaurantTable {
   factory TableModel.fromJson(Map<String, dynamic> json) {
     final id = json['id'] ?? 0;
     final tenantId = json['tenant_id'] ?? 0;
-    final tableNumber = json['table_number'] ?? '';
+    final tableNumber = json['number'] ?? '';
     final capacityRaw = json['capacity'] ?? 0;
     final int capacity =
         capacityRaw is int

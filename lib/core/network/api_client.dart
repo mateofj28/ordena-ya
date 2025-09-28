@@ -37,7 +37,7 @@ class ApiClient {
       headers: await _getHeaders(),
     );
 
-    if (response.statusCode == 201) {
+    if (response.statusCode == 200) {
       return _decodeBody(response);
     } else if (response.statusCode == 204) {
       return null;
