@@ -1,21 +1,21 @@
 class Product {
+  String id;
   String name;
   String description;
+  String preparationTime;
   double unitPrice;
   String imageUrl;
+  int quantity;
   String category;
-  bool available;
-  DateTime createdAt;
-  DateTime updatedAt;
 
   Product({
+    required this.id,
     required this.name,
     required this.description,
+    required this.preparationTime,
     required this.unitPrice,
     required this.imageUrl,
+    required this.quantity,
     required this.category,
-    required this.available,
-    required this.createdAt,
-    required this.updatedAt,
   });
 }

@@ -5,18 +5,22 @@ import 'package:ordena_ya/core/network/api_client.dart';
 import 'package:ordena_ya/core/token/token_storage.dart';
 import 'package:ordena_ya/data/datasource/order_datasource.dart';
 import 'package:ordena_ya/data/datasource/order_item_datasource.dart';
+import 'package:ordena_ya/data/datasource/product_datasource.dart';
 import 'package:ordena_ya/data/datasource/restaurant_tables_datasource.dart';
 import 'package:ordena_ya/data/datasource/user_datasource.dart';
 import 'package:ordena_ya/data/repository/order_item_repository_impl.dart';
 import 'package:ordena_ya/data/repository/order_repository_imple.dart';
+import 'package:ordena_ya/data/repository/product_repository_impl.dart';
 import 'package:ordena_ya/data/repository/restaurant_tables_repository_impl.dart';
 import 'package:ordena_ya/data/repository/user_repository_impl.dart';
 import 'package:ordena_ya/domain/repository/order_repository.dart';
+import 'package:ordena_ya/domain/repository/product_repository.dart';
 import 'package:ordena_ya/domain/repository/restaurant_tables_repository.dart';
 import 'package:ordena_ya/domain/repository/user_repository.dart';
 import 'package:ordena_ya/domain/usecase/create_client.dart';
 import 'package:ordena_ya/domain/usecase/create_user.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
+import 'package:ordena_ya/domain/usecase/get_all_products.dart';
 import 'package:ordena_ya/domain/usecase/get_all_tables.dart';
 import 'package:ordena_ya/domain/usecase/login.dart';
 import 'package:ordena_ya/domain/usecase/select_table.dart';
@@ -63,6 +67,10 @@ void setupLocator() {
     () => RestaurantTableRemoteDataSourceImpl(apiClient: getIt<ApiClient>()),
   );
 
+  getIt.registerLazySingleton<ProductRemoteDataSource>(
+    () => ProductRemoteDataSourceImpl(apiClient: getIt<ApiClient>()),
+  );
+
   // Repositorio
   getIt.registerLazySingleton<OrderRepository>(
     () => OrderRepositoryImpl(getIt<OrderRemoteDataSource>()),
@@ -82,6 +90,10 @@ void setupLocator() {
   getIt.registerLazySingleton<RestaurantTableRepository>(
     () =>
         RestaurantTableRepositoryImpl(getIt<RestaurantTableRemoteDataSource>()),
+  );
+
+  getIt.registerLazySingleton<ProductRepository>(
+    () => ProductRepositoryImpl(getIt<ProductRemoteDataSource>()),
   );
 
   // Use Cases
@@ -115,5 +127,9 @@ void setupLocator() {
 
   getIt.registerLazySingleton<CreateClient>(
     () => CreateClient(getIt<UserRepository>()),
+  );
+
+  getIt.registerLazySingleton<GetAllProductsUseCase>(
+    () => GetAllProductsUseCase(getIt<ProductRepository>()),
   );
 }

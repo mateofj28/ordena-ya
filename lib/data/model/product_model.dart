@@ -1,56 +1,54 @@
 import '../../domain/entity/product.dart';
 
-
 class ProductModel extends Product {
   ProductModel({
+    required super.id,
     required super.name,
     required super.description,
+    required super.preparationTime,
     required super.unitPrice,
     required super.imageUrl,
+    required super.quantity,
     required super.category,
-    required super.available,
-    required super.createdAt,
-    required super.updatedAt,
   });
 
-  factory ProductModel.fromJson(Map<String, dynamic> json) {
-    return ProductModel(
-      name: json['name'],
-      description: json['description'],
-      unitPrice: (json['unitPrice'] as num).toDouble(),
-      imageUrl: json['imageUrl'],
-      category: json['category'],
-      available: json['available'],
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
-    );
-  }
-
+  /// Serializar a JSON
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'name': name,
       'description': description,
+      'preparationTime': preparationTime,
       'unitPrice': unitPrice,
       'imageUrl': imageUrl,
+      'quantity': quantity,
       'category': category,
-      'available': available,
-      'createdAt': createdAt.toIso8601String(),
-      'updatedAt': updatedAt.toIso8601String(),
     };
   }
 
-  factory ProductModel.fromEntity(Product entity) {
+  factory ProductModel.fromJson(Map<String, dynamic> json) {
     return ProductModel(
-      name: entity.name,
-      description: entity.description,
-      unitPrice: entity.unitPrice,
-      imageUrl: entity.imageUrl,
-      category: entity.category,
-      available: entity.available,
-      createdAt: entity.createdAt,
-      updatedAt: entity.updatedAt,
+      id: json['productId'] ?? '',
+      name: json['name'] ?? '',
+      description: json['description'] ?? '',
+      preparationTime: json['preparationTime'] ?? 0,
+      unitPrice: (json['price'] ?? 0).toDouble(),
+      imageUrl: json['photo'] ?? '',
+      quantity: json['quantity'] ?? 0,
+      category: json['category'] ?? '',
     );
   }
 
-  Product toEntity() => this;
+  Product toEntity() {
+    return Product(
+      id: id,
+      name: name,
+      description: description,
+      preparationTime: preparationTime,
+      unitPrice: unitPrice,
+      imageUrl: imageUrl,
+      quantity: quantity,
+      category: category,
+    );
+  }
 }

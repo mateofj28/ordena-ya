@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:ordena_ya/domain/entity/product.dart';
+import 'package:ordena_ya/presentation/providers/tables_provider.dart';
 import 'package:ordena_ya/presentation/widgets/CircleIconLabel.dart';
 import 'package:ordena_ya/presentation/widgets/ProductModal.dart';
+import 'package:ordena_ya/presentation/widgets/error_state.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/AppColors.dart';
@@ -19,7 +22,7 @@ class ProductsScreen extends StatelessWidget {
     {"icon": HugeIcons.strokeRoundedSoftDrink02, "label": 'Bebidas'},
   ];
 
-  final List<Map<String, dynamic>> allProducts = [
+  /*final List<Map<String, dynamic>> allProducts = [
     {
       "imageUrl": "https://wallpaperaccess.com/full/767277.jpg",
       "title": "Hamburguesa",
@@ -83,20 +86,25 @@ class ProductsScreen extends StatelessWidget {
       "time": "6 min",
       "category": "Postres",
     },
-  ];
-
-
-  List<Map<String, dynamic>> getFilteredProducts(int selectedIndex) {
+  ];*/
+  List<Product> getFilteredProducts(
+    int selectedIndex,
+    List<Product> allProducts,
+  ) {
     if (selectedIndex == 0) return allProducts;
 
     final selectedLabel = options[selectedIndex]['label'];
-    return allProducts.where((p) => p['category'] == selectedLabel).toList();
+    return allProducts.where((p) => p.category == selectedLabel).toList();
   }
 
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<OrderSetupProvider>(context);
-    final filteredProducts = getFilteredProducts(provider.currentMenu);
+    final tableProvider = Provider.of<TablesProvider>(context);
+    final filteredProducts = getFilteredProducts(
+      provider.currentMenu,
+      tableProvider.products,
+    );
 
     return Scaffold(
       body: Column(
@@ -118,25 +126,47 @@ class ProductsScreen extends StatelessWidget {
             child: Container(
               color: AppColors.lightGray,
               padding: EdgeInsets.all(8),
-              child: ListView.builder(
-                itemCount: filteredProducts.length,
-                itemBuilder: (context, index) {
-                  final product = filteredProducts[index];
-                  return ProductListItem(
-                    imageUrl: product['imageUrl'],
-                    title: product['title'],
-                    price: product['price'],
-                    estimatedTime: product['time'],
-                    onAdd: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return ProductModal(
-                            productImage: product['imageUrl'],
-                            productName: product['title'],
-                            description: 'Deliciosa pizza con salsa de tomate fresca, mozzarella de búfala, albahaca fresca y aceite de oliva extra virgen.',
-                            price: product['price'],
-                            preparationTime: product['time'],
+              child: Builder(
+                builder: (context) {
+                  if (tableProvider.getProductState == TablesState.loading) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+
+                  if (tableProvider.getProductState == TablesState.failure &&
+                      tableProvider.getProductsError != null) {
+                    return ErrorState(
+                      message: tableProvider.getProductsError!,
+                      onRetry: () {
+                        tableProvider.getProducts();
+                      },
+                    );
+                  }
+
+                  if (filteredProducts.isEmpty) {
+                    return const Center(child: Text("No hay productos"));
+                  }
+
+                  return ListView.builder(
+                    itemCount: filteredProducts.length,
+                    itemBuilder: (context, index) {
+                      final product = filteredProducts[index];
+                      return ProductListItem(
+                        imageUrl: product.imageUrl,
+                        title: product.name,
+                        price: product.unitPrice,
+                        estimatedTime: product.preparationTime,
+                        onAdd: () {
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return ProductModal(
+                                productImage: product.imageUrl,
+                                productName: product.name,
+                                description: product.description,
+                                price: product.unitPrice,
+                                preparationTime: product.preparationTime,
+                              );
+                            },
                           );
                         },
                       );
