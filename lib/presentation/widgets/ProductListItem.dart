@@ -46,8 +46,11 @@ class ProductListItem extends StatelessWidget {
                   imageUrl,
                   fit: BoxFit.cover,
                   errorBuilder:
-                      (context, error, stackTrace) =>
-                          const Icon(Icons.image_not_supported, size: 60),
+                      (context, error, stackTrace) => const HugeIcon(
+                        color: Colors.black,
+                        size: 64,
+                        icon: HugeIcons.strokeRoundedAlbumNotFound01,
+                      ),
                 ),
               ),
             ),
@@ -73,7 +76,11 @@ class ProductListItem extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   Functions.formatCurrency(price),
-                  style: const TextStyle(fontSize: 14, color: AppColors.redPrimary, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: AppColors.redPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -90,7 +97,11 @@ class ProductListItem extends StatelessWidget {
                         backgroundColor: AppColors.redPrimary,
                         padding: const EdgeInsets.all(8),
                       ),
-                      child: const Icon(HugeIcons.strokeRoundedAdd01, size: 25, color: Colors.white,),
+                      child: const Icon(
+                        HugeIcons.strokeRoundedAdd01,
+                        size: 25,
+                        color: Colors.white,
+                      ),
                     ),
                   ],
                 ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ordena_ya/core/utils/Functions.dart';
+import 'package:ordena_ya/domain/entity/product.dart';
 import 'package:ordena_ya/presentation/widgets/CustomButton.dart';
 import 'package:provider/provider.dart';
 
@@ -9,19 +10,11 @@ import 'AdjustValue.dart';
 import 'CircularCloseButton.dart';
 
 class ProductModal extends StatelessWidget {
-  final String productImage;
-  final String productName;
-  final String description;
-  final double price;
-  final String preparationTime;
+  final Product product;
 
   const ProductModal({
     super.key,
-    required this.productImage,
-    required this.productName,
-    required this.description,
-    required this.price,
-    required this.preparationTime,
+    required this.product
   });
 
   @override
@@ -47,7 +40,7 @@ class ProductModal extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
-                      productName,
+                      product.name,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -74,7 +67,7 @@ class ProductModal extends StatelessWidget {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: NetworkImage(productImage),
+                    image: NetworkImage(product.imageUrl),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -86,7 +79,7 @@ class ProductModal extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
-                  description,
+                  product.description,
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[700],
@@ -105,7 +98,7 @@ class ProductModal extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      Functions.formatCurrency(price),
+                      Functions.formatCurrency(product.unitPrice),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -120,7 +113,7 @@ class ProductModal extends StatelessWidget {
                         Icon(Icons.access_time, color: Colors.black, size: 20),
                         const SizedBox(width: 8),
                         Text(
-                          preparationTime,
+                          product.preparationTime,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -187,16 +180,7 @@ class ProductModal extends StatelessWidget {
                   label: 'Añadir al carrito',
                   baseColor: AppColors.redPrimary,
                   textColor: Colors.white,
-                  onTap: () {
-                    final Map<String, dynamic> product = {
-                      "productImage": productImage,
-                      "productName": productName,
-                      "description": description,
-                      "price": price,
-                      "preparationTime": preparationTime,
-                      "quantity": provider.productCount, // tipo int para represent la cantidad
-                    };
-
+                  onTap: () {                  
                     provider.addProductToCart(product);
                     provider.goToPage(1);
                     Navigator.of(context).pop();

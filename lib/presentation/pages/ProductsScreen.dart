@@ -4,7 +4,7 @@ import 'package:ordena_ya/domain/entity/product.dart';
 import 'package:ordena_ya/presentation/providers/tables_provider.dart';
 import 'package:ordena_ya/presentation/widgets/CircleIconLabel.dart';
 import 'package:ordena_ya/presentation/widgets/ProductModal.dart';
-import 'package:ordena_ya/presentation/widgets/error_state.dart';
+import 'package:ordena_ya/presentation/widgets/status_display.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/AppColors.dart';
@@ -134,16 +134,35 @@ class ProductsScreen extends StatelessWidget {
 
                   if (tableProvider.getProductState == TablesState.failure &&
                       tableProvider.getProductsError != null) {
-                    return ErrorState(
-                      message: tableProvider.getProductsError!,
-                      onRetry: () {
+                    return StatusDisplay(
+                      message: tableProvider.getProductsError!,                      
+                      iconColor: AppColors.redTotal, 
+                      icon: HugeIcons.strokeRoundedRssError, 
+                      onAction: () {  
                         tableProvider.getProducts();
-                      },
+                      }, 
+                      iconButton: Icons.refresh, 
+                      labelButton: 'Reintentar', 
+                      backgroundColorButton: AppColors.redTotal,                       
+                      foregroundColorButton: Colors.white,
                     );
                   }
 
                   if (filteredProducts.isEmpty) {
-                    return const Center(child: Text("No hay productos"));
+                    return StatusDisplay(
+                      message: 'No hay productos',                      
+                      iconColor: AppColors.yellowStatus, 
+                      icon: HugeIcons.strokeRoundedPackageRemove, 
+                      onAction: () {  
+                        tableProvider.getProducts();
+                      }, 
+                      iconButton: Icons.refresh, 
+                      labelButton: 'Reintentar', 
+                      backgroundColorButton: AppColors.yellowStatus, 
+                      showTitle: false,
+                      showAction: false, 
+                      foregroundColorButton: Colors.white,
+                    );
                   }
 
                   return ListView.builder(
@@ -160,11 +179,7 @@ class ProductsScreen extends StatelessWidget {
                             context: context,
                             builder: (BuildContext context) {
                               return ProductModal(
-                                productImage: product.imageUrl,
-                                productName: product.name,
-                                description: product.description,
-                                price: product.unitPrice,
-                                preparationTime: product.preparationTime,
+                                product: product,                                
                               );
                             },
                           );

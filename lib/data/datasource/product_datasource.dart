@@ -14,7 +14,7 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
 
   @override
   Future<List<ProductModel>> fetchProducts() async {
-    final jsonList = await apiClient.get('/products/all');
+    final jsonList = await apiClient.get('/products/all') as List<dynamic>;
     return jsonList.map((e) => ProductModel.fromJson(e)).toList();
   }
 }

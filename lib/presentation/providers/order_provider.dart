@@ -3,6 +3,7 @@ import 'package:ordena_ya/core/utils/Functions.dart';
 import 'package:ordena_ya/data/model/client_model.dart';
 import 'package:ordena_ya/domain/entity/order.dart';
 import 'package:ordena_ya/domain/entity/order_item.dart';
+import 'package:ordena_ya/domain/entity/product.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
 import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
 import '../../domain/entity/ordered_product.dart';
@@ -406,8 +407,9 @@ class OrderSetupProvider with ChangeNotifier {
   }
 
   // funcion para agregar producto a la orden y al carrito
-  void addProductToCart(Map<String, dynamic> product) async {
-    final existingProductIndex = _cartItems.indexWhere(
+  void addProductToCart(Product product) async {
+    // esto es lo que hay que corregir.
+    /*final existingProductIndex = _cartItems.indexWhere(
       (item) => item['productName'] == product['productName'],
     );
 
@@ -438,7 +440,7 @@ class OrderSetupProvider with ChangeNotifier {
     }
 
     _productCount = 1;
-    notifyListeners();
+    notifyListeners();*/
   }
 
   void removeProductFromCart(String productName) {
