@@ -28,10 +28,10 @@ class SelectableCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<OrderSetupProvider>(
-      builder: (context, selectionModel, child) {
+      builder: (context, provider, child) {
         return GestureDetector(
           onTap: () {
-            selectionModel.select(index);
+            provider.select(index);
             if (index == 0) {
               context.read<TablesProvider>().getTables();
               showDialog(

@@ -2,68 +2,64 @@ import '../../domain/entity/order.dart';
 
 class OrderModel extends Order {
   OrderModel({
-    required super.id,
     required super.tenantId,
     required super.tableId,
-    required super.waiterId,
-    required super.customerName,
-    required super.type,
     required super.status,
     required super.subtotal,
     required super.tax,
     required super.total,
     required super.createdAt,
-    required super.updatedAt,
+    required super.orderId,
+    required super.peopleCount,
+    required super.consumptionType,
+    required super.clientId,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     return OrderModel(
-      id: json['id'],
-      tenantId: json['tenant_id'],
-      tableId: json['table_id'],
-      waiterId: json['waiter_id'],
-      customerName: json['customer_name'],
-      type: json['type'],
-      status: json['status'],
-      subtotal: double.tryParse(json['subtotal'].toString()) ?? 0.0,
-      tax: double.tryParse(json['tax'].toString()) ?? 0.0,
-      total: double.tryParse(json['total'].toString()) ?? 0.0,
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
+      orderId: json['orderId'] as int,
+      tenantId: json['tenantId'] as int,
+      tableId: json['tableId'] as int,
+      peopleCount: json['peopleCount'] as int,
+      consumptionType: json['consumptionType'] as String,
+      clientId: json['clientId'] as String?, // nullable
+      status: json['status'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      subtotal: (json['subtotal'] as num).toDouble(),
+      tax: (json['tax'] as num).toDouble(),
+      total: (json['total'] as num).toDouble(),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'tenant_id': tenantId,
-      'table_id': tableId,
-      'waiter_id': waiterId,
-      'customer_name': customerName,
-      'type': type,
+      'orderId': orderId,
+      'tenantId': tenantId,
+      'tableId': tableId,
+      'peopleCount': peopleCount,
+      'consumptionType': consumptionType,
+      'clientId': clientId,
       'status': status,
+      'createdAt': createdAt?.toIso8601String(),
       'subtotal': subtotal,
       'tax': tax,
       'total': total,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
     };
   }
 
-  /// -------- ENTITY ↔️ MODEL --------
   factory OrderModel.fromEntity(Order order) {
     return OrderModel(
-      id: order.id,
+      orderId: order.orderId,
       tenantId: order.tenantId,
       tableId: order.tableId,
-      waiterId: order.waiterId,
-      customerName: order.customerName,
-      type: order.type,
+      peopleCount: order.peopleCount,
+      consumptionType: order.consumptionType,
+      clientId: order.clientId,
       status: order.status,
+      createdAt: order.createdAt,
       subtotal: order.subtotal,
       tax: order.tax,
       total: order.total,
-      createdAt: order.createdAt,
-      updatedAt: order.updatedAt,
     );
   }
 

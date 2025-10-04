@@ -9,7 +9,7 @@ import '../providers/order_provider.dart';
 import 'AdjustValue.dart';
 import 'CircularCloseButton.dart';
 
-class ProductModal extends StatelessWidget {
+class ProductModal extends StatefulWidget {
   final Product product;
 
   const ProductModal({
@@ -18,8 +18,22 @@ class ProductModal extends StatelessWidget {
   });
 
   @override
+  State<ProductModal> createState() => _ProductModalState();
+}
+
+class _ProductModalState extends State<ProductModal> {
+  final TextEditingController _observationsController = TextEditingController();
+
+  @override
+  void dispose() {
+    _observationsController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final provider = Provider.of<OrderSetupProvider>(context);
+    int _productCount = provider.productCount;
     return Dialog(
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -40,7 +54,7 @@ class ProductModal extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Text(
-                      product.name,
+                      widget.product.name,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -67,7 +81,7 @@ class ProductModal extends StatelessWidget {
                 width: double.infinity,
                 decoration: BoxDecoration(
                   image: DecorationImage(
-                    image: NetworkImage(product.imageUrl),
+                    image: NetworkImage(widget.product.imageUrl),
                     fit: BoxFit.cover,
                   ),
                 ),
@@ -79,7 +93,7 @@ class ProductModal extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
-                  product.description,
+                  widget.product.description,
                   style: TextStyle(
                     fontSize: 16,
                     color: Colors.grey[700],
@@ -98,7 +112,7 @@ class ProductModal extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      Functions.formatCurrency(product.unitPrice),
+                      Functions.formatCurrency(widget.product.unitPrice),
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -113,7 +127,7 @@ class ProductModal extends StatelessWidget {
                         Icon(Icons.access_time, color: Colors.black, size: 20),
                         const SizedBox(width: 8),
                         Text(
-                          product.preparationTime,
+                          widget.product.preparationTime,
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,
@@ -160,6 +174,7 @@ class ProductModal extends StatelessWidget {
                         ),
                         padding: EdgeInsets.symmetric(horizontal: 12),
                         child: TextField(
+                          controller: _observationsController,
                           maxLines: 3,
                           decoration: InputDecoration(
                             border: InputBorder.none,
@@ -180,8 +195,10 @@ class ProductModal extends StatelessWidget {
                   label: 'Añadir al carrito',
                   baseColor: AppColors.redPrimary,
                   textColor: Colors.white,
-                  onTap: () {                  
-                    provider.addProductToCart(product);
+                  onTap: () {
+                    widget.product.quantity = _productCount;
+                    widget.product.notes = _observationsController.text;       
+                    provider.addProductToCart(widget.product);
                     provider.goToPage(1);
                     Navigator.of(context).pop();
                   } ,

@@ -7,6 +7,7 @@ class Product {
   String imageUrl;
   int quantity;
   String category;
+  String notes;
 
   Product({
     required this.id,
@@ -17,5 +18,6 @@ class Product {
     required this.imageUrl,
     required this.quantity,
     required this.category,
+    required this.notes
   });
 }

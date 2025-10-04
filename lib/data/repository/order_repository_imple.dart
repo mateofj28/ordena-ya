@@ -18,7 +18,7 @@ class OrderRepositoryImpl implements OrderRepository {
       final created = await datasource.createOrder(OrderModel.fromEntity(order));
       return Right(created);
     } catch (e, stack) {
-      print('Error: $e');          // mensaje del error
+      print('Error: $e');          
       print('Stacktrace: $stack');
       return Left(ServerFailure(e.toString()));
     }
@@ -30,7 +30,7 @@ class OrderRepositoryImpl implements OrderRepository {
       final orders = await datasource.fetchOrders();
       return Right(orders);
     } catch (e, stack) {
-      print('Error: $e');          // mensaje del error
+      print('Error: $e');          
       print('Stacktrace: $stack');
       return Left(ServerFailure(e.toString()));
     }

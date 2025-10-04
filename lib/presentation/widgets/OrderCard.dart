@@ -25,8 +25,8 @@ class OrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    final date = Functions.getDate(order.createdAt);
-    final time = Functions.getTime(order.createdAt);
+    final date = Functions.getDate(order.createdAt!);
+    final time = Functions.getTime(order.createdAt!);
     final total = order.total;
     final tableId = order.tableId;
 
@@ -57,9 +57,9 @@ class OrderCard extends StatelessWidget {
             children: [
               const Icon(HugeIcons.strokeRoundedCalendar03),
               const SizedBox(width: 10),
-              Text(Functions.getDate(order.createdAt), style: const TextStyle(fontSize: 13)),
+              Text(Functions.getDate(order.createdAt!), style: const TextStyle(fontSize: 13)),
               const SizedBox(width: 10),
-              Text(Functions.getTime(order.createdAt), style: const TextStyle(fontSize: 13)),
+              Text(Functions.getTime(order.createdAt!), style: const TextStyle(fontSize: 13)),
             ],
           ),
           const Divider(color: Colors.grey, thickness: 1, height: 20),

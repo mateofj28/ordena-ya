@@ -1,6 +1,6 @@
 import 'package:ordena_ya/core/model/either.dart';
 import 'package:ordena_ya/core/model/failure.dart';
-import '../entity/order_item.dart';
+import 'package:ordena_ya/domain/dto/order_item.dart';
 import '../repository/order_item_repository.dart';
 
 class AddItemToOrderUseCase {
@@ -8,7 +8,7 @@ class AddItemToOrderUseCase {
 
   AddItemToOrderUseCase(this.repository);
 
-  Future<Either<Failure, OrderItem>> call(int orderId, OrderItem item) {
+  Future<Either<Failure, void>> call(int orderId, OrderItem item) {
     return repository.addItemToOrder(orderId, item);
   }
 }

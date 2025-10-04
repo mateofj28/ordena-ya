@@ -151,7 +151,7 @@ class ProductsScreen extends StatelessWidget {
                   if (filteredProducts.isEmpty) {
                     return StatusDisplay(
                       message: 'No hay productos',                      
-                      iconColor: AppColors.yellowStatus, 
+                      iconColor: AppColors.textPrimary, 
                       icon: HugeIcons.strokeRoundedPackageRemove, 
                       onAction: () {  
                         tableProvider.getProducts();

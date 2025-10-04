@@ -9,7 +9,8 @@ class ProductModel extends Product {
     required super.unitPrice,
     required super.imageUrl,
     required super.quantity,
-    required super.category,
+    required super.category, 
+    required super.notes,
   });
 
   /// Serializar a JSON
@@ -23,6 +24,7 @@ class ProductModel extends Product {
       'imageUrl': imageUrl,
       'quantity': quantity,
       'category': category,
+      'observations': notes,
     };
   }
 
@@ -36,6 +38,7 @@ class ProductModel extends Product {
       imageUrl: json['photo'] ?? '',
       quantity: json['quantity'] ?? 0,
       category: json['category'] ?? '',
+      notes: json['observations'] ?? '',
     );
   }
 
@@ -49,6 +52,7 @@ class ProductModel extends Product {
       imageUrl: imageUrl,
       quantity: quantity,
       category: category,
+      notes: notes
     );
   }
 }

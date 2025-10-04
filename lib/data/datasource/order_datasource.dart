@@ -24,16 +24,9 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
     final List<dynamic> ordersJson = jsonList['orders'];
     final orders =
         ordersJson.map<OrderModel>((e) => OrderModel.fromJson(e)).toList();
-    final today = DateTime.now();
-    final filtered =
-        orders.where((OrderModel order) {
-          final createdAt = order.createdAt;
-          return createdAt.year == today.year &&
-              createdAt.month == today.month &&
-              createdAt.day == today.day;
-        }).toList();
+    
 
-    return filtered;
+    return orders;
   }
 
   @override

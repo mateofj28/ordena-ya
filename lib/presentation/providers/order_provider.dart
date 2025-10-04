@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:ordena_ya/core/utils/Functions.dart';
 import 'package:ordena_ya/data/model/client_model.dart';
+import 'package:ordena_ya/domain/dto/order_item.dart';
 import 'package:ordena_ya/domain/entity/order.dart';
-import 'package:ordena_ya/domain/entity/order_item.dart';
+
 import 'package:ordena_ya/domain/entity/product.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
 import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
@@ -31,6 +32,8 @@ class OrderSetupProvider with ChangeNotifier {
   String name = '';
   String cedula = '';
   String email = '';
+  Order? _currentOrder;
+  int _tableId = 0;
 
   int _clienteStep = 0;
   int _discountStep = 0;
@@ -55,7 +58,7 @@ class OrderSetupProvider with ChangeNotifier {
   final PageController _pageController = PageController();
 
   // State
-  final List<Map<String, dynamic>> _cartItems = [];
+  final List<Product> _cartItems = [];
 
   // variable temporary boar a futuro.
   final _products = [
@@ -153,25 +156,26 @@ class OrderSetupProvider with ChangeNotifier {
   List get products => _products;
   PageController get pageController => _pageController;
   int get deliveryType => _deliveryType;
-  int get totalItems {
-    return _cartItems.fold(0, (sum, item) => sum + (item['quantity'] as int));
-  }
 
-  double get subtotal {
-    return _cartItems.fold(
-      0.0,
-      (sum, item) =>
-          sum +
-          ((item['price'] as num).toDouble() *
-              (item['quantity'] as num).toDouble()),
-    );
-  }
+  // int get totalItems {
+  //   return _cartItems.fold(0, (sum, item) => sum + (item['quantity'] as int));
+  // }
 
-  double get total {
-    const impoconsumoRate = 0.08;
-    final subtotalConDescuento = subtotal * (1 - _discount);
-    return subtotalConDescuento * (1 + impoconsumoRate);
-  }
+  // double get subtotal {
+  //   return _cartItems.fold(
+  //     0.0,
+  //     (sum, item) =>
+  //         sum +
+  //         ((item['price'] as num).toDouble() *
+  //             (item['quantity'] as num).toDouble()),
+  //   );
+  // }
+
+  // double get total {
+  //   const impoconsumoRate = 0.08;
+  //   final subtotalConDescuento = subtotal * (1 - _discount);
+  //   return subtotalConDescuento * (1 + impoconsumoRate);
+  // }
 
   int get clienteStep => _clienteStep;
   int get discountStep => _discountStep;
@@ -195,6 +199,11 @@ class OrderSetupProvider with ChangeNotifier {
 
   set discountStep(int step) {
     _discountStep = step;
+    notifyListeners();
+  }
+
+  set tableId(int id) {
+    _tableId = id;
     notifyListeners();
   }
 
@@ -295,7 +304,18 @@ class OrderSetupProvider with ChangeNotifier {
     }
   }
 
-  // utils/page_view_utils.dart
+  String getConsumptionType(int selectedIndex) {
+    switch (selectedIndex) {
+      case 0:
+        return 'mesa';
+      case 1:
+        return 'domicilio';
+      case 2:
+        return 'recoger';
+      default:
+        return 'mesa'; // valor por defecto
+    }
+  }
 
   Future<void> goToPage(int index) async {
     _pageController.jumpToPage(index);
@@ -349,65 +369,42 @@ class OrderSetupProvider with ChangeNotifier {
     return true;
   }
 
-  OrderItem buildOrderItem(Map<String, dynamic> product){
-    return OrderItem(
-        productId: 1,
-        productName: product['productName'],
-        quantity: product['quantity'],
-        price: product['price'],
-        notes: product['description'],
-        status: "pending",
-        createdAt: DateTime.now(),
-    );
-  }
-
   // recoje toda la informacion para crear la orden
-  Order buildOrder() {
+  Order buildOrderObject() {
+    String clientId = '1kk';
     Order order = Order(
       tenantId: 1,
-      tableId: _tableIndex,
-      waiterId: 1,
-      customerName: 'indefinido',
-      type: deliveryTypeMap[selectedIndex]!,
-      subtotal: subtotal,
-      tax: 8000.00,
-      total: total,
-      createdAt: DateTime.now(),
+      tableId: _tableId,
+      peopleCount: _peopleCount,
+      consumptionType: getConsumptionType(_deliveryType),
+      clientId: _deliveryType == 1 ? clientId : null,
     );
-
-    /*Order(
-      orderNumber: "",
-      assignedTable: _tableIndex.toString(),
-      deliveryType: deliveryTypeMap[selectedIndex]!,
-      numberOfPeople: peopleCount,
-      clientId: "",
-      deliveryAddress: "",
-      orderedProducts: List<OrderedProduct>.from(
-        _cartItems.map(
-          (item) => OrderedProduct(
-            null,
-            name: item['productName'],
-            price: item['price'],
-            units: List.generate(
-              item['quantity'],
-              (_) => OrderedProductUnit(state: item['state'] ?? 'pendiente'),
-            ),
-          ),
-        ),
-      ),
-      discountApplied: 0,
-      totalValue: 0,
-      paymentMethod: "",
-      orderStatus: "",
-      orderDate: DateTime.now(),
-      statusUpdatedAt: DateTime.now(),
-    );*/
-
     return order;
   }
 
   // funcion para agregar producto a la orden y al carrito
   void addProductToCart(Product product) async {
+    final existingItems = _cartItems.where((item) => item.id == product.id);
+    final Product? existing =
+        existingItems.isNotEmpty ? existingItems.first : null;
+
+    if (existing != null) {
+      // Ya existe → sumamos la cantidad
+      // SE ACTUALIZA LA CANTIDAD EN LA BASE DE DATOS (no hecho)
+      existing.quantity += product.quantity;
+    } else {
+      // No existe en el carrito → verificamos la orden
+      if (_currentOrder != null) {
+        // ✅ Ya existe una orden → estamos editando la misma orden
+        _cartItems.add(product);
+      } else {
+        // ❌ No existe orden → c reamos una nueva
+        // endpoint 1 para crear la orden
+        Order newOrder = buildOrderObject();
+        // endpoint 2 agregar el producto esa orden
+      }
+    }
+
     // esto es lo que hay que corregir.
     /*final existingProductIndex = _cartItems.indexWhere(
       (item) => item['productName'] == product['productName'],
@@ -447,7 +444,7 @@ class OrderSetupProvider with ChangeNotifier {
     if (_orders.isEmpty) return;
 
     // Eliminar del carrito
-    _cartItems.removeWhere((item) => item['productName'] == productName);
+    //_cartItems.removeWhere((item) => item['productName'] == productName);
 
     // Buscar orden que contiene el producto
     /*int ordenIndex = _orders.indexWhere(
@@ -690,16 +687,19 @@ class OrderSetupProvider with ChangeNotifier {
     }
   }*/
 
-  Future<void> createOrder(Order order, Map<String, dynamic> product) async {
+  Future<void> createOrder(Order order, Product product) async {
     final result = await createOrderUseCase.call(order);
 
     result.fold(
       (failure) {
         errorMessage = failure.message;
       },
-      (order) async {
+      (createdOrder) async {
         print('---orden desde el caso de uso---');
-        await addProductToOrder(order.id!, buildOrderItem(product));
+        await addProductToOrder(
+          createdOrder.orderId!,
+          OrderItem.fromProduct(product),
+        );
         errorMessage = '';
       },
     );
@@ -718,38 +718,38 @@ class OrderSetupProvider with ChangeNotifier {
         await getAllOrders();
         errorMessage = failure.message;
       },
-      (added) {
+      (_) {
+        // 👈 ya no se llama "added", porque no hay objeto, solo éxito
         print('---producto agregado a la orden desde el usecase---');
-        print(added);
         errorMessage = '';
       },
     );
+
     notifyListeners();
   }
 
   Future<void> getAllOrders() async {
     // en si no deberia tener try catch porque el usecase ya lo tiene, pero lo dejo por si acaso
 
-      status = OrderStatus.loading;
-      notifyListeners();
+    status = OrderStatus.loading;
+    notifyListeners();
 
-      var result = await getAllOrdersUseCase.call();
+    var result = await getAllOrdersUseCase.call();
 
-      result.fold(
-        (failure) {
-          status = OrderStatus.error;
-          errorMessage = failure.message;
-          notifyListeners();
-        },
-        (orders) {
-          _orders = orders;
-          status = OrderStatus.success;
-          errorMessage = '';
-          _isLoadingAllOrders = false;
-          notifyListeners();
-        },
-      );
-
+    result.fold(
+      (failure) {
+        status = OrderStatus.error;
+        errorMessage = failure.message;
+        notifyListeners();
+      },
+      (orders) {
+        _orders = orders;
+        status = OrderStatus.success;
+        errorMessage = '';
+        _isLoadingAllOrders = false;
+        notifyListeners();
+      },
+    );
   }
 
   // UI utils

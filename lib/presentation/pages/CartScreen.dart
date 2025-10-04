@@ -18,7 +18,7 @@ class CartScreen extends StatelessWidget {
 
     int table = provider.tableIndex;
     int people = provider.peopleCount;
-    double total = provider.total;
+    //double total = provider.total;
 
     return Scaffold(
       backgroundColor: AppColors.lightGray,
@@ -75,7 +75,7 @@ class CartScreen extends StatelessWidget {
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.bold,
               ),
-              value: Functions.formatCurrency(total),
+              value: Functions.formatCurrency(00.0),
               valueStyle: TextStyle(
                 fontSize: 20,
                 color: AppColors.redPrimary,
