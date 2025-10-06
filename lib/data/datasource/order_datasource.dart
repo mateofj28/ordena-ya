@@ -1,9 +1,10 @@
 import 'package:ordena_ya/data/model/order_model.dart';
+import 'package:ordena_ya/domain/dto/register_order_req.dart';
 import '../../core/network/api_client.dart';
 
 abstract class OrderRemoteDataSource {
   Future<List<OrderModel>> fetchOrders();
-  Future<OrderModel> createOrder(OrderModel order);
+  Future<OrderModel> createOrder(CreateOrderReq order);
   Future<OrderModel> updateOrder(OrderModel order);
 }
 
@@ -13,9 +14,9 @@ class OrderRemoteDataSourceImpl implements OrderRemoteDataSource {
   OrderRemoteDataSourceImpl({required this.apiClient});
 
   @override
-  Future<OrderModel> createOrder(OrderModel order) async {
+  Future<OrderModel> createOrder(CreateOrderReq order) async {
     final response = await apiClient.post('/orders', order.toJson());
-    return OrderModel.fromJson(response['order']);
+    return OrderModel.fromJson(response);
   }
 
   @override

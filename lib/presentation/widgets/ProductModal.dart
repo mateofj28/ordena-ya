@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:ordena_ya/core/utils/Functions.dart';
 import 'package:ordena_ya/domain/entity/product.dart';
 import 'package:ordena_ya/presentation/widgets/CustomButton.dart';
@@ -33,7 +36,7 @@ class _ProductModalState extends State<ProductModal> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<OrderSetupProvider>(context);
-    int _productCount = provider.productCount;
+    final String base64Part = widget.product.imageUrl.split(",")[1];
     return Dialog(
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -66,7 +69,7 @@ class _ProductModalState extends State<ProductModal> {
                   CircularCloseButton(
                     onPressed: () {
                       Navigator.of(context).pop();
-                      provider.updateProductCount(1);
+                      provider.productCount = 1;
                     },
                   ),
 
@@ -76,14 +79,13 @@ class _ProductModalState extends State<ProductModal> {
               SizedBox(height: 10),
 
               // Imagen del producto
-              Container(
+              SizedBox(
                 height: 200,
                 width: double.infinity,
-                decoration: BoxDecoration(
-                  image: DecorationImage(
-                    image: NetworkImage(widget.product.imageUrl),
-                    fit: BoxFit.cover,
-                  ),
+                child: SvgPicture.string(
+                  utf8.decode(base64Decode(base64Part)),
+                  width: 150,
+                  height: 150,
                 ),
               ),
 
@@ -196,8 +198,9 @@ class _ProductModalState extends State<ProductModal> {
                   baseColor: AppColors.redPrimary,
                   textColor: Colors.white,
                   onTap: () {
-                    widget.product.quantity = _productCount;
-                    widget.product.notes = _observationsController.text;       
+                    widget.product.quantity = provider.productCount;
+                    widget.product.notes = _observationsController.text;
+                    provider.productCount = 1;       
                     provider.addProductToCart(widget.product);
                     provider.goToPage(1);
                     Navigator.of(context).pop();

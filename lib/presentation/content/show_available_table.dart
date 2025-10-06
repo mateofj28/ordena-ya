@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ordena_ya/data/model/select_table_model.dart';
 import 'package:ordena_ya/domain/entity/restaurant_table.dart';
+import 'package:ordena_ya/presentation/providers/order_provider.dart';
 import 'package:ordena_ya/presentation/providers/tables_provider.dart';
 import 'package:ordena_ya/presentation/widgets/CircularCloseButton.dart';
 import 'package:provider/provider.dart';
@@ -116,11 +117,11 @@ class ShowAvailableTable extends StatelessWidget {
           ),
           const Divider(color: Colors.grey, height: 0),
 
-          // 👇 Eliminamos Expanded y ajustamos GridView
+          
           GridView.builder(
-            shrinkWrap: true, // 👈 permite que se ajuste al contenido
+            shrinkWrap: true, 
             physics:
-                const NeverScrollableScrollPhysics(), // 👈 evita scroll interno
+                const NeverScrollableScrollPhysics(), 
             padding: const EdgeInsets.all(12),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
@@ -134,14 +135,8 @@ class ShowAvailableTable extends StatelessWidget {
               return GestureDetector(
                 onTap: () {
                   if (table.status != 'occupied') {
-                    context.read<TablesProvider>().selectTable(table.id, 
-                      SelectTableModel(
-                        number: table.tableNumber,
-                        capacity: table.capacity,
-                        location: table.location,
-                        status: 'occupied',
-                      ),
-                    );
+                    context.read<OrderSetupProvider>().tableId = table.id;
+                    context.read<TablesProvider>().selectTable(table);
                     Navigator.pop(context);                
                   }
                 },

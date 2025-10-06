@@ -16,10 +16,11 @@ class OrderModel extends Order {
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
+    print(json);
     return OrderModel(
-      orderId: json['orderId'] as int,
-      tenantId: json['tenantId'] as int,
-      tableId: json['tableId'] as int,
+      orderId: json['orderId'] as String,
+      tenantId: json['tenantId'] as String,
+      tableId: json['tableId'] as String,
       peopleCount: json['peopleCount'] as int,
       consumptionType: json['consumptionType'] as String,
       clientId: json['clientId'] as String?, // nullable

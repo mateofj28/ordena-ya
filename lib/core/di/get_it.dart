@@ -19,6 +19,7 @@ import 'package:ordena_ya/domain/repository/restaurant_tables_repository.dart';
 import 'package:ordena_ya/domain/repository/user_repository.dart';
 import 'package:ordena_ya/domain/usecase/create_client.dart';
 import 'package:ordena_ya/domain/usecase/create_user.dart';
+import 'package:ordena_ya/domain/usecase/delete_item_to_order.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
 import 'package:ordena_ya/domain/usecase/get_all_products.dart';
 import 'package:ordena_ya/domain/usecase/get_all_tables.dart';
@@ -131,5 +132,9 @@ void setupLocator() {
 
   getIt.registerLazySingleton<GetAllProductsUseCase>(
     () => GetAllProductsUseCase(getIt<ProductRepository>()),
+  );
+
+  getIt.registerLazySingleton<DeleteItemToOrderUseCase>(
+    () => DeleteItemToOrderUseCase(getIt<OrderItemRepository>()),
   );
 }

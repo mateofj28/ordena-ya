@@ -11,21 +11,31 @@ class OrderItemRepositoryImpl implements OrderItemRepository {
   OrderItemRepositoryImpl(this.datasource);
 
   @override
-  Future<Either<Failure, void>> addItemToOrder(int orderId, OrderItem item) async {
+  Future<Either<Failure, void>> addItemToOrder(String orderId, OrderItem item) async {
     try {
       await datasource.addItemToOrder(orderId, item );
       return Right(null);
-    } catch (e) {
+    } catch (e) {           
       return Left(ServerFailure(e.toString()));
     }
   }
 
   @override
-  Future<Either<Failure, void>> updateItemInOrder(int orderId, int itemId, OrderItem item) async {
+  Future<Either<Failure, void>> updateItemInOrder(String orderId, int itemId, OrderItem item) async {
     try {
       await datasource.updateItemInOrder(orderId, itemId, item);
       return Right(null);
     } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+  
+  @override
+  Future<Either<Failure, void>> deleteItemToOrder(String orderId, String productId) async {
+    try {
+      await datasource.deleteItemToOrder(orderId, productId);
+      return Right(null);
+    } catch (e) {           
       return Left(ServerFailure(e.toString()));
     }
   }

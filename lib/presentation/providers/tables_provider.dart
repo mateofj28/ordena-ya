@@ -83,8 +83,8 @@ class TablesProvider extends ChangeNotifier {
     );
   }
 
-  Future<void> selectTable(int id, SelectTableModel newTable) async {
-    _selectTableState = TablesState.loading;
+  Future<void> selectTable(RestaurantTable newTable) async {
+    /*_selectTableState = TablesState.loading;
     notifyListeners();
 
     final result = await selectTableUseCase.call(id, newTable);
@@ -100,6 +100,9 @@ class TablesProvider extends ChangeNotifier {
         _selectTableState = TablesState.success;
         notifyListeners();
       },
-    );
+    );*/
+
+    _table = newTable;
+    notifyListeners();
   }
 }

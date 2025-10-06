@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ordena_ya/core/utils/Functions.dart';
 import 'package:ordena_ya/data/model/client_model.dart';
 import 'package:ordena_ya/domain/dto/order_item.dart';
+import 'package:ordena_ya/domain/dto/register_order_req.dart';
 import 'package:ordena_ya/domain/entity/order.dart';
 
 import 'package:ordena_ya/domain/entity/product.dart';
@@ -25,7 +26,7 @@ class OrderSetupProvider with ChangeNotifier {
   });
 
   OrderStatus status = OrderStatus.initial;
-  String errorMessage = '';
+  String? _errorMessage = '';
 
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
 
@@ -139,9 +140,10 @@ class OrderSetupProvider with ChangeNotifier {
   };
 
   // Getters
-  List<Map<String, dynamic>> get cartItems => List.unmodifiable(_cartItems);
+  List<Product> get cartItems => _cartItems;
   int get selectedTabIndex => _selectedTabIndex;
   String get selectedTable => _selectedTable;
+  String? get errorMessage => _errorMessage;
   String get selectedDiscount => _selectedDiscount;
   String get selectedPeople => _selectedPeople;
   String get selectedClient => _selectedClient;
@@ -240,7 +242,7 @@ class OrderSetupProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void updateProductCount(int index) {
+  set productCount(int index) {
     _productCount = index;
     notifyListeners();
   }
@@ -288,6 +290,11 @@ class OrderSetupProvider with ChangeNotifier {
       _productCount--;
       notifyListeners();
     }
+  }
+
+  set errorMessage(String? value) {
+    _errorMessage = value;
+    notifyListeners();
   }
 
   void increasePeople() {
@@ -370,39 +377,53 @@ class OrderSetupProvider with ChangeNotifier {
   }
 
   // recoje toda la informacion para crear la orden
-  Order buildOrderObject() {
+  CreateOrderReq buildOrderObject() {
     String clientId = '1kk';
-    Order order = Order(
+    String consumptionType = getConsumptionType(_deliveryType);
+    String? clientIdValue = _deliveryType == 1 ? clientId : null;
+
+    CreateOrderReq order = CreateOrderReq(
       tenantId: 1,
       tableId: _tableId,
-      peopleCount: _peopleCount,
-      consumptionType: getConsumptionType(_deliveryType),
-      clientId: _deliveryType == 1 ? clientId : null,
+      peopleCount: _productCount,
+      consumptionType: consumptionType,
+      clientId: clientIdValue,
     );
     return order;
   }
 
   // funcion para agregar producto a la orden y al carrito
   void addProductToCart(Product product) async {
-    final existingItems = _cartItems.where((item) => item.id == product.id);
-    final Product? existing =
-        existingItems.isNotEmpty ? existingItems.first : null;
+    if (_tableId != 0) {
+      final index = _cartItems.indexWhere((p) => p.id == product.id);
 
-    if (existing != null) {
-      // Ya existe → sumamos la cantidad
-      // SE ACTUALIZA LA CANTIDAD EN LA BASE DE DATOS (no hecho)
-      existing.quantity += product.quantity;
-    } else {
-      // No existe en el carrito → verificamos la orden
-      if (_currentOrder != null) {
-        // ✅ Ya existe una orden → estamos editando la misma orden
-        _cartItems.add(product);
+      if (index != -1) {
+        // Ya existe → sumamos la cantidad
+        // SE ACTUALIZA LA CANTIDAD EN LA BASE DE DATOS (no hecho)
+        int currentQuantity = _cartItems[index].quantity;
+        int newQuantity = product.quantity;
+        _cartItems[index].quantity = currentQuantity + newQuantity;
+        notifyListeners();
       } else {
-        // ❌ No existe orden → c reamos una nueva
-        // endpoint 1 para crear la orden
-        Order newOrder = buildOrderObject();
-        // endpoint 2 agregar el producto esa orden
+        // No existe en el carrito → verificamos la orden
+        if (_currentOrder != null) {
+          // ✅ Ya existe una orden, agrega un producto → estamos editando la misma orden -
+          _cartItems.add(product);
+          await addProductToOrder(
+            _currentOrder!.orderId!,
+            OrderItem.fromProduct(product),
+          );
+        } else {
+          // ❌ No existe orden → creamos una nueva
+          _cartItems.add(product);
+          CreateOrderReq newOrder = buildOrderObject();
+          // endpoint 1 para crear la orden
+          // endpoint 2 agregar el producto esa orden
+          createOrder(newOrder, product);
+        }
       }
+    } else {
+      errorMessage = "Debes seleccionar una mesa antes de crear tu orden";
     }
 
     // esto es lo que hay que corregir.
@@ -571,8 +592,8 @@ class OrderSetupProvider with ChangeNotifier {
     );*/
   }
 
-  void increaseProductQuantity(Map<String, dynamic> product) {
-    product['quantity'] = (product['quantity'] ?? 0) + 1;
+  void increaseProductQuantity(Product product) {
+    product.quantity = (product.quantity ?? 0) + 1;
 
     for (final order in _orders) {
       /*final index = order.orderedProducts.indexWhere(
@@ -589,9 +610,9 @@ class OrderSetupProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void decreaseProductQuantity(Map<String, dynamic> product) {
-    if ((product['quantity'] ?? 0) > 1) {
-      product['quantity']--;
+  void decreaseProductQuantity(Product product) {
+    if ((product.quantity ?? 0) > 1) {
+      product.quantity--;
 
       for (final order in _orders) {
         /* final index = order.orderedProducts.indexWhere(
@@ -687,7 +708,7 @@ class OrderSetupProvider with ChangeNotifier {
     }
   }*/
 
-  Future<void> createOrder(Order order, Product product) async {
+  Future<void> createOrder(CreateOrderReq order, Product product) async {
     final result = await createOrderUseCase.call(order);
 
     result.fold(
@@ -696,6 +717,7 @@ class OrderSetupProvider with ChangeNotifier {
       },
       (createdOrder) async {
         print('---orden desde el caso de uso---');
+        _currentOrder = createdOrder;
         await addProductToOrder(
           createdOrder.orderId!,
           OrderItem.fromProduct(product),
@@ -706,10 +728,8 @@ class OrderSetupProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addProductToOrder(int orderId, OrderItem item) async {
+  Future<void> addProductToOrder(String orderId, OrderItem item) async {
     final result = await addItemToOrderUseCase.call(orderId, item);
-
-    print('si estoy pasando por aqui!!');
 
     result.fold(
       (failure) async {

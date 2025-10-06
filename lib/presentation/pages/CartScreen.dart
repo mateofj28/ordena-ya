@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:ordena_ya/presentation/providers/tables_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/AppColors.dart';
@@ -14,15 +15,16 @@ class CartScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<OrderSetupProvider>(context);
+    final orderProvider = Provider.of<OrderSetupProvider>(context);
+    final tableProvider = Provider.of<TablesProvider>(context);
 
-    int table = provider.tableIndex;
-    int people = provider.peopleCount;
+    int table = tableProvider.table!.id;
+    int people = orderProvider.peopleCount;
     //double total = provider.total;
 
     return Scaffold(
       backgroundColor: AppColors.lightGray,
-      body: provider.cartItems.isEmpty
+      body: orderProvider.cartItems.isEmpty
           ? const EmptyCartView()
           : Padding(
         padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -43,9 +45,9 @@ class CartScreen extends StatelessWidget {
             // 🧾 Lista de items del carrito
             Expanded(
               child: ListView.builder(
-                itemCount: provider.cartItems.length,
+                itemCount: orderProvider.cartItems.length,
                 itemBuilder: (context, index) {
-                  final product = provider.cartItems[index];
+                  final product = orderProvider.cartItems[index];
                   return CartProduct(
                     product: product,
                     index: index,

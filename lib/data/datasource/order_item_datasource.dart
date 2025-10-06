@@ -3,12 +3,13 @@ import '../../core/network/api_client.dart';
 
 
 abstract class OrderItemRemoteDataSource {
-  Future<void> addItemToOrder(int orderId, OrderItem item);
+  Future<void> addItemToOrder(String orderId, OrderItem item);
   Future<void> updateItemInOrder(
-    int orderId,
+    String orderId,
     int itemId,
     OrderItem item,
   );
+  Future<void> deleteItemToOrder(String orderId, String productId);
 }
 
 class OrderItemRemoteDataSourceImpl implements OrderItemRemoteDataSource {
@@ -17,16 +18,13 @@ class OrderItemRemoteDataSourceImpl implements OrderItemRemoteDataSource {
   OrderItemRemoteDataSourceImpl({required this.apiClient});
 
   @override
-  Future<void> addItemToOrder(int orderId, OrderItem item) async {
-    final res = await apiClient.post('/orders/$orderId/items', item.toJson());
-    if (res['statusCode'] != 200) {
-      throw Exception('Error al agregar producto');
-    }
+  Future<void> addItemToOrder(String orderId, OrderItem item) async {
+    await apiClient.post('/orders/$orderId/items', item.toJson());    
   }
 
   @override
   Future<void> updateItemInOrder(
-    int orderId,
+    String orderId,
     int itemId,
     OrderItem item,
   ) async {
@@ -37,5 +35,10 @@ class OrderItemRemoteDataSourceImpl implements OrderItemRemoteDataSource {
     if (res['statusCode'] != 200) {
       throw Exception('Error al editar el producto');
     }
+  }
+  
+  @override
+  Future<void> deleteItemToOrder(String orderId, String productId) async {
+    await apiClient.delete('/orders/$orderId/items/$productId');    
   }
 }

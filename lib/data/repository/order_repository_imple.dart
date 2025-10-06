@@ -1,6 +1,7 @@
 import 'package:ordena_ya/core/model/either.dart';
 import 'package:ordena_ya/core/model/failure.dart';
 import 'package:ordena_ya/data/datasource/order_datasource.dart';
+import 'package:ordena_ya/domain/dto/register_order_req.dart';
 import 'package:ordena_ya/domain/entity/order.dart';
 import 'package:ordena_ya/domain/repository/order_repository.dart';
 
@@ -13,13 +14,11 @@ class OrderRepositoryImpl implements OrderRepository {
   OrderRepositoryImpl(this.datasource);
 
   @override
-  Future<Either<Failure, Order>> createOrder(Order order) async {
+  Future<Either<Failure, Order>> createOrder(CreateOrderReq order) async {
     try {
-      final created = await datasource.createOrder(OrderModel.fromEntity(order));
+      final created = await datasource.createOrder(order);
       return Right(created);
-    } catch (e, stack) {
-      print('Error: $e');          
-      print('Stacktrace: $stack');
+    } catch (e) {      
       return Left(ServerFailure(e.toString()));
     }
   }
