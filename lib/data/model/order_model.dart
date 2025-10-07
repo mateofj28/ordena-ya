@@ -20,7 +20,7 @@ class OrderModel extends Order {
     return OrderModel(
       orderId: json['orderId'] as String,
       tenantId: json['tenantId'] as String,
-      tableId: json['tableId'] as String,
+      tableId: json['tableId'] as String?,
       peopleCount: json['peopleCount'] as int,
       consumptionType: json['consumptionType'] as String,
       clientId: json['clientId'] as String?, // nullable

@@ -6,6 +6,30 @@ class CustomValidators {
     return null;
   }
 
+  static String? phone(
+    String? value, {
+    String fieldName = "Número de celular",
+  }) {
+    if (value == null || value.trim().isEmpty) {
+      return '$fieldName es requerido';
+    }
+
+    final cleaned = value.replaceAll(
+      RegExp(r'\D'),
+      '',
+    ); // elimina todo menos números
+
+    if (cleaned.length < 7 || cleaned.length > 10) {
+      return '$fieldName debe tener entre 7 y 10 dígitos';
+    }
+
+    if (!RegExp(r'^[0-9]+$').hasMatch(cleaned)) {
+      return '$fieldName solo puede contener números';
+    }
+
+    return null;
+  }
+
   static String? email(String? value) {
     if (value == null || value.trim().isEmpty) {
       return 'El correo es requerido';

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:ordena_ya/presentation/providers/tables_provider.dart';
 import 'package:provider/provider.dart';
-
 import '../../core/constants/AppColors.dart';
 import '../../core/utils/Functions.dart';
 import '../providers/order_provider.dart';
@@ -18,9 +17,9 @@ class CartScreen extends StatelessWidget {
     final orderProvider = Provider.of<OrderSetupProvider>(context);
     final tableProvider = Provider.of<TablesProvider>(context);
 
-    int table = tableProvider.table!.id;
+    int table = tableProvider.table != null ? tableProvider.table!.id : 0;
     int people = orderProvider.peopleCount;
-    //double total = provider.total;
+    double total = orderProvider.total;
 
     return Scaffold(
       backgroundColor: AppColors.lightGray,
@@ -39,8 +38,10 @@ class CartScreen extends StatelessWidget {
                 fontSize: 20,
               ),
             ),
-            Text('Mesa: $table · $people persona'),
-            const SizedBox(height: 10),
+
+            if (table != 0 && people != 1)
+              Text('Mesa: $table · $people persona'),
+              const SizedBox(height: 10),
 
             // 🧾 Lista de items del carrito
             Expanded(
@@ -77,7 +78,7 @@ class CartScreen extends StatelessWidget {
                 color: AppColors.textPrimary,
                 fontWeight: FontWeight.bold,
               ),
-              value: Functions.formatCurrency(00.0),
+              value: Functions.formatCurrency(total),
               valueStyle: TextStyle(
                 fontSize: 20,
                 color: AppColors.redPrimary,

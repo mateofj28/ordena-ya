@@ -1,7 +1,7 @@
 class Order {
   final String? orderId; // "o109"
   final String tenantId; // "t1"
-  final String tableId; // "m2"
+  final String? tableId; // "m2"
   final int peopleCount; // 3
   final String consumptionType; // "mesa"
   final String? clientId; // null (nullable)

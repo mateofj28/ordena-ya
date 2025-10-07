@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:ordena_ya/core/utils/Functions.dart';
 import 'package:ordena_ya/domain/entity/product.dart';
+import 'package:ordena_ya/presentation/providers/user_provider.dart';
 import 'package:ordena_ya/presentation/widgets/CustomButton.dart';
 import 'package:provider/provider.dart';
 
@@ -15,10 +16,7 @@ import 'CircularCloseButton.dart';
 class ProductModal extends StatefulWidget {
   final Product product;
 
-  const ProductModal({
-    super.key,
-    required this.product
-  });
+  const ProductModal({super.key, required this.product});
 
   @override
   State<ProductModal> createState() => _ProductModalState();
@@ -36,6 +34,9 @@ class _ProductModalState extends State<ProductModal> {
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<OrderSetupProvider>(context);
+    final clientProvider = Provider.of<UserProvider>(context);
+    final clientId = clientProvider.currentClient?.id;
+
     final String base64Part = widget.product.imageUrl.split(",")[1];
     return Dialog(
       backgroundColor: Colors.white,
@@ -72,7 +73,6 @@ class _ProductModalState extends State<ProductModal> {
                       provider.productCount = 1;
                     },
                   ),
-
                 ],
               ),
 
@@ -198,13 +198,19 @@ class _ProductModalState extends State<ProductModal> {
                   baseColor: AppColors.redPrimary,
                   textColor: Colors.white,
                   onTap: () {
-                    widget.product.quantity = provider.productCount;
-                    widget.product.notes = _observationsController.text;
-                    provider.productCount = 1;       
-                    provider.addProductToCart(widget.product);
+                    final updatedProduct = widget.product.copyWith(
+                      quantity: provider.productCount,
+                      notes: _observationsController.text,
+                    );
+
+                    if (clientId != null && clientId.isNotEmpty) {
+                      provider.clientId = clientId;
+                    }                  
+                    provider.productCount = 1;
+                    provider.addProductToCart(updatedProduct);
                     provider.goToPage(1);
                     Navigator.of(context).pop();
-                  } ,
+                  },
                 ),
               ),
             ],

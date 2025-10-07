@@ -35,6 +35,7 @@ class OrderSetupProvider with ChangeNotifier {
   String email = '';
   Order? _currentOrder;
   int _tableId = 0;
+  String _clientId = '';
 
   int _clienteStep = 0;
   int _discountStep = 0;
@@ -159,25 +160,16 @@ class OrderSetupProvider with ChangeNotifier {
   PageController get pageController => _pageController;
   int get deliveryType => _deliveryType;
 
-  // int get totalItems {
-  //   return _cartItems.fold(0, (sum, item) => sum + (item['quantity'] as int));
-  // }
+  double get subtotal {
+    return _cartItems.fold(
+      0.0,
+      (sum, item) => sum + (item.unitPrice * item.quantity),
+    );
+  }
 
-  // double get subtotal {
-  //   return _cartItems.fold(
-  //     0.0,
-  //     (sum, item) =>
-  //         sum +
-  //         ((item['price'] as num).toDouble() *
-  //             (item['quantity'] as num).toDouble()),
-  //   );
-  // }
+  double get tax => subtotal * 0.08;
 
-  // double get total {
-  //   const impoconsumoRate = 0.08;
-  //   final subtotalConDescuento = subtotal * (1 - _discount);
-  //   return subtotalConDescuento * (1 + impoconsumoRate);
-  // }
+  double get total => subtotal + tax;
 
   int get clienteStep => _clienteStep;
   int get discountStep => _discountStep;
@@ -206,6 +198,11 @@ class OrderSetupProvider with ChangeNotifier {
 
   set tableId(int id) {
     _tableId = id;
+    notifyListeners();
+  }
+
+  set clientId(String value) {
+    _clientId = value;
     notifyListeners();
   }
 
@@ -298,12 +295,15 @@ class OrderSetupProvider with ChangeNotifier {
   }
 
   void increasePeople() {
+    if (_selectedIndex == 1 || _selectedIndex == 2) return;
     _peopleCount++;
+
     updateLastOrderWithTablesOrPeople();
     notifyListeners();
   }
 
   void decreasePeople() {
+    if (_selectedIndex == 1 || _selectedIndex == 2) return;
     if (_peopleCount > 1) {
       _peopleCount--;
       updateLastOrderWithTablesOrPeople();
@@ -378,14 +378,14 @@ class OrderSetupProvider with ChangeNotifier {
 
   // recoje toda la informacion para crear la orden
   CreateOrderReq buildOrderObject() {
-    String clientId = '1kk';
-    String consumptionType = getConsumptionType(_deliveryType);
-    String? clientIdValue = _deliveryType == 1 ? clientId : null;
+    String consumptionType = getConsumptionType(_selectedIndex);
+    String? clientIdValue = _selectedIndex == 1 ? _clientId : null;
+    int peopleCountValue = _selectedIndex == 0 ? _peopleCount : 1;
 
     CreateOrderReq order = CreateOrderReq(
       tenantId: 1,
       tableId: _tableId,
-      peopleCount: _productCount,
+      peopleCount: peopleCountValue,
       consumptionType: consumptionType,
       clientId: clientIdValue,
     );
@@ -394,36 +394,52 @@ class OrderSetupProvider with ChangeNotifier {
 
   // funcion para agregar producto a la orden y al carrito
   void addProductToCart(Product product) async {
-    if (_tableId != 0) {
-      final index = _cartItems.indexWhere((p) => p.id == product.id);
-
-      if (index != -1) {
-        // Ya existe → sumamos la cantidad
-        // SE ACTUALIZA LA CANTIDAD EN LA BASE DE DATOS (no hecho)
-        int currentQuantity = _cartItems[index].quantity;
-        int newQuantity = product.quantity;
-        _cartItems[index].quantity = currentQuantity + newQuantity;
-        notifyListeners();
-      } else {
-        // No existe en el carrito → verificamos la orden
-        if (_currentOrder != null) {
-          // ✅ Ya existe una orden, agrega un producto → estamos editando la misma orden -
-          _cartItems.add(product);
-          await addProductToOrder(
-            _currentOrder!.orderId!,
-            OrderItem.fromProduct(product),
-          );
-        } else {
-          // ❌ No existe orden → creamos una nueva
-          _cartItems.add(product);
-          CreateOrderReq newOrder = buildOrderObject();
-          // endpoint 1 para crear la orden
-          // endpoint 2 agregar el producto esa orden
-          createOrder(newOrder, product);
+    switch (_selectedIndex) {
+      case 0:
+        if (_tableId == 0) {
+          errorMessage = "Debes seleccionar una mesa antes de crear tu orden";
         }
-      }
+        break;
+      case 1:
+        if (_clientId.isEmpty) {
+          errorMessage = "Debe seleccionar un cliente antes de crear la orden";
+        }
+        break;
+      case 2:
+        // No necesita validación adicional
+        break;
+      default:
+        errorMessage = "Tipo de consumo no válido.";
+    }
+
+    final index = _cartItems.indexWhere((p) => p.id == product.id);
+
+    if (index != -1) {
+      // Ya existe → sumamos la cantidad
+      // SE ACTUALIZA LA CANTIDAD EN LA BASE DE DATOS (no hecho)
+      int currentQuantity = _cartItems[index].quantity;
+      int newQuantity = product.quantity;
+      _cartItems[index] = _cartItems[index].copyWith(
+        quantity: currentQuantity + newQuantity,
+      );
+      notifyListeners();
     } else {
-      errorMessage = "Debes seleccionar una mesa antes de crear tu orden";
+      // No existe en el carrito → verificamos la orden
+      if (_currentOrder != null) {
+        // ✅ Ya existe una orden, agrega un producto → estamos editando la misma orden -
+        _cartItems.add(product);
+        await addProductToOrder(
+          _currentOrder!.orderId!,
+          OrderItem.fromProduct(product),
+        );
+      } else {
+        // ❌ No existe orden → creamos una nueva
+        _cartItems.add(product);
+        CreateOrderReq newOrder = buildOrderObject();
+        // endpoint 1 para crear la orden
+        // endpoint 2 agregar el producto esa orden
+        createOrder(newOrder, product);
+      }
     }
 
     // esto es lo que hay que corregir.
@@ -461,8 +477,8 @@ class OrderSetupProvider with ChangeNotifier {
     notifyListeners();*/
   }
 
-  void removeProductFromCart(String productName) {
-    if (_orders.isEmpty) return;
+  void removeProductFromCart(Product product) {
+    _cartItems.removeWhere((item) => item.id == product.id);
 
     // Eliminar del carrito
     //_cartItems.removeWhere((item) => item['productName'] == productName);
@@ -593,10 +609,16 @@ class OrderSetupProvider with ChangeNotifier {
   }
 
   void increaseProductQuantity(Product product) {
-    product.quantity = (product.quantity ?? 0) + 1;
+    final index = _cartItems.indexWhere((p) => p.id == product.id);
+    if (index != -1) {
+      _cartItems[index] = _cartItems[index].copyWith(
+        quantity: (product.quantity < 99) ? product.quantity + 1 : 99,
+      );
+    }
+    //product.quantity = (product.quantity ?? 0) + 1;
 
-    for (final order in _orders) {
-      /*final index = order.orderedProducts.indexWhere(
+    /*for (final order in _orders) {
+      final index = order.orderedProducts.indexWhere(
         (p) => p.name == product['productName'],
       );
       if (index != -1) {
@@ -605,17 +627,21 @@ class OrderSetupProvider with ChangeNotifier {
         enableSendToKitchen = true;
         break;
       }*/
-    }
-
     notifyListeners();
   }
 
   void decreaseProductQuantity(Product product) {
-    if ((product.quantity ?? 0) > 1) {
-      product.quantity--;
+    final index = _cartItems.indexWhere((p) => p.id == product.id);
+    if (index != -1) {
+      _cartItems[index] = _cartItems[index].copyWith(
+        quantity: (product.quantity > 1) ? product.quantity - 1 : 1,
+      );
+    }
+    //if ((product.quantity ?? 0) > 1) {
+    //product.quantity--;
 
-      for (final order in _orders) {
-        /* final index = order.orderedProducts.indexWhere(
+    /*for (final order in _orders) {
+         final index = order.orderedProducts.indexWhere(
           (p) => p.name == product['productName'],
         );
         if (index != -1) {
@@ -631,11 +657,9 @@ class OrderSetupProvider with ChangeNotifier {
 
           break;
         }*/
-      }
 
-      enableSendToKitchen = hasPendingProducts();
-      notifyListeners();
-    }
+    //enableSendToKitchen = hasPendingProducts();
+    notifyListeners();
   }
 
   /*void createOrder(BuildContext context) async {
@@ -716,7 +740,7 @@ class OrderSetupProvider with ChangeNotifier {
         errorMessage = failure.message;
       },
       (createdOrder) async {
-        print('---orden desde el caso de uso---');
+        print('orden creada ✔');
         _currentOrder = createdOrder;
         await addProductToOrder(
           createdOrder.orderId!,
@@ -740,7 +764,7 @@ class OrderSetupProvider with ChangeNotifier {
       },
       (_) {
         // 👈 ya no se llama "added", porque no hay objeto, solo éxito
-        print('---producto agregado a la orden desde el usecase---');
+        print('producto agregado ✔');
         errorMessage = '';
       },
     );

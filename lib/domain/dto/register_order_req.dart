@@ -14,12 +14,12 @@ class CreateOrderReq {
   });
 
   Map<String, dynamic> toJson() {
-    return {
-      'tenantId': tenantId,
+    return {      
       'tableId': tableId,
       'peopleCount': peopleCount,
       'consumptionType': consumptionType,
       'clientId': clientId,
+      'notes': '',
     };
   }
 }

@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:ordena_ya/core/utils/error.dart';
 import 'package:ordena_ya/core/utils/validators.dart';
 import 'package:ordena_ya/data/model/client_model.dart';
 import 'package:ordena_ya/presentation/pages/register_user_screen.dart';
 import 'package:ordena_ya/presentation/providers/user_provider.dart';
+import 'package:ordena_ya/presentation/widgets/status_display.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/AppColors.dart';
@@ -31,9 +33,18 @@ class _RegisterClientModalState extends State<RegisterClientModal> {
       return Center(child: CircularProgressIndicator());
     }
 
-    if (provider.error != null) {
-      return Center(
-        child: Text(provider.error!, style: const TextStyle(color: Colors.red)),
+    if (provider.error != null) {      
+      return StatusDisplay(
+        message: extractErrorMessage(provider.error!),                      
+        iconColor: AppColors.redTotal, 
+        icon: HugeIcons.strokeRoundedRssError, 
+        onAction: () {  
+          context.read<UserProvider>().setError(null);          
+        }, 
+        iconButton: Icons.arrow_back_rounded, 
+        labelButton: 'Volver al formulario', 
+        backgroundColorButton: AppColors.redTotal,                       
+        foregroundColorButton: Colors.white,
       );
     }
 
@@ -102,9 +113,9 @@ class _RegisterClientModalState extends State<RegisterClientModal> {
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
                     'Datos del cliente',
@@ -136,7 +147,7 @@ class _RegisterClientModalState extends State<RegisterClientModal> {
                     controller: addressController,
                     hintText: 'Calle 123 #45-67, Apto 202',
                     validator:
-                        (value) => CustomValidators.name(
+                        (value) => CustomValidators.required(
                           value,
                           fieldName: "Dirección",
                         ),
@@ -148,7 +159,7 @@ class _RegisterClientModalState extends State<RegisterClientModal> {
                     hintText: 'Bogotá, Cundinamarca',
                     validator:
                         (value) =>
-                            CustomValidators.name(value, fieldName: "Ciudad"),
+                            CustomValidators.required(value, fieldName: "Ciudad"),
                   ),
                   const SizedBox(height: 10),
                   const Text('Número de celular *'),
@@ -158,7 +169,7 @@ class _RegisterClientModalState extends State<RegisterClientModal> {
                     maxLength: 10,
                     keyboardType: TextInputType.phone,
                     validator:
-                        (value) => CustomValidators.required(
+                        (value) => CustomValidators.name(
                           value,
                           fieldName: "Teléfono",
                         ),

@@ -11,7 +11,6 @@ import 'package:ordena_ya/presentation/widgets/AdjustValue.dart';
 import 'package:ordena_ya/presentation/widgets/BadgeContainer.dart';
 import 'package:ordena_ya/presentation/widgets/SelectableCard.dart';
 import 'package:ordena_ya/presentation/widgets/SendToKitchenModal.dart';
-import 'package:ordena_ya/presentation/widgets/loading_dots_text.dart';
 import 'package:provider/provider.dart';
 
 import '../widgets/CloseBillModal.dart';
