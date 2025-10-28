@@ -205,7 +205,7 @@ class PrintOrderModal extends StatelessWidget {
                       // Products List
                       ...List.generate(order['items'].length, (index) {
                         final product = order['items'][index] as OrderItemRow;
-                        final quantity = _extractQuantity(product.label);
+                        final quantity = product.states.length.toString(); // Usar la cantidad real de estados
                         final productName = _extractProductName(product.label);
                         
                         return Padding(
@@ -387,12 +387,7 @@ class PrintOrderModal extends StatelessWidget {
     );
   }
   
-  // Helper methods to extract quantity and product name
-  String _extractQuantity(String label) {
-    final match = RegExp(r'^(\d+)x').firstMatch(label);
-    return match?.group(1) ?? '1';
-  }
-  
+  // Helper method to extract product name
   String _extractProductName(String label) {
     final match = RegExp(r'^\d+x\s*(.+)').firstMatch(label);
     return match?.group(1) ?? label;

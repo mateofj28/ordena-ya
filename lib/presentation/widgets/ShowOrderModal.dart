@@ -173,7 +173,7 @@ class ShowOrderModal extends StatelessWidget {
                                     ),
                                     child: Center(
                                       child: Text(
-                                        '${_extractQuantity(product.label)}',
+                                        product.states.length.toString(),
                                         style: TextStyle(
                                           color: Colors.white,
                                           fontWeight: FontWeight.bold,
@@ -187,48 +187,13 @@ class ShowOrderModal extends StatelessWidget {
                                   
                                   // Product Info
                                   Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          _extractProductName(product.label),
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.grey[800],
-                                          ),
-                                        ),
-                                        if (product.states.isNotEmpty) ...[
-                                          SizedBox(height: 4),
-                                          Wrap(
-                                            spacing: 6,
-                                            children: product.states.map((state) {
-                                              final config = getStateUIConfig(state);
-                                              return Container(
-                                                padding: EdgeInsets.symmetric(
-                                                  horizontal: 8,
-                                                  vertical: 2,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  color: config.color.withOpacity(0.1),
-                                                  borderRadius: BorderRadius.circular(12),
-                                                  border: Border.all(
-                                                    color: config.color.withOpacity(0.3),
-                                                  ),
-                                                ),
-                                                child: Text(
-                                                  config.label,
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    color: config.color,
-                                                    fontWeight: FontWeight.w500,
-                                                  ),
-                                                ),
-                                              );
-                                            }).toList(),
-                                          ),
-                                        ],
-                                      ],
+                                    child: Text(
+                                      _extractProductName(product.label),
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.grey[800],
+                                      ),
                                     ),
                                   ),
                                   
@@ -329,12 +294,7 @@ class ShowOrderModal extends StatelessWidget {
     );
   }
   
-  // Helper methods to extract quantity and product name
-  String _extractQuantity(String label) {
-    final match = RegExp(r'^(\d+)x').firstMatch(label);
-    return match?.group(1) ?? '1';
-  }
-  
+  // Helper method to extract product name
   String _extractProductName(String label) {
     final match = RegExp(r'^\d+x\s*(.+)').firstMatch(label);
     return match?.group(1) ?? label;
