@@ -10,7 +10,6 @@ import 'LabelValueRow.dart';
 import 'PrintOrderModal.dart';
 
 class OrderCard extends StatelessWidget {
-
   final String people;
   final List<OrderItemRow> items;
   final Order order;
@@ -24,7 +23,6 @@ class OrderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final date = Functions.getDate(order.createdAt!);
     final time = Functions.getTime(order.createdAt!);
     final total = order.total;
@@ -57,9 +55,15 @@ class OrderCard extends StatelessWidget {
             children: [
               const Icon(HugeIcons.strokeRoundedCalendar03),
               const SizedBox(width: 10),
-              Text(Functions.getDate(order.createdAt!), style: const TextStyle(fontSize: 13)),
+              Text(
+                Functions.getDate(order.createdAt!),
+                style: const TextStyle(fontSize: 13),
+              ),
               const SizedBox(width: 10),
-              Text(Functions.getTime(order.createdAt!), style: const TextStyle(fontSize: 13)),
+              Text(
+                Functions.getTime(order.createdAt!),
+                style: const TextStyle(fontSize: 13),
+              ),
             ],
           ),
           const Divider(color: Colors.grey, thickness: 1, height: 20),
@@ -73,7 +77,7 @@ class OrderCard extends StatelessWidget {
               color: AppColors.textPrimary,
               fontWeight: FontWeight.bold,
             ),
-            value: total.toString(),
+            value: Functions.formatCurrencyINT((total ?? 0.0).toInt()),
             valueStyle: TextStyle(
               fontSize: 16,
               color: AppColors.redPrimary,

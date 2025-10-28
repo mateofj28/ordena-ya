@@ -163,12 +163,12 @@ class NewOrder extends StatelessWidget {
                           isSelected: provider.currentIndex == index,
                           showBadge:
                               index == 1 && provider.cartItems.isNotEmpty ||
-                              index == 2 && provider.orders.isNotEmpty,
+                              index == 2 && provider.newOrders.isNotEmpty,
                           badgeCount:
                               index == 1
                                   ? provider.cartItems.length
                                   : index == 2
-                                  ? provider.orders.length
+                                  ? provider.newOrders.length
                                   : 0,
                           onTap: () {
                             provider.goToPage(index);

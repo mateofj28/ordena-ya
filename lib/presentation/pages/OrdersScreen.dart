@@ -101,44 +101,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header con información
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          margin: const EdgeInsets.only(top: 10, bottom: 10),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    'Órdenes Activas',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  Text(
-                                    '${provider.newOrders.length} órdenes encontradas',
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Colors.black54,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              IconButton(
-                                onPressed: () => provider.getAllNewOrders(),
-                                icon: const Icon(Icons.refresh),
-                                tooltip: 'Actualizar órdenes',
-                              ),
-                            ],
-                          ),
-                        ),
+
                         
                         // Lista de órdenes
                         Expanded(
