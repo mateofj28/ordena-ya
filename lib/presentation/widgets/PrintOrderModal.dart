@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:ordena_ya/core/utils/Functions.dart';
-import 'package:ordena_ya/presentation/widgets/CustomButton.dart';
+import 'package:ordena_ya/presentation/widgets/custom_button.dart';
 import 'package:ordena_ya/presentation/widgets/LabelValueRow.dart';
-import 'OrderCard.dart';
+import 'order_card.dart';
 import 'TicketDivider.dart';
 
 class PrintOrderModal extends StatelessWidget {

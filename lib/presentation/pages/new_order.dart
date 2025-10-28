@@ -9,7 +9,7 @@ import 'package:ordena_ya/presentation/providers/order_provider.dart';
 import 'package:ordena_ya/presentation/providers/tables_provider.dart';
 import 'package:ordena_ya/presentation/widgets/AdjustValue.dart';
 import 'package:ordena_ya/presentation/widgets/BadgeContainer.dart';
-import 'package:ordena_ya/presentation/widgets/SelectableCard.dart';
+import 'package:ordena_ya/presentation/widgets/selectable_card.dart';
 import 'package:ordena_ya/presentation/widgets/SendToKitchenModal.dart';
 import 'package:provider/provider.dart';
 
@@ -59,7 +59,6 @@ class NewOrder extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = Provider.of<OrderSetupProvider>(context);
     final selectedIndex = provider.selectedIndex;
-    final tableIndex = provider.tableIndex;
     final peopleIndex = provider.peopleCount;
     final pageController = provider.pageController;
     final enableSendToKitchen = provider.enableSendToKitchen;

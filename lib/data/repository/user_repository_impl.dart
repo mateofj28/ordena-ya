@@ -7,7 +7,7 @@ import 'package:ordena_ya/data/model/register_user_model.dart';
 import 'package:ordena_ya/domain/dto/register_clint_req.dart';
 import 'package:ordena_ya/domain/entity/user.dart';
 import 'package:ordena_ya/domain/repository/user_repository.dart';
-import 'package:ordena_ya/presentation/widgets/RegisterClientModal.dart';
+import 'package:ordena_ya/presentation/widgets/register_client_modal.dart';
 
 class UserRepositoryImpl implements UserRepository {
   final UserRemoteDataSource datasource;

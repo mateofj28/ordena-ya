@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ordena_ya/presentation/providers/MenuProvider.dart';
+import 'package:ordena_ya/presentation/providers/menu_provider.dart';
 import 'package:ordena_ya/presentation/widgets/MenuItem.dart';
 import 'package:provider/provider.dart';
 

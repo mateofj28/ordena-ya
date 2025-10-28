@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'CustomButton.dart';
+import 'custom_button.dart';
 
 class OrderSubmittedModal extends StatelessWidget {
   final IconData icon;

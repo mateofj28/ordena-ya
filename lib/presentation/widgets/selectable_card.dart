@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ordena_ya/presentation/content/show_available_table.dart';
 import 'package:ordena_ya/presentation/providers/order_provider.dart';
 import 'package:ordena_ya/presentation/providers/tables_provider.dart';
-import 'package:ordena_ya/presentation/widgets/RegisterClientModal.dart';
+import 'package:ordena_ya/presentation/widgets/register_client_modal.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/AppColors.dart';

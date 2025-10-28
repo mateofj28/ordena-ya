@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ordena_ya/core/utils/Functions.dart';
 import 'package:provider/provider.dart';
 import '../providers/order_provider.dart';
-import 'OrderCard.dart';
+import 'order_card.dart';
 
 class ShowOrderModal extends StatelessWidget {
   final Map order;

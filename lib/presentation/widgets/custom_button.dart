@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ordena_ya/core/utils/Functions.dart';
-import 'package:ordena_ya/presentation/providers/ToggleButtonProvider.dart';
+import 'package:ordena_ya/presentation/providers/toggle_button_provider.dart';
 import 'package:provider/provider.dart';
 
 

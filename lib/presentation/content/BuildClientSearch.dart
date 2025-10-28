@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ordena_ya/core/constants/AppColors.dart';
 import 'package:ordena_ya/presentation/providers/order_provider.dart';
 import 'package:ordena_ya/presentation/widgets/CustomAutoComplete.dart';
-import 'package:ordena_ya/presentation/widgets/CustomButton.dart';
+import 'package:ordena_ya/presentation/widgets/custom_button.dart';
 
 class BuildClientSearch extends StatelessWidget {
   final OrderSetupProvider provider;

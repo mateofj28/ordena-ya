@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:ordena_ya/presentation/widgets/OrderSubmittedModal.dart';
+import 'package:ordena_ya/presentation/widgets/order_submitted_modal.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/AppColors.dart';
 import '../providers/order_provider.dart';

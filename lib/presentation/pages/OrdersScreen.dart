@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 
 import '../../core/constants/AppColors.dart';
 import '../providers/order_provider.dart';
-import '../widgets/CustomButton.dart';
-import '../widgets/OrderCard.dart';
+import '../widgets/custom_button.dart';
+import '../widgets/order_card.dart';
 
 class OrdersScreen extends StatelessWidget {
   const OrdersScreen({super.key});

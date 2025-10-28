@@ -5,7 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:ordena_ya/core/utils/Functions.dart';
 import 'package:ordena_ya/domain/entity/product.dart';
 import 'package:ordena_ya/presentation/providers/user_provider.dart';
-import 'package:ordena_ya/presentation/widgets/CustomButton.dart';
+import 'package:ordena_ya/presentation/widgets/custom_button.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/AppColors.dart';

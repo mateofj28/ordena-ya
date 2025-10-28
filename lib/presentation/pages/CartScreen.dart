@@ -6,7 +6,7 @@ import '../../core/constants/AppColors.dart';
 import '../../core/utils/Functions.dart';
 import '../providers/order_provider.dart';
 import '../widgets/CartProduct.dart';
-import '../widgets/CustomButton.dart';
+import '../widgets/custom_button.dart';
 import '../widgets/LabelValueRow.dart';
 
 class CartScreen extends StatelessWidget {

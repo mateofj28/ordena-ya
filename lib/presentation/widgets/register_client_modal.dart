@@ -10,7 +10,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/constants/AppColors.dart';
 import 'CircularCloseButton.dart';
-import 'CustomButton.dart';
+import 'custom_button.dart';
 
 class RegisterClientModal extends StatefulWidget {
   const RegisterClientModal({super.key});
