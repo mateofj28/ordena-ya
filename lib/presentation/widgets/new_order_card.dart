@@ -20,7 +20,7 @@ class NewOrderCard extends StatelessWidget {
       
       return OrderItemRow(
         label: producto.nombreProducto,
-        value: 0.0, // No tenemos precio individual en el nuevo modelo
+        value: producto.price * producto.cantidadSolicitada, // Precio total del producto
         states: states,
       );
     }).toList();

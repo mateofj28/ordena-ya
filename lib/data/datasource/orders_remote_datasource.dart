@@ -24,8 +24,9 @@ class OrdersRemoteDataSourceImpl implements OrdersRemoteDataSource {
       final response = await client.get(
         Uri.parse(url),
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
+          'Accept': 'application/json; charset=utf-8',
+          'Accept-Charset': 'utf-8',
         },
       ).timeout(
         const Duration(seconds: 10),
@@ -39,7 +40,9 @@ class OrdersRemoteDataSourceImpl implements OrdersRemoteDataSource {
       Logger.info('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        final List<dynamic> jsonList = json.decode(response.body);
+        // Decodificar con UTF-8 explícitamente
+        final String responseBody = utf8.decode(response.bodyBytes);
+        final List<dynamic> jsonList = json.decode(responseBody);
         final orders =
             jsonList.map((json) => OrderResponseModel.fromJson(json)).toList();
 
@@ -64,8 +67,9 @@ class OrdersRemoteDataSourceImpl implements OrdersRemoteDataSource {
       final response = await client.get(
         Uri.parse(url),
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          'Content-Type': 'application/json; charset=utf-8',
+          'Accept': 'application/json; charset=utf-8',
+          'Accept-Charset': 'utf-8',
         },
       ).timeout(
         const Duration(seconds: 10),
@@ -79,7 +83,9 @@ class OrdersRemoteDataSourceImpl implements OrdersRemoteDataSource {
       Logger.info('Response body: ${response.body}');
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> json = jsonDecode(response.body);
+        // Decodificar con UTF-8 explícitamente
+        final String responseBody = utf8.decode(response.bodyBytes);
+        final Map<String, dynamic> json = jsonDecode(responseBody);
         final order = OrderResponseModel.fromJson(json);
 
         Logger.info('Successfully parsed order: ${order.id}');

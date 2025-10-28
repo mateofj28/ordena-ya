@@ -57,13 +57,17 @@ class OrderResponseEntity {
 }
 
 class ProductoSolicitadoEntity {
+  final String productId;
   final String nombreProducto;
+  final double price;
   final int cantidadSolicitada;
   final String mensaje;
   final List<EstadoPorCantidadEntity> estadosPorCantidad;
 
   ProductoSolicitadoEntity({
+    required this.productId,
     required this.nombreProducto,
+    required this.price,
     required this.cantidadSolicitada,
     required this.mensaje,
     required this.estadosPorCantidad,
@@ -78,15 +82,15 @@ class ProductoSolicitadoEntity {
       estados[estado.estado] = (estados[estado.estado] ?? 0) + 1;
     }
 
-    // Determinar estado principal
-    if (estados.containsKey('entregada') && estados['entregada'] == cantidadSolicitada) {
-      return 'Entregada';
-    } else if (estados.containsKey('lista')) {
-      return 'Lista';
-    } else if (estados.containsKey('cocinando')) {
-      return 'En cocina';
-    } else if (estados.containsKey('recibida')) {
-      return 'Recibida';
+    // Determinar estado principal basado en los nuevos estados
+    if (estados.containsKey('entregado') && estados['entregado'] == cantidadSolicitada) {
+      return 'entregado';
+    } else if (estados.containsKey('listo para entregar')) {
+      return 'listo para entregar';
+    } else if (estados.containsKey('en preparación')) {
+      return 'en preparación';
+    } else if (estados.containsKey('pendiente')) {
+      return 'pendiente';
     }
     
     return 'Sin estado';

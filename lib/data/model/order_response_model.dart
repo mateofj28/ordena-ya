@@ -24,33 +24,67 @@ class OrderResponseModel {
   });
 
   factory OrderResponseModel.fromJson(Map<String, dynamic> json) {
+    // Obtener la lista de productos de manera segura
+    List<dynamic>? productsList = json['requestedProducts'] ?? json['productosSolicitados'];
+    
     return OrderResponseModel(
-      id: json['_id'] ?? '',
-      mesa: json['mesa'] ?? 0,
-      cantidadPersonas: json['cantidadPersonas'] ?? 0,
-      tipoPedido: json['tipoPedido'] ?? '',
-      productosSolicitados: (json['productosSolicitados'] as List<dynamic>?)
-              ?.map((item) => ProductoSolicitadoModel.fromJson(item))
-              .toList() ??
-          [],
-      cantidadIps: json['cantidadIps'] ?? 0,
+      id: json['_id'] ?? json['id'] ?? '',
+      mesa: json['table'] ?? json['mesa'] ?? 0,
+      cantidadPersonas: json['peopleCount'] ?? json['cantidadPersonas'] ?? 0,
+      tipoPedido: json['orderType'] ?? json['tipoPedido'] ?? '',
+      productosSolicitados: productsList != null
+          ? productsList.map((item) => ProductoSolicitadoModel.fromJson(item as Map<String, dynamic>)).toList()
+          : [],
+      cantidadIps: json['itemCount'] ?? json['cantidadIps'] ?? 0,
       total: (json['total'] ?? 0).toDouble(),
-      fechaCreacion: DateTime.tryParse(json['fechaCreacion'] ?? '') ?? DateTime.now(),
-      estadoGeneral: json['estadoGeneral'] ?? '',
+      fechaCreacion: DateTime.tryParse(json['createdAt'] ?? json['fechaCreacion'] ?? '') ?? DateTime.now(),
+      estadoGeneral: json['status'] ?? json['estadoGeneral'] ?? _calculateGeneralStatus(productsList),
     );
+  }
+
+  static String _calculateGeneralStatus(List<dynamic>? products) {
+    if (products == null || products.isEmpty) return 'received';
+    
+    // Obtener todos los estados de todos los productos
+    List<String> allStatuses = [];
+    for (var product in products) {
+      var statusByQuantity = product['statusByQuantity'] as List<dynamic>?;
+      if (statusByQuantity != null) {
+        for (var status in statusByQuantity) {
+          allStatuses.add(status['status'] ?? 'pendiente');
+        }
+      }
+    }
+    
+    if (allStatuses.isEmpty) return 'received';
+    
+    // Si todos están entregados
+    if (allStatuses.every((status) => status == 'entregado')) {
+      return 'completed';
+    }
+    
+    // Si hay alguno en preparación
+    if (allStatuses.any((status) => status == 'en preparación')) {
+      return 'in_progress';
+    }
+    
+    // Si hay alguno listo para entregar
+    if (allStatuses.any((status) => status == 'listo para entregar')) {
+      return 'ready';
+    }
+    
+    // Por defecto received
+    return 'received';
   }
 
   Map<String, dynamic> toJson() {
     return {
-      '_id': id,
-      'mesa': mesa,
-      'cantidadPersonas': cantidadPersonas,
-      'tipoPedido': tipoPedido,
-      'productosSolicitados': productosSolicitados.map((item) => item.toJson()).toList(),
-      'cantidadIps': cantidadIps,
+      'orderType': tipoPedido,
+      'table': mesa,
+      'peopleCount': cantidadPersonas,
+      'requestedProducts': productosSolicitados.map((item) => item.toJson()).toList(),
+      'itemCount': cantidadIps,
       'total': total,
-      'fechaCreacion': fechaCreacion.toIso8601String(),
-      'estadoGeneral': estadoGeneral,
     };
   }
 
@@ -70,42 +104,54 @@ class OrderResponseModel {
 }
 
 class ProductoSolicitadoModel {
+  final String productId;
   final String nombreProducto;
+  final double price;
   final int cantidadSolicitada;
   final String mensaje;
   final List<EstadoPorCantidadModel> estadosPorCantidad;
 
   ProductoSolicitadoModel({
+    required this.productId,
     required this.nombreProducto,
+    required this.price,
     required this.cantidadSolicitada,
     required this.mensaje,
     required this.estadosPorCantidad,
   });
 
   factory ProductoSolicitadoModel.fromJson(Map<String, dynamic> json) {
+    // Obtener la lista de estados de manera segura
+    List<dynamic>? statusList = json['statusByQuantity'] ?? json['estadosPorCantidad'];
+    
     return ProductoSolicitadoModel(
-      nombreProducto: json['nombreProducto'] ?? '',
-      cantidadSolicitada: json['cantidadSolicitada'] ?? 0,
-      mensaje: json['mensaje'] ?? '',
-      estadosPorCantidad: (json['estadosPorCantidad'] as List<dynamic>?)
-              ?.map((item) => EstadoPorCantidadModel.fromJson(item))
-              .toList() ??
-          [],
+      productId: json['productId'] ?? '',
+      nombreProducto: json['productName'] ?? json['nombreProducto'] ?? '',
+      price: (json['price'] ?? 0).toDouble(),
+      cantidadSolicitada: json['requestedQuantity'] ?? json['cantidadSolicitada'] ?? 0,
+      mensaje: json['message'] ?? json['mensaje'] ?? '',
+      estadosPorCantidad: statusList != null
+          ? statusList.map((item) => EstadoPorCantidadModel.fromJson(item as Map<String, dynamic>)).toList()
+          : [],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'nombreProducto': nombreProducto,
-      'cantidadSolicitada': cantidadSolicitada,
-      'mensaje': mensaje,
-      'estadosPorCantidad': estadosPorCantidad.map((item) => item.toJson()).toList(),
+      'productId': productId,
+      'productName': nombreProducto,
+      'price': price,
+      'requestedQuantity': cantidadSolicitada,
+      'message': mensaje,
+      'statusByQuantity': estadosPorCantidad.map((item) => item.toJson()).toList(),
     };
   }
 
   ProductoSolicitadoEntity toEntity() {
     return ProductoSolicitadoEntity(
+      productId: productId,
       nombreProducto: nombreProducto,
+      price: price,
       cantidadSolicitada: cantidadSolicitada,
       mensaje: mensaje,
       estadosPorCantidad: estadosPorCantidad.map((item) => item.toEntity()).toList(),
@@ -122,13 +168,13 @@ class EstadoPorCantidadModel {
 
   factory EstadoPorCantidadModel.fromJson(Map<String, dynamic> json) {
     return EstadoPorCantidadModel(
-      estado: json['estado'] ?? '',
+      estado: json['status'] ?? json['estado'] ?? '',
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'estado': estado,
+      'status': estado,
     };
   }
 

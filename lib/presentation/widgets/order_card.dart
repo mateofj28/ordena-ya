@@ -263,7 +263,7 @@ StateUIConfig getStateUIConfig(String state) {
     case 'listo para entregar':
       return StateUIConfig(
         icon: HugeIcons.strokeRoundedTrolley02,
-        label: 'Ready to Deliver',
+        label: 'listo para entregar',
         color: Colors.yellow,
       );
     case 'entregado':

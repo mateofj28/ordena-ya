@@ -27,7 +27,7 @@ class ApiConfig {
     return 'http://$host:$_port/api';
   }
   
-  static String get ordersEndpoint => '$baseUrl/ordenes';
+  static String get ordersEndpoint => '$baseUrl/orders';
   
   // Método para obtener información de configuración
   static Map<String, String> get info => {
