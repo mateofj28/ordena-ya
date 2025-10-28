@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:ordena_ya/domain/entity/product.dart';
 import 'package:ordena_ya/presentation/providers/order_provider.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/utils/functions.dart';
+import '../../domain/entity/cart_item.dart';
 import 'AdjustValue.dart';
 
 class CartProduct extends StatelessWidget {
-  final Product product;
+  final CartItem cartItem;
   final int index;
 
-  const CartProduct({super.key, required this.product, required this.index});
+  const CartProduct({super.key, required this.cartItem, required this.index});
 
   @override
   Widget build(BuildContext context) {
@@ -32,13 +32,13 @@ class CartProduct extends StatelessWidget {
             children: [
               Expanded(
                 child: Text(
-                  product.name,
+                  cartItem.productName,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17),
                 ),
               ),
-              Text(Functions.formatCurrency(product.unitPrice)),
+              Text(Functions.formatCurrency(cartItem.price)),
             ],
           ),
 
@@ -48,12 +48,12 @@ class CartProduct extends StatelessWidget {
             children: [
               AdjustValue(
                 label: 'Cantidad:',
-                index: product.quantity,
-                increase: () => provider.increaseProductQuantity(product),
-                decrease: () => provider.decreaseProductQuantity(product),
+                index: cartItem.quantity,
+                increase: () => provider.increaseCartItemQuantity(index),
+                decrease: () => provider.decreaseCartItemQuantity(index),
               ),
               Text(
-                Functions.formatCurrency(product.unitPrice*product.quantity),
+                Functions.formatCurrency(cartItem.totalPrice),
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Colors.redAccent,
@@ -75,17 +75,19 @@ class CartProduct extends StatelessWidget {
                   ),
                   padding: EdgeInsets.symmetric(horizontal: 12),
                   child: TextField(
+                    controller: TextEditingController(text: cartItem.message),
                     decoration: InputDecoration(
                       border: InputBorder.none,
                       hintText: 'Agregar observaciones...',
                     ),
                     style: TextStyle(fontSize: 14),
+                    onChanged: (value) => provider.updateCartItemMessage(index, value),
                   ),
                 ),
               ),
               IconButton(
                 onPressed: () {
-                  provider.removeProductFromCart(product);
+                  provider.removeCartItemAt(index);
                 },
                 icon: HugeIcon(
                   icon: HugeIcons.strokeRoundedDelete02,

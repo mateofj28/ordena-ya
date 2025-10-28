@@ -5,6 +5,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:ordena_ya/core/utils/functions.dart';
 import 'package:ordena_ya/domain/entity/product.dart';
 import 'package:ordena_ya/presentation/providers/user_provider.dart';
+
 import 'package:ordena_ya/presentation/widgets/custom_button.dart';
 import 'package:provider/provider.dart';
 
@@ -194,22 +195,15 @@ class _ProductModalState extends State<ProductModal> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: CustomButton(
-                  label: 'Añadir al carrito',
+                  label: provider.status == OrderStatus.loading 
+                      ? 'Agregando...' 
+                      : 'Añadir al carrito',
                   baseColor: AppColors.redPrimary,
                   textColor: Colors.white,
                   onTap: () {
-                    final updatedProduct = widget.product.copyWith(
-                      quantity: provider.productCount,
-                      notes: _observationsController.text,
-                    );
-
-                    if (clientId != null && clientId.isNotEmpty) {
-                      provider.clientId = clientId;
-                    }                  
-                    provider.productCount = 1;
-                    provider.addProductToCart(updatedProduct);
-                    provider.goToPage(1);
-                    Navigator.of(context).pop();
+                    if (provider.status != OrderStatus.loading) {
+                      _addToCart(context, provider, clientId);
+                    }
                   },
                 ),
               ),
@@ -218,5 +212,39 @@ class _ProductModalState extends State<ProductModal> {
         ),
       ),
     );
+  }
+
+  void _addToCart(BuildContext context, OrderSetupProvider provider, String? clientId) {
+    final updatedProduct = widget.product.copyWith(
+      quantity: provider.productCount,
+      notes: _observationsController.text,
+    );
+
+    // Configurar cliente si está disponible
+    if (clientId != null && clientId.isNotEmpty) {
+      provider.clientId = clientId;
+    }
+
+    // Agregar producto al carrito
+    provider.addProductToNewCart(
+      updatedProduct, 
+      message: _observationsController.text,
+    );
+
+    // Verificar si hubo error
+    if (provider.errorMessage != null && provider.errorMessage!.isNotEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(provider.errorMessage!),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    // Si todo salió bien, resetear y navegar
+    provider.productCount = 1;
+    provider.goToPage(1);
+    Navigator.of(context).pop();
   }
 }

@@ -24,11 +24,27 @@ class OrderResponseModel {
   });
 
   factory OrderResponseModel.fromJson(Map<String, dynamic> json) {
-    // Obtener la lista de productos de manera segura
+    // Verificar si es una respuesta de creación (solo tiene message y orderId)
+    if (json.containsKey('message') && json.containsKey('orderId') && !json.containsKey('_id')) {
+      // Es una respuesta de creación, crear un modelo básico
+      return OrderResponseModel(
+        id: json['orderId'] ?? '',
+        mesa: 0, // Valores por defecto, se actualizarán cuando se obtenga la orden completa
+        cantidadPersonas: 0,
+        tipoPedido: '',
+        productosSolicitados: [],
+        cantidadIps: 0,
+        total: 0.0,
+        fechaCreacion: DateTime.now(),
+        estadoGeneral: 'received',
+      );
+    }
+    
+    // Es una respuesta completa (listado de órdenes)
     List<dynamic>? productsList = json['requestedProducts'] ?? json['productosSolicitados'];
     
     return OrderResponseModel(
-      id: json['_id'] ?? json['id'] ?? '',
+      id: json['_id'] ?? json['id'] ?? json['orderId'] ?? '',
       mesa: json['table'] ?? json['mesa'] ?? 0,
       cantidadPersonas: json['peopleCount'] ?? json['cantidadPersonas'] ?? 0,
       tipoPedido: json['orderType'] ?? json['tipoPedido'] ?? '',

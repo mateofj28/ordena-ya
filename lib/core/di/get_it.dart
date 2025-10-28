@@ -29,6 +29,11 @@ import 'package:ordena_ya/domain/usecase/select_table.dart';
 import 'package:ordena_ya/data/datasource/orders_remote_datasource.dart';
 import 'package:ordena_ya/data/repository/orders_repository_impl.dart';
 import 'package:ordena_ya/domain/repository/orders_repository.dart';
+import 'package:ordena_ya/data/datasource/create_order_remote_datasource.dart';
+import 'package:ordena_ya/data/repository/create_order_repository_impl.dart';
+import 'package:ordena_ya/domain/repository/create_order_repository.dart';
+import 'package:ordena_ya/domain/usecase/create_order_new.dart';
+import 'package:ordena_ya/domain/usecase/update_order.dart';
 import '../../domain/repository/order_item_repository.dart';
 import '../../domain/usecase/add_item_to_order.dart';
 import '../../domain/usecase/create_order.dart';
@@ -80,6 +85,10 @@ void setupLocator() {
     () => OrdersRemoteDataSourceImpl(client: getIt<http.Client>()),
   );
 
+  getIt.registerLazySingleton<CreateOrderRemoteDataSource>(
+    () => CreateOrderRemoteDataSourceImpl(client: getIt<http.Client>()),
+  );
+
   // Repositorio
   getIt.registerLazySingleton<OrderRepository>(
     () => OrderRepositoryImpl(getIt<OrderRemoteDataSource>()),
@@ -107,6 +116,10 @@ void setupLocator() {
 
   getIt.registerLazySingleton<OrdersRepository>(
     () => OrdersRepositoryImpl(remoteDataSource: getIt<OrdersRemoteDataSource>()),
+  );
+
+  getIt.registerLazySingleton<CreateOrderRepository>(
+    () => CreateOrderRepositoryImpl(remoteDataSource: getIt<CreateOrderRemoteDataSource>()),
   );
 
   // Use Cases
@@ -152,5 +165,13 @@ void setupLocator() {
 
   getIt.registerLazySingleton<GetAllOrdersNewUseCase>(
     () => GetAllOrdersNewUseCase(repository: getIt<OrdersRepository>()),
+  );
+
+  getIt.registerLazySingleton<CreateOrderNewUseCase>(
+    () => CreateOrderNewUseCase(repository: getIt<CreateOrderRepository>()),
+  );
+
+  getIt.registerLazySingleton<UpdateOrderUseCase>(
+    () => UpdateOrderUseCase(repository: getIt<CreateOrderRepository>()),
   );
 }

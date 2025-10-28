@@ -6,6 +6,7 @@ import 'package:ordena_ya/presentation/pages/CartScreen.dart';
 import 'package:ordena_ya/presentation/pages/OrdersScreen.dart';
 import 'package:ordena_ya/presentation/pages/ProductsScreen.dart';
 import 'package:ordena_ya/presentation/providers/order_provider.dart';
+
 import 'package:ordena_ya/presentation/providers/tables_provider.dart';
 import 'package:ordena_ya/presentation/widgets/AdjustValue.dart';
 import 'package:ordena_ya/presentation/widgets/BadgeContainer.dart';
@@ -162,11 +163,11 @@ class NewOrder extends StatelessWidget {
                           title: titles[index],
                           isSelected: provider.currentIndex == index,
                           showBadge:
-                              index == 1 && provider.cartItems.isNotEmpty ||
+                              index == 1 && provider.hasCartItems ||
                               index == 2 && provider.newOrders.isNotEmpty,
                           badgeCount:
                               index == 1
-                                  ? provider.cartItems.length
+                                  ? provider.totalCartItems
                                   : index == 2
                                   ? provider.newOrders.length
                                   : 0,

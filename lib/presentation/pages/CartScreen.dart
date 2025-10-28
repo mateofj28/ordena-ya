@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:ordena_ya/presentation/providers/tables_provider.dart';
+
 import 'package:provider/provider.dart';
 import '../../core/constants/AppColors.dart';
 import '../../core/utils/functions.dart';
@@ -9,88 +9,114 @@ import '../widgets/CartProduct.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/LabelValueRow.dart';
 
+
 class CartScreen extends StatelessWidget {
   const CartScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final orderProvider = Provider.of<OrderSetupProvider>(context);
-    final tableProvider = Provider.of<TablesProvider>(context);
+    return Consumer<OrderSetupProvider>(
+      builder: (context, provider, child) {
+        
+        // Información de la orden
+        String orderInfo = '';
+        switch (provider.selectedIndex) {
+          case 0:
+            orderInfo = 'Mesa: ${provider.tableIndex} · ${provider.peopleCount} personas';
+            break;
+          case 1:
+            orderInfo = 'Domicilio · Cliente: ${provider.clientId}';
+            break;
+          case 2:
+            orderInfo = 'Para recoger';
+            break;
+        }
 
-    int table = tableProvider.table != null ? tableProvider.table!.id : 0;
-    int people = orderProvider.peopleCount;
-    double total = orderProvider.total;
+        return Scaffold(
+          backgroundColor: AppColors.lightGray,
+          body: provider.newCartItems.isEmpty
+              ? const EmptyCartView()
+              : Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 15),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 5),
+                      const Text(
+                        'Resumen del pedido',
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 20,
+                        ),
+                      ),
 
-    return Scaffold(
-      backgroundColor: AppColors.lightGray,
-      body: orderProvider.cartItems.isEmpty
-          ? const EmptyCartView()
-          : Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 15),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 5),
-            const Text(
-              'Resumen del pedido',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
+                      if (orderInfo.isNotEmpty) ...[
+                        const SizedBox(height: 5),
+                        Text(
+                          orderInfo,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                      
+                      const SizedBox(height: 10),
 
-            if (table != 0 && people != 1)
-              Text('Mesa: $table · $people persona'),
-              const SizedBox(height: 10),
-
-            // 🧾 Lista de items del carrito
-            Expanded(
-              child: ListView.builder(
-                itemCount: orderProvider.cartItems.length,
-                itemBuilder: (context, index) {
-                  final product = orderProvider.cartItems[index];
-                  return CartProduct(
-                    product: product,
-                    index: index,
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 5),
-            LabelValueRow(
-              label: 'Impuesto al consumo',
-              labelStyle: TextStyle(
-
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
-              ),
-              value: "8%",
-              valueStyle: TextStyle(
-
-                color: Colors.grey,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            LabelValueRow(
-              label: 'Total',
-              labelStyle: TextStyle(
-                fontSize: 16,
-                color: AppColors.textPrimary,
-                fontWeight: FontWeight.bold,
-              ),
-              value: Functions.formatCurrency(total),
-              valueStyle: TextStyle(
-                fontSize: 20,
-                color: AppColors.redPrimary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 5),
-          ],
-        ),
-      ),
+                      // Lista de items del carrito usando el diseño original
+                      Expanded(
+                        child: ListView.builder(
+                          itemCount: provider.newCartItems.length,
+                          itemBuilder: (context, index) {
+                            final cartItem = provider.newCartItems[index];
+                            return CartProduct(
+                              cartItem: cartItem,
+                              index: index,
+                            );
+                          },
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 5),
+                      
+                      LabelValueRow(
+                        label: 'Impuesto al consumo',
+                        labelStyle: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        value: "8%",
+                        valueStyle: TextStyle(
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      
+                      LabelValueRow(
+                        label: 'Total',
+                        labelStyle: TextStyle(
+                          fontSize: 16,
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        value: Functions.formatCurrencyINT(provider.cartTotal.toInt()),
+                        valueStyle: TextStyle(
+                          fontSize: 20,
+                          color: AppColors.redPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 5),
+                    ],
+                  ),
+                ),
+        );
+      },
     );
   }
+
+
 }
 
 class EmptyCartView extends StatelessWidget {

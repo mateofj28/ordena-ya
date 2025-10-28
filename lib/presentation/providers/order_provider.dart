@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:ordena_ya/core/utils/functions.dart';
 import 'package:ordena_ya/core/utils/logger.dart';
 import 'package:ordena_ya/data/model/client_model.dart';
+import 'package:ordena_ya/data/model/create_order_request_model.dart';
 import 'package:ordena_ya/domain/dto/order_item.dart';
 import 'package:ordena_ya/domain/dto/register_order_req.dart';
+import 'package:ordena_ya/domain/entity/cart_item.dart';
 import 'package:ordena_ya/domain/entity/order.dart';
 import 'package:ordena_ya/domain/entity/product.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders_new.dart';
+import 'package:ordena_ya/domain/usecase/create_order_new.dart';
+import 'package:ordena_ya/domain/usecase/update_order.dart';
 import 'package:ordena_ya/domain/entity/order_response.dart';
 import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
 import '../../domain/usecase/add_item_to_order.dart';
@@ -20,12 +24,16 @@ class OrderSetupProvider with ChangeNotifier {
   final AddItemToOrderUseCase addItemToOrderUseCase;
   final GetOrdersUseCase getAllOrdersUseCase;
   final GetAllOrdersNewUseCase getAllOrdersNewUseCase;
+  final CreateOrderNewUseCase createOrderNewUseCase;
+  final UpdateOrderUseCase updateOrderUseCase;
 
   OrderSetupProvider({
     required this.createOrderUseCase,
     required this.addItemToOrderUseCase,
     required this.getAllOrdersUseCase,
     required this.getAllOrdersNewUseCase,
+    required this.createOrderNewUseCase,
+    required this.updateOrderUseCase,
   });
 
   OrderStatus status = OrderStatus.initial;
@@ -36,7 +44,7 @@ class OrderSetupProvider with ChangeNotifier {
   String name = '';
   String cedula = '';
   String email = '';
-  Order? _currentOrder;
+
   int _tableId = 0;
   String _clientId = '';
 
@@ -57,6 +65,7 @@ class OrderSetupProvider with ChangeNotifier {
   final PageController _pageController = PageController();
 
   final List<Product> _cartItems = [];
+  final List<CartItem> _newCartItems = []; // Nuevo carrito usando CartItem
 
 
 
@@ -79,13 +88,123 @@ class OrderSetupProvider with ChangeNotifier {
 
   // Getters
   List<Product> get cartItems => _cartItems;
+  List<CartItem> get newCartItems => List.unmodifiable(_newCartItems);
   int get selectedTabIndex => _selectedTabIndex;
   String get selectedTable => _selectedTable;
   String? get errorMessage => _errorMessage;
   String get selectedDiscount => _selectedDiscount;
   String get selectedPeople => _selectedPeople;
   String get selectedClient => _selectedClient;
+  String get clientId => _clientId;
   bool get isLoadingAllOrders => _isLoadingAllOrders;
+  
+  // Getters para el nuevo carrito
+  bool get hasCartItems => _newCartItems.isNotEmpty;
+  int get totalCartItems => _newCartItems.length; // Cantidad de productos únicos, no total de cantidades
+  double get cartSubtotal => _newCartItems.fold(0.0, (sum, item) => sum + item.totalPrice);
+  double get cartTax => cartSubtotal * 0.08;
+  double get cartTotal => cartSubtotal + cartTax;
+  
+  // Estado de la orden actual
+  OrderResponseEntity? _currentOrderEntity;
+  OrderResponseEntity? get currentOrderEntity => _currentOrderEntity;
+
+  // Cargar orden actual desde las órdenes existentes
+  void loadCurrentOrderFromExisting() {
+    Logger.info('loadCurrentOrderFromExisting called - Orders available: ${_newOrders.length}');
+    
+    if (_newOrders.isNotEmpty) {
+      Logger.info('Current config - tableIndex: $_tableIndex, orderType: ${_getOrderTypeString()}');
+      
+      // Por ahora, tomar la primera orden disponible para debuggear
+      final matchingOrder = _newOrders.first;
+      
+      Logger.info('Selected order - ID: ${matchingOrder.id}, Mesa: ${matchingOrder.mesa}, Tipo: ${matchingOrder.tipoPedido}, Estado: ${matchingOrder.estadoGeneral}');
+      
+      _currentOrderEntity = matchingOrder;
+      Logger.info('_currentOrderEntity assigned - ID: ${_currentOrderEntity?.id}');
+      
+      // Cargar los productos de la orden al carrito
+      _loadCartFromOrder(matchingOrder);
+    } else {
+      Logger.info('No orders available to load');
+    }
+  }
+
+  // Cargar carrito desde una orden existente
+  void _loadCartFromOrder(OrderResponseEntity order) {
+    _newCartItems.clear();
+    
+    for (var product in order.productosSolicitados) {
+      final cartItem = CartItem(
+        productId: product.productId,
+        productName: product.nombreProducto,
+        price: product.price,
+        quantity: product.cantidadSolicitada,
+        message: product.mensaje,
+      );
+      _newCartItems.add(cartItem);
+    }
+    
+    enableSendToKitchen = _newCartItems.isNotEmpty;
+    Logger.info('Loaded ${_newCartItems.length} items to cart from order');
+  }
+
+  // Obtener string del tipo de orden
+  String _getOrderTypeString() {
+    switch (_selectedIndex) {
+      case 0: return 'table';
+      case 1: return 'delivery';
+      case 2: return 'takeout';
+      default: return 'table';
+    }
+  }
+
+  // Métodos para manejar items del carrito (solo cambios locales)
+  void increaseCartItemQuantity(int index) {
+    if (index >= 0 && index < _newCartItems.length) {
+      final item = _newCartItems[index];
+      _newCartItems[index] = item.copyWith(quantity: item.quantity + 1);
+      
+      // Solo marcar que hay cambios pendientes
+      enableSendToKitchen = true;
+      notifyListeners();
+    }
+  }
+
+  void decreaseCartItemQuantity(int index) {
+    if (index >= 0 && index < _newCartItems.length) {
+      final item = _newCartItems[index];
+      if (item.quantity > 1) {
+        _newCartItems[index] = item.copyWith(quantity: item.quantity - 1);
+        
+        // Solo marcar que hay cambios pendientes
+        enableSendToKitchen = true;
+        notifyListeners();
+      }
+    }
+  }
+
+  void updateCartItemMessage(int index, String message) {
+    if (index >= 0 && index < _newCartItems.length) {
+      final item = _newCartItems[index];
+      _newCartItems[index] = item.copyWith(message: message);
+      
+      // Solo marcar que hay cambios pendientes
+      enableSendToKitchen = true;
+      notifyListeners();
+    }
+  }
+
+  void removeCartItemAt(int index) {
+    if (index >= 0 && index < _newCartItems.length) {
+      _newCartItems.removeAt(index);
+      
+      // Solo marcar que hay cambios pendientes
+      enableSendToKitchen = hasCartItems;
+      notifyListeners();
+    }
+  }
   
   // TODO: Implement proper client management
   List<String> get clients => ['Cliente 1', 'Cliente 2', 'Cliente 3'];
@@ -345,40 +464,224 @@ class OrderSetupProvider with ChangeNotifier {
     return null; // Sin errores
   }
 
-  void addProductToCart(Product product) async {
+  // Método para sincronizar configuración con CartProvider
+  void syncWithCartProvider(dynamic cartProvider) {
+    // Mapear tipos de orden
+    String orderType;
+    switch (_selectedIndex) {
+      case 0:
+        orderType = 'table';
+        break;
+      case 1:
+        orderType = 'delivery';
+        break;
+      case 2:
+        orderType = 'takeout';
+        break;
+      default:
+        orderType = 'table';
+    }
+
+    cartProvider.setOrderType(orderType);
+    cartProvider.setTableNumber(_tableIndex);
+    cartProvider.setPeopleCount(_peopleCount);
+    cartProvider.setClientId(_clientId);
+  }
+
+  // Métodos para el nuevo carrito
+  Future<void> addProductToNewCart(Product product, {String message = ''}) async {
     // Validar requisitos antes de proceder
     final validationError = _validateOrderRequirements();
     if (validationError != null) {
       errorMessage = validationError;
-      return; // Detener ejecución si hay error
-    }
-
-    final index = _cartItems.indexWhere((p) => p.id == product.id);
-
-    if (index != -1) {
-      int currentQuantity = _cartItems[index].quantity;
-      int newQuantity = product.quantity;
-      _cartItems[index] = _cartItems[index].copyWith(
-        quantity: currentQuantity + newQuantity,
-      );
       notifyListeners();
-    } else {
-      if (_currentOrder != null) {
-        _cartItems.add(product);
-        await addProductToOrder(
-          _currentOrder!.orderId!,
-          OrderItem.fromProduct(product),
-        );
-      } else {
-        _cartItems.add(product);
-        CreateOrderReq newOrder = buildOrderObject();
-        createOrder(newOrder, product);
-      }
+      return;
     }
 
-    enableSendToKitchen = true;
-    _productCount = 1;
+    // Crear el item del carrito
+    final cartItem = CartItem(
+      productId: product.id,
+      productName: product.name,
+      price: product.unitPrice,
+      quantity: product.quantity,
+      message: message,
+    );
+
+    // Verificar si el producto ya existe en el carrito
+    final existingIndex = _newCartItems.indexWhere((item) => item.productId == product.id);
+    CartItem? originalItem;
+
+    if (existingIndex != -1) {
+      // Guardar el item original para poder revertir si hay error
+      originalItem = _newCartItems[existingIndex];
+      // Si el producto ya existe, aumentar la cantidad
+      _newCartItems[existingIndex] = originalItem.copyWith(
+        quantity: originalItem.quantity + product.quantity,
+        message: message.isNotEmpty ? message : originalItem.message,
+      );
+    } else {
+      // Si es un producto nuevo, agregarlo al carrito
+      _newCartItems.add(cartItem);
+    }
+
+    // Notificar cambio inmediatamente para mostrar en UI
     notifyListeners();
+
+    // Ahora manejar la orden según si existe o no
+    Logger.info('Current order entity before operation: ${_currentOrderEntity?.id}');
+    
+    if (_currentOrderEntity == null) {
+      // No existe orden: crear una nueva
+      Logger.info('No current order, creating new one');
+      await _createInitialOrder();
+    } else {
+      // Existe orden: modificarla (agregar producto)
+      Logger.info('Current order exists: ${_currentOrderEntity!.id}, updating it');
+      await _updateExistingOrder();
+    }
+
+    // Si hubo error, revertir el cambio en el carrito
+    if (status == OrderStatus.error) {
+      if (existingIndex != -1 && originalItem != null) {
+        // Revertir a la cantidad original
+        _newCartItems[existingIndex] = originalItem;
+      } else {
+        // Remover el producto que se agregó
+        _newCartItems.removeLast();
+      }
+      Logger.error('Failed to add product to cart: $errorMessage');
+    } else {
+      // Éxito: actualizar estado
+      enableSendToKitchen = true;
+      _productCount = 1;
+      Logger.info('Product added to cart and order updated: ${product.name} x${product.quantity}');
+    }
+
+    notifyListeners();
+  }
+
+  // Crear orden inicial la primera vez
+  Future<void> _createInitialOrder() async {
+    status = OrderStatus.loading;
+    notifyListeners();
+
+    try {
+      final orderRequest = _buildNewOrderRequest();
+      Logger.info('Creating initial order with ${_newCartItems.length} products');
+      
+      final result = await createOrderNewUseCase.call(orderRequest);
+
+      result.fold(
+        (failure) {
+          Logger.error('Error creating initial order: ${failure.message}');
+          status = OrderStatus.error;
+          errorMessage = failure.message;
+        },
+        (order) {
+          Logger.info('Initial order created successfully: ${order.id}');
+          Logger.info('Order details - ID: ${order.id}, Mesa: ${order.mesa}, Total: ${order.total}');
+          _currentOrderEntity = order;
+          Logger.info('_currentOrderEntity set to: ${_currentOrderEntity?.id}');
+          status = OrderStatus.success;
+          errorMessage = null;
+          
+          // Refrescar la lista de órdenes
+          getAllNewOrders();
+          Logger.info('After getAllNewOrders - _currentOrderEntity: ${_currentOrderEntity?.id}');
+        },
+      );
+    } catch (e) {
+      Logger.error('Unexpected error creating initial order: $e');
+      status = OrderStatus.error;
+      errorMessage = 'Error inesperado al crear la orden';
+    }
+
+    notifyListeners();
+  }
+
+  // Modificar orden existente cuando se agrega un producto
+  Future<void> _updateExistingOrder() async {
+    Logger.info('_updateExistingOrder called - _currentOrderEntity: ${_currentOrderEntity?.id}');
+    
+    if (_currentOrderEntity == null || _currentOrderEntity!.id.isEmpty) {
+      Logger.error('Cannot update order: currentOrderEntity is null or ID is empty');
+      Logger.error('_currentOrderEntity: $_currentOrderEntity');
+      Logger.error('Available orders: ${_newOrders.map((o) => o.id).toList()}');
+      status = OrderStatus.error;
+      errorMessage = 'Error: No hay orden actual válida para actualizar';
+      notifyListeners();
+      return;
+    }
+
+    status = OrderStatus.loading;
+    notifyListeners();
+
+    try {
+      final orderRequest = _buildNewOrderRequest();
+      Logger.info('Updating existing order: ${_currentOrderEntity!.id} with ${_newCartItems.length} products');
+      Logger.info('Order entity details - ID: ${_currentOrderEntity!.id}, Mesa: ${_currentOrderEntity!.mesa}');
+      
+      final result = await updateOrderUseCase.call(_currentOrderEntity!.id, orderRequest);
+
+      result.fold(
+        (failure) {
+          Logger.error('Error updating existing order: ${failure.message}');
+          status = OrderStatus.error;
+          errorMessage = failure.message;
+        },
+        (updatedOrder) {
+          Logger.info('Existing order updated successfully: ${updatedOrder.id}');
+          _currentOrderEntity = updatedOrder;
+          status = OrderStatus.success;
+          errorMessage = null;
+          
+          // Refrescar la lista de órdenes
+          getAllNewOrders();
+        },
+      );
+    } catch (e) {
+      Logger.error('Unexpected error updating existing order: $e');
+      status = OrderStatus.error;
+      errorMessage = 'Error inesperado al actualizar la orden';
+    }
+
+    notifyListeners();
+  }
+
+  void removeProductFromNewCart(String productId) {
+    _newCartItems.removeWhere((item) => item.productId == productId);
+    enableSendToKitchen = hasCartItems;
+    Logger.info('Product removed from new cart: $productId');
+    notifyListeners();
+  }
+
+  void updateCartItemQuantity(String productId, int newQuantity) {
+    if (newQuantity <= 0) {
+      removeProductFromNewCart(productId);
+      return;
+    }
+
+    final index = _newCartItems.indexWhere((item) => item.productId == productId);
+    if (index != -1) {
+      _newCartItems[index] = _newCartItems[index].copyWith(quantity: newQuantity);
+      Logger.info('Cart item quantity updated: $productId = $newQuantity');
+      notifyListeners();
+    }
+  }
+
+
+
+  void clearNewCart() {
+    _newCartItems.clear();
+    enableSendToKitchen = false;
+    Logger.info('New cart cleared');
+    notifyListeners();
+  }
+
+  // Método simplificado para agregar productos (mantener compatibilidad)
+  void addProductToCart(Product product) {
+    // Redirigir al nuevo método
+    addProductToNewCart(product);
   }
 
   void removeProductFromCart(Product product) {
@@ -424,7 +727,7 @@ class OrderSetupProvider with ChangeNotifier {
       },
       (createdOrder) async {
         Logger.info('Orden creada exitosamente');
-        _currentOrder = createdOrder;
+
         await addProductToOrder(
           createdOrder.orderId!,
           OrderItem.fromProduct(product),
@@ -497,8 +800,179 @@ class OrderSetupProvider with ChangeNotifier {
         errorMessage = '';
         _isLoadingAllOrders = false;
         Logger.info('Nuevas órdenes obtenidas exitosamente: ${orders.length}');
+        
+        // Si no hay orden actual pero hay órdenes disponibles, cargar una
+        if (_currentOrderEntity == null && orders.isNotEmpty) {
+          Logger.info('No current order but orders available, loading from existing');
+          loadCurrentOrderFromExisting();
+        } else {
+          Logger.info('Current order status - _currentOrderEntity: ${_currentOrderEntity?.id}, orders count: ${orders.length}');
+        }
+        
         notifyListeners();
       },
+    );
+  }
+
+  // Crear orden usando la nueva arquitectura
+  Future<void> createNewOrder() async {
+    if (_newCartItems.isEmpty) {
+      errorMessage = "El carrito está vacío";
+      status = OrderStatus.error;
+      notifyListeners();
+      return;
+    }
+
+    final validationError = _validateOrderRequirements();
+    if (validationError != null) {
+      errorMessage = validationError;
+      status = OrderStatus.error;
+      notifyListeners();
+      return;
+    }
+
+    status = OrderStatus.loading;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      // Construir la petición
+      final orderRequest = _buildNewOrderRequest();
+      
+      Logger.info('Creating new order with ${_newCartItems.length} products');
+      
+      // Llamar al use case
+      final result = await createOrderNewUseCase.call(orderRequest);
+
+      result.fold(
+        (failure) {
+          Logger.error('Error creating new order: ${failure.message}');
+          status = OrderStatus.error;
+          errorMessage = failure.message;
+        },
+        (order) {
+          Logger.info('New order created successfully: ${order.id}');
+          status = OrderStatus.success;
+          errorMessage = null;
+          
+          // Limpiar el carrito después de crear la orden exitosamente
+          _newCartItems.clear();
+          enableSendToKitchen = false;
+          
+          // Refrescar la lista de órdenes
+          getAllNewOrders();
+        },
+      );
+    } catch (e) {
+      Logger.error('Unexpected error creating new order: $e');
+      status = OrderStatus.error;
+      errorMessage = 'Error inesperado al crear la orden';
+    }
+
+    notifyListeners();
+  }
+
+  // Enviar a cocina (sincronizar cambios pendientes con el backend)
+  Future<void> sendToKitchen() async {
+    if (_currentOrderEntity == null) {
+      errorMessage = "No hay orden actual para enviar a cocina";
+      status = OrderStatus.error;
+      notifyListeners();
+      return;
+    }
+
+    if (_newCartItems.isEmpty) {
+      errorMessage = "El carrito está vacío";
+      status = OrderStatus.error;
+      notifyListeners();
+      return;
+    }
+
+    status = OrderStatus.loading;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      // Construir la petición de modificación
+      final orderRequest = _buildNewOrderRequest();
+      
+      Logger.info('Sending to kitchen - updating order: ${_currentOrderEntity!.id}');
+      
+      // Usar el use case para PUT /orders/:id
+      final result = await updateOrderUseCase.call(_currentOrderEntity!.id, orderRequest);
+      
+      result.fold(
+        (failure) {
+          Logger.error('Error updating order: ${failure.message}');
+          status = OrderStatus.error;
+          errorMessage = failure.message;
+        },
+        (updatedOrder) {
+          Logger.info('Order sent to kitchen successfully: ${updatedOrder.id}');
+          status = OrderStatus.success;
+          errorMessage = null;
+          
+          // Actualizar la orden actual con los datos del servidor
+          _currentOrderEntity = updatedOrder;
+          
+          // Marcar que los cambios fueron enviados (opcional: podrías agregar un flag)
+          enableSendToKitchen = false;
+          
+          // Refrescar la lista de órdenes
+          getAllNewOrders();
+        },
+      );
+    } catch (e) {
+      Logger.error('Unexpected error sending to kitchen: $e');
+      status = OrderStatus.error;
+      errorMessage = 'Error inesperado al enviar a cocina';
+    }
+
+    notifyListeners();
+  }
+
+  CreateOrderRequestModel _buildNewOrderRequest() {
+    // Mapear tipo de orden
+    String orderType;
+    switch (_selectedIndex) {
+      case 0:
+        orderType = 'table';
+        break;
+      case 1:
+        orderType = 'delivery';
+        break;
+      case 2:
+        orderType = 'takeout';
+        break;
+      default:
+        orderType = 'table';
+    }
+
+    // Convertir items del carrito a productos solicitados
+    final requestedProducts = _newCartItems.map((item) {
+      // Crear estados por cantidad (todos empiezan como "pendiente")
+      final statusByQuantity = List.generate(
+        item.quantity,
+        (index) => ProductStatusModel(status: 'pendiente'),
+      );
+
+      return RequestedProductModel(
+        productId: item.productId,
+        productName: item.productName,
+        price: item.price,
+        requestedQuantity: item.quantity,
+        message: item.message,
+        statusByQuantity: statusByQuantity,
+      );
+    }).toList();
+
+    return CreateOrderRequestModel(
+      orderType: orderType,
+      table: orderType == 'table' ? _tableIndex : 0,
+      peopleCount: orderType == 'table' ? _peopleCount : 1,
+      requestedProducts: requestedProducts,
+      itemCount: totalCartItems,
+      total: cartTotal,
     );
   }
 

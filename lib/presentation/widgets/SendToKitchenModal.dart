@@ -1,13 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
-import 'package:ordena_ya/presentation/widgets/order_submitted_modal.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/AppColors.dart';
 import '../providers/order_provider.dart';
 import 'CircularCloseButton.dart';
 
 class SendTokitchenModal extends StatelessWidget {
-
   const SendTokitchenModal({super.key});
 
   @override
@@ -24,7 +21,6 @@ class SendTokitchenModal extends StatelessWidget {
         child: SingleChildScrollView(
           child: Column(
             children: [
-
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 8.0),
                 child: Row(
@@ -32,7 +28,10 @@ class SendTokitchenModal extends StatelessWidget {
                   children: [
                     Text(
                       'Enviar a cocina',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
 
                     CircularCloseButton(
@@ -40,7 +39,6 @@ class SendTokitchenModal extends StatelessWidget {
                         Navigator.of(context).pop();
                       },
                     ),
-
                   ],
                 ),
               ),
@@ -60,28 +58,45 @@ class SendTokitchenModal extends StatelessWidget {
               Divider(color: Colors.grey, height: 5),
 
               TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  // Productos enviados a cocina
-                  provider.enableSendToKitchen = false;
-                  provider.enableCloseBill = true;
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext context) {
-                      return OrderSubmittedModal(
-                        icon: HugeIcons.strokeRoundedCheckmarkBadge03,
-                        iconColor: Colors.green,
-                        title: '¡Comanda enviada!',
-                        message: 'La comanda ha sido enviada a la cocina correctamente.',
-                        buttonLabel: 'Aceptar',
-                        onConfirm: () {
-                          Navigator.of(context).pop();
-                        },
-                      );
-                    },
-                  );
+                onPressed: () async {
+                  final navigator = Navigator.of(context);
+                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+                  navigator.pop();
+
+                  // Enviar a cocina (actualizar orden en backend)
+                  await provider.sendToKitchen();
+
+                  // Verificar el resultado y mostrar mensaje
+                  if (provider.status == OrderStatus.success) {
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          '¡Comanda enviada a cocina exitosamente!',
+                        ),
+                        backgroundColor: Colors.green,
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                  } else {
+                    scaffoldMessenger.showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          provider.errorMessage ?? 'Error al enviar la comanda',
+                        ),
+                        backgroundColor: Colors.red,
+                        duration: Duration(seconds: 5),
+                      ),
+                    );
+                  }
                 },
-                child: Text('Confirmar', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.redPrimary)),
+                child: Text(
+                  'Confirmar',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.redPrimary,
+                  ),
+                ),
               ),
             ],
           ),

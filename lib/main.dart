@@ -12,11 +12,14 @@ import 'package:ordena_ya/domain/usecase/get_all_products.dart';
 import 'package:ordena_ya/domain/usecase/get_all_tables.dart';
 import 'package:ordena_ya/domain/usecase/login.dart';
 import 'package:ordena_ya/domain/usecase/select_table.dart';
+import 'package:ordena_ya/domain/usecase/create_order_new.dart';
+import 'package:ordena_ya/domain/usecase/update_order.dart';
 import 'package:ordena_ya/presentation/pages/new_order.dart';
 import 'package:ordena_ya/presentation/pages/login_screen.dart';
 import 'package:ordena_ya/presentation/pages/register_user_screen.dart';
 import 'package:ordena_ya/presentation/providers/menu_provider.dart';
 import 'package:ordena_ya/presentation/providers/order_provider.dart';
+
 import 'package:ordena_ya/presentation/providers/toggle_button_provider.dart';
 import 'package:ordena_ya/presentation/providers/tables_provider.dart';
 import 'package:ordena_ya/presentation/providers/user_provider.dart';
@@ -44,6 +47,8 @@ void main() async {
                 addItemToOrderUseCase: getIt<AddItemToOrderUseCase>(),
                 getAllOrdersUseCase: getIt<GetOrdersUseCase>(),
                 getAllOrdersNewUseCase: getIt<GetAllOrdersNewUseCase>(),
+                createOrderNewUseCase: getIt<CreateOrderNewUseCase>(),
+                updateOrderUseCase: getIt<UpdateOrderUseCase>(),
               ),
         ),
         ChangeNotifierProvider(
@@ -54,6 +59,7 @@ void main() async {
                 getAllProductsUseCase: getIt<GetAllProductsUseCase>()
               ),
         ),
+
         ChangeNotifierProvider(create: (_) => ToggleButtonProvider()),
         ChangeNotifierProvider(create: (_) => MenuProvider()),
       ],
