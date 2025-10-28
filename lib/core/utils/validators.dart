@@ -20,7 +20,7 @@ class CustomValidators {
     ); // elimina todo menos números
 
     if (cleaned.length != 10) {
-      return '$fieldName debe tener exactamente 10 dígitos';
+      return 'Debe tener exactamente 10 dígitos';
     }
 
     if (!RegExp(r'^[0-9]+$').hasMatch(cleaned)) {
@@ -28,8 +28,9 @@ class CustomValidators {
     }
 
     // Validación adicional para números de celular colombianos (opcional)
+    // Los celulares en Colombia generalmente empiezan con 3
     if (!cleaned.startsWith('3')) {
-      return '$fieldName debe comenzar con 3 (celular colombiano)';
+      return 'Debe comenzar con 3 (formato colombiano)';
     }
 
     return null;

@@ -267,6 +267,7 @@ class CustomTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final int? maxLength;
   final String? Function(String?)? validator;
+  final List<TextInputFormatter>? inputFormatters;
 
   const CustomTextField({
     super.key,
@@ -275,6 +276,7 @@ class CustomTextField extends StatelessWidget {
     this.maxLength,
     this.keyboardType,
     this.validator,
+    this.inputFormatters,
   });
 
   @override
@@ -283,6 +285,7 @@ class CustomTextField extends StatelessWidget {
       controller: controller,
       keyboardType: keyboardType,
       maxLength: maxLength,
+      inputFormatters: inputFormatters,
       decoration: kInputDecoration.copyWith(hintText: hintText, counterText: ''),
       validator: validator,
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:ordena_ya/core/utils/error.dart';
 import 'package:ordena_ya/core/utils/validators.dart';
@@ -62,8 +63,8 @@ class _RegisterClientModalState extends State<RegisterClientModal> {
         children: [
           CircleAvatar(
             radius: 40, // tamaño del círculo
-            backgroundColor: Colors.green.withOpacity(
-              0.1,
+            backgroundColor: Colors.green.withValues(
+              alpha: 0.1,
             ), // color de fondo suave
             child: HugeIcon(
               color: Colors.green,
@@ -168,6 +169,10 @@ class _RegisterClientModalState extends State<RegisterClientModal> {
                     hintText: '3001234567',
                     maxLength: 10,
                     keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      LengthLimitingTextInputFormatter(10),
+                    ],
                     validator: (value) => CustomValidators.phone(value),
                   ),
                   const SizedBox(height: 10),
