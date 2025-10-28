@@ -64,25 +64,42 @@ class CloseBillModal extends StatelessWidget {
                   ),
 
                   TextButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      provider.clearCart();
-                      provider.enableCloseBill = false;
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return OrderSubmittedModal(
-                            icon: HugeIcons.strokeRoundedInvoice03,
-                            iconColor: Colors.green,
-                            title: '¡Cuenta cerrada!',
-                            message: 'La comanda ha sido enviada a caja para generar la factura electrónica DIAN.',
-                            buttonLabel: 'Aceptar',
-                            onConfirm: () {
-                              Navigator.of(context).pop();
-                            },
-                          );
-                        },
-                      );
+                    onPressed: () async {
+                      final navigator = Navigator.of(context);
+                      
+                      navigator.pop();
+                      
+                      // Cerrar orden en el backend
+                      await provider.closeOrder();
+                      
+                      // Verificar el resultado
+                      if (provider.status == OrderStatus.success) {
+                        // Éxito: mostrar modal de confirmación
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return OrderSubmittedModal(
+                              icon: HugeIcons.strokeRoundedInvoice03,
+                              iconColor: Colors.green,
+                              title: '¡Cuenta cerrada!',
+                              message: 'La comanda ha sido enviada a caja para generar la factura electrónica DIAN.',
+                              buttonLabel: 'Aceptar',
+                              onConfirm: () {
+                                Navigator.of(context).pop();
+                              },
+                            );
+                          },
+                        );
+                      } else {
+                        // Error: mostrar mensaje de error
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(provider.errorMessage ?? 'Error al cerrar la cuenta'),
+                            backgroundColor: Colors.red,
+                            duration: Duration(seconds: 4),
+                          ),
+                        );
+                      }
                     },
                     child: Text('Confirmar', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.redPrimary)),
                   ),

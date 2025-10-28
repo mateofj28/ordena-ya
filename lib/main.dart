@@ -14,6 +14,7 @@ import 'package:ordena_ya/domain/usecase/login.dart';
 import 'package:ordena_ya/domain/usecase/select_table.dart';
 import 'package:ordena_ya/domain/usecase/create_order_new.dart';
 import 'package:ordena_ya/domain/usecase/update_order.dart';
+import 'package:ordena_ya/domain/usecase/close_order.dart';
 import 'package:ordena_ya/presentation/pages/new_order.dart';
 import 'package:ordena_ya/presentation/pages/login_screen.dart';
 import 'package:ordena_ya/presentation/pages/register_user_screen.dart';
@@ -49,6 +50,7 @@ void main() async {
                 getAllOrdersNewUseCase: getIt<GetAllOrdersNewUseCase>(),
                 createOrderNewUseCase: getIt<CreateOrderNewUseCase>(),
                 updateOrderUseCase: getIt<UpdateOrderUseCase>(),
+                closeOrderUseCase: getIt<CloseOrderUseCase>(),
               ),
         ),
         ChangeNotifierProvider(

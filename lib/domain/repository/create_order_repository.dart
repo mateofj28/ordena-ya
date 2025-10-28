@@ -6,4 +6,5 @@ import 'package:ordena_ya/data/model/create_order_request_model.dart';
 abstract class CreateOrderRepository {
   Future<Either<Failure, OrderResponseEntity>> createOrder(CreateOrderRequestModel orderRequest);
   Future<Either<Failure, OrderResponseEntity>> updateOrder(String orderId, CreateOrderRequestModel orderRequest);
+  Future<Either<Failure, OrderResponseEntity>> closeOrder(String orderId);
 }

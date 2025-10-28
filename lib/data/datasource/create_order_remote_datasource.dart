@@ -8,6 +8,7 @@ import 'package:ordena_ya/data/model/order_response_model.dart';
 abstract class CreateOrderRemoteDataSource {
   Future<OrderResponseModel> createOrder(CreateOrderRequestModel orderRequest);
   Future<OrderResponseModel> updateOrder(String orderId, CreateOrderRequestModel orderRequest);
+  Future<OrderResponseModel> closeOrder(String orderId);
 }
 
 class CreateOrderRemoteDataSourceImpl implements CreateOrderRemoteDataSource {
@@ -107,6 +108,49 @@ class CreateOrderRemoteDataSourceImpl implements CreateOrderRemoteDataSource {
     } catch (e) {
       Logger.error('Error updating order: $e');
       throw Exception('Error updating order: $e');
+    }
+  }
+
+  @override
+  Future<OrderResponseModel> closeOrder(String orderId) async {
+    try {
+      final url = '${ApiConfig.ordersEndpoint}/$orderId/close';
+      
+      Logger.info('Closing order at: $url');
+
+      final response = await client.patch(
+        Uri.parse(url),
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Accept': 'application/json; charset=utf-8',
+          'Accept-Charset': 'utf-8',
+        },
+      ).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          Logger.error('Close order timeout after 15 seconds');
+          throw Exception('Request timeout - Check if server is running and accessible');
+        },
+      );
+
+      Logger.info('Close order response status: ${response.statusCode}');
+      Logger.info('Close order response body: ${response.body}');
+
+      if (response.statusCode == 200) {
+        // Decodificar con UTF-8 explícitamente
+        final String responseBody = utf8.decode(response.bodyBytes);
+        final Map<String, dynamic> json = jsonDecode(responseBody);
+        final order = OrderResponseModel.fromJson(json);
+
+        Logger.info('Successfully closed order: ${order.id}');
+        return order;
+      } else {
+        Logger.error('Failed to close order: ${response.statusCode}');
+        throw Exception('Failed to close order: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      Logger.error('Error closing order: $e');
+      throw Exception('Error closing order: $e');
     }
   }
 }

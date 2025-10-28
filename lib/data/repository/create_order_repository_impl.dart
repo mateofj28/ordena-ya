@@ -42,4 +42,20 @@ class CreateOrderRepositoryImpl implements CreateOrderRepository {
       return Left(ServerFailure(message: 'Error al actualizar la orden: $e'));
     }
   }
+
+  @override
+  Future<Either<Failure, OrderResponseEntity>> closeOrder(String orderId) async {
+    try {
+      Logger.info('Repository: Closing order: $orderId');
+      
+      final orderModel = await remoteDataSource.closeOrder(orderId);
+      final entity = orderModel.toEntity();
+      
+      Logger.info('Repository: Successfully closed order');
+      return Right(entity);
+    } catch (e) {
+      Logger.error('Repository: Error closing order: $e');
+      return Left(ServerFailure(message: 'Error al cerrar la orden: $e'));
+    }
+  }
 }

@@ -85,14 +85,43 @@ class CartProduct extends StatelessWidget {
                   ),
                 ),
               ),
-              IconButton(
-                onPressed: () {
-                  provider.removeCartItemAt(index);
+              Consumer<OrderSetupProvider>(
+                builder: (context, deleteProvider, child) {
+                  return IconButton(
+                    onPressed: deleteProvider.status == OrderStatus.loading 
+                        ? null 
+                        : () async {
+                            final scaffoldMessenger = ScaffoldMessenger.of(context);
+                            
+                            await deleteProvider.removeCartItemAt(index);
+                            
+                            // Mostrar mensaje si hay error
+                            if (deleteProvider.status == OrderStatus.error && 
+                                deleteProvider.errorMessage != null) {
+                              scaffoldMessenger.showSnackBar(
+                                SnackBar(
+                                  content: Text(deleteProvider.errorMessage!),
+                                  backgroundColor: Colors.red,
+                                  duration: Duration(seconds: 3),
+                                ),
+                              );
+                            }
+                          },
+                    icon: deleteProvider.status == OrderStatus.loading
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.redAccent),
+                            ),
+                          )
+                        : HugeIcon(
+                            icon: HugeIcons.strokeRoundedDelete02,
+                            color: Colors.redAccent,
+                          ),
+                  );
                 },
-                icon: HugeIcon(
-                  icon: HugeIcons.strokeRoundedDelete02,
-                  color: Colors.redAccent,
-                ),
               ),
             ],
           ),

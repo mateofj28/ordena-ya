@@ -12,6 +12,7 @@ import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders_new.dart';
 import 'package:ordena_ya/domain/usecase/create_order_new.dart';
 import 'package:ordena_ya/domain/usecase/update_order.dart';
+import 'package:ordena_ya/domain/usecase/close_order.dart';
 import 'package:ordena_ya/domain/entity/order_response.dart';
 import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
 import '../../domain/usecase/add_item_to_order.dart';
@@ -26,6 +27,7 @@ class OrderSetupProvider with ChangeNotifier {
   final GetAllOrdersNewUseCase getAllOrdersNewUseCase;
   final CreateOrderNewUseCase createOrderNewUseCase;
   final UpdateOrderUseCase updateOrderUseCase;
+  final CloseOrderUseCase closeOrderUseCase;
 
   OrderSetupProvider({
     required this.createOrderUseCase,
@@ -34,6 +36,7 @@ class OrderSetupProvider with ChangeNotifier {
     required this.getAllOrdersNewUseCase,
     required this.createOrderNewUseCase,
     required this.updateOrderUseCase,
+    required this.closeOrderUseCase,
   });
 
   OrderStatus status = OrderStatus.initial;
@@ -218,9 +221,23 @@ class OrderSetupProvider with ChangeNotifier {
     }
   }
 
-  void removeCartItemAt(int index) {
+  Future<void> removeCartItemAt(int index) async {
     if (index >= 0 && index < _newCartItems.length) {
+      final removedItem = _newCartItems[index];
       _newCartItems.removeAt(index);
+      
+      Logger.info('Product removed from cart: ${removedItem.productName}');
+      
+      // Si hay orden actual, actualizar en el backend
+      if (_currentOrderEntity != null) {
+        await _updateExistingOrder();
+        
+        // Si hubo error, revertir el cambio
+        if (status == OrderStatus.error) {
+          _newCartItems.insert(index, removedItem);
+          Logger.error('Failed to remove product from order, reverted local change');
+        }
+      }
       
       // Verificar cambios respecto a la orden actual
       _checkForChanges();
@@ -1009,6 +1026,53 @@ class OrderSetupProvider with ChangeNotifier {
       Logger.error('Unexpected error sending to kitchen: $e');
       status = OrderStatus.error;
       errorMessage = 'Error inesperado al enviar a cocina';
+    }
+
+    notifyListeners();
+  }
+
+  // Cerrar orden (enviar a caja)
+  Future<void> closeOrder() async {
+    if (_currentOrderEntity == null) {
+      errorMessage = "No hay orden actual para cerrar";
+      status = OrderStatus.error;
+      notifyListeners();
+      return;
+    }
+
+    status = OrderStatus.loading;
+    errorMessage = null;
+    notifyListeners();
+
+    try {
+      Logger.info('Closing order: ${_currentOrderEntity!.id}');
+      
+      final result = await closeOrderUseCase.call(_currentOrderEntity!.id);
+      
+      result.fold(
+        (failure) {
+          Logger.error('Error closing order: ${failure.message}');
+          status = OrderStatus.error;
+          errorMessage = failure.message;
+        },
+        (closedOrder) {
+          Logger.info('Order closed successfully: ${closedOrder.id}');
+          status = OrderStatus.success;
+          errorMessage = null;
+          
+          // Limpiar el estado después de cerrar la orden
+          _newCartItems.clear();
+          _currentOrderEntity = null;
+          enableSendToKitchen = false;
+          enableCloseBill = false;
+          
+          Logger.info('Order closed and state cleared');
+        },
+      );
+    } catch (e) {
+      Logger.error('Unexpected error closing order: $e');
+      status = OrderStatus.error;
+      errorMessage = 'Error inesperado al cerrar la orden';
     }
 
     notifyListeners();
