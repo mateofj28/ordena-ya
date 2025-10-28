@@ -109,6 +109,8 @@ class OrderSetupProvider with ChangeNotifier {
   OrderResponseEntity? _currentOrderEntity;
   OrderResponseEntity? get currentOrderEntity => _currentOrderEntity;
 
+
+
   // Cargar orden actual desde las órdenes existentes
   void loadCurrentOrderFromExisting() {
     Logger.info('loadCurrentOrderFromExisting called - Orders available: ${_newOrders.length}');
@@ -124,8 +126,18 @@ class OrderSetupProvider with ChangeNotifier {
       _currentOrderEntity = matchingOrder;
       Logger.info('_currentOrderEntity assigned - ID: ${_currentOrderEntity?.id}');
       
+      // Actualizar valores actuales con los de la orden
+      _tableIndex = matchingOrder.mesa;
+      _peopleCount = matchingOrder.cantidadPersonas;
+      _selectedIndex = _getIndexFromOrderType(matchingOrder.tipoPedido);
+      
+      Logger.info('Loaded order values - Table: $_tableIndex, People: $_peopleCount, Type: $_selectedIndex');
+      
       // Cargar los productos de la orden al carrito
       _loadCartFromOrder(matchingOrder);
+      
+      // Verificar cambios (debería estar deshabilitado inicialmente)
+      _checkForChanges();
     } else {
       Logger.info('No orders available to load');
     }
@@ -160,14 +172,24 @@ class OrderSetupProvider with ChangeNotifier {
     }
   }
 
+  // Obtener índice desde string del tipo de orden
+  int _getIndexFromOrderType(String orderType) {
+    switch (orderType) {
+      case 'table': return 0;
+      case 'delivery': return 1;
+      case 'takeout': return 2;
+      default: return 0;
+    }
+  }
+
   // Métodos para manejar items del carrito (solo cambios locales)
   void increaseCartItemQuantity(int index) {
     if (index >= 0 && index < _newCartItems.length) {
       final item = _newCartItems[index];
       _newCartItems[index] = item.copyWith(quantity: item.quantity + 1);
       
-      // Solo marcar que hay cambios pendientes
-      enableSendToKitchen = true;
+      // Verificar cambios respecto a la orden actual
+      _checkForChanges();
       notifyListeners();
     }
   }
@@ -178,8 +200,8 @@ class OrderSetupProvider with ChangeNotifier {
       if (item.quantity > 1) {
         _newCartItems[index] = item.copyWith(quantity: item.quantity - 1);
         
-        // Solo marcar que hay cambios pendientes
-        enableSendToKitchen = true;
+        // Verificar cambios respecto a la orden actual
+        _checkForChanges();
         notifyListeners();
       }
     }
@@ -190,8 +212,8 @@ class OrderSetupProvider with ChangeNotifier {
       final item = _newCartItems[index];
       _newCartItems[index] = item.copyWith(message: message);
       
-      // Solo marcar que hay cambios pendientes
-      enableSendToKitchen = true;
+      // Verificar cambios respecto a la orden actual
+      _checkForChanges();
       notifyListeners();
     }
   }
@@ -200,8 +222,8 @@ class OrderSetupProvider with ChangeNotifier {
     if (index >= 0 && index < _newCartItems.length) {
       _newCartItems.removeAt(index);
       
-      // Solo marcar que hay cambios pendientes
-      enableSendToKitchen = hasCartItems;
+      // Verificar cambios respecto a la orden actual
+      _checkForChanges();
       notifyListeners();
     }
   }
@@ -258,6 +280,9 @@ class OrderSetupProvider with ChangeNotifier {
 
   set tableId(int id) {
     _tableId = id;
+    _tableIndex = id; // Sincronizar ambas variables
+    _checkForChanges(); // Verificar si hay cambios
+    Logger.info('Table selected: $_tableIndex');
     notifyListeners();
   }
 
@@ -323,16 +348,90 @@ class OrderSetupProvider with ChangeNotifier {
 
   void increaseTable() {
     _tableIndex++;
+    _tableId = _tableIndex; // Sincronizar
     updateLastOrderWithTablesOrPeople();
+    _checkForChanges();
     notifyListeners();
   }
 
   void decreaseTable() {
     if (_tableIndex > 1) {
       _tableIndex--;
+      _tableId = _tableIndex; // Sincronizar
       updateLastOrderWithTablesOrPeople();
+      _checkForChanges();
       notifyListeners();
     }
+  }
+
+  void increasePeople() {
+    _peopleCount++;
+    updateLastOrderWithTablesOrPeople();
+    _checkForChanges();
+    notifyListeners();
+  }
+
+  void decreasePeople() {
+    if (_peopleCount > 1) {
+      _peopleCount--;
+      updateLastOrderWithTablesOrPeople();
+      _checkForChanges();
+      notifyListeners();
+    }
+  }
+
+  void updateSelectedIndex(int index) {
+    _selectedIndex = index;
+    _checkForChanges();
+    Logger.info('Delivery type changed to: $index');
+    notifyListeners();
+  }
+
+  // Verificar si hay cambios respecto al estado ACTUAL de la orden
+  void _checkForChanges() {
+    if (_currentOrderEntity != null) {
+      // Comparar con el estado ACTUAL de la orden (no el original)
+      bool hasTableChanges = _tableIndex != _currentOrderEntity!.mesa;
+      bool hasPeopleChanges = _peopleCount != _currentOrderEntity!.cantidadPersonas;
+      bool hasTypeChanges = _selectedIndex != _getIndexFromOrderType(_currentOrderEntity!.tipoPedido);
+      bool hasCartChanges = _hasCartChanges();
+      
+      bool hasChanges = hasTableChanges || hasPeopleChanges || hasTypeChanges || hasCartChanges;
+      
+      enableSendToKitchen = hasChanges;
+      Logger.info('Changes detected - Table: $_tableIndex vs ${_currentOrderEntity!.mesa}, People: $_peopleCount vs ${_currentOrderEntity!.cantidadPersonas}, Type: $_selectedIndex vs ${_getIndexFromOrderType(_currentOrderEntity!.tipoPedido)}, Cart: $hasCartChanges, Enable: $enableSendToKitchen');
+    } else {
+      // Si no hay orden actual, habilitar si hay productos en el carrito
+      enableSendToKitchen = _newCartItems.isNotEmpty;
+    }
+  }
+
+  // Verificar si hay cambios en el carrito (cantidades y observaciones)
+  bool _hasCartChanges() {
+    if (_currentOrderEntity == null) return _newCartItems.isNotEmpty;
+    
+    // Comparar productos del carrito con los de la orden actual
+    if (_newCartItems.length != _currentOrderEntity!.productosSolicitados.length) {
+      return true;
+    }
+    
+    for (int i = 0; i < _newCartItems.length; i++) {
+      final cartItem = _newCartItems[i];
+      
+      // Buscar el producto correspondiente en la orden
+      final orderProduct = _currentOrderEntity!.productosSolicitados.firstWhere(
+        (p) => p.productId == cartItem.productId,
+        orElse: () => throw Exception('Product not found'),
+      );
+      
+      // Comparar cantidad y mensaje
+      if (cartItem.quantity != orderProduct.cantidadSolicitada ||
+          cartItem.message != orderProduct.mensaje) {
+        return true;
+      }
+    }
+    
+    return false;
   }
 
   void increaseProduct() {
@@ -352,22 +451,7 @@ class OrderSetupProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  void increasePeople() {
-    if (_selectedIndex == 1 || _selectedIndex == 2) return;
-    _peopleCount++;
 
-    updateLastOrderWithTablesOrPeople();
-    notifyListeners();
-  }
-
-  void decreasePeople() {
-    if (_selectedIndex == 1 || _selectedIndex == 2) return;
-    if (_peopleCount > 1) {
-      _peopleCount--;
-      updateLastOrderWithTablesOrPeople();
-      notifyListeners();
-    }
-  }
 
   String getConsumptionType(int selectedIndex) {
     switch (selectedIndex) {
@@ -585,9 +669,7 @@ class OrderSetupProvider with ChangeNotifier {
           status = OrderStatus.success;
           errorMessage = null;
           
-          // Refrescar la lista de órdenes
-          getAllNewOrders();
-          Logger.info('After getAllNewOrders - _currentOrderEntity: ${_currentOrderEntity?.id}');
+          Logger.info('Initial order creation completed successfully');
         },
       );
     } catch (e) {
@@ -911,15 +993,16 @@ class OrderSetupProvider with ChangeNotifier {
           Logger.info('Order sent to kitchen successfully: ${updatedOrder.id}');
           status = OrderStatus.success;
           errorMessage = null;
+          Logger.info('Status set to success, errorMessage cleared');
           
           // Actualizar la orden actual con los datos del servidor
           _currentOrderEntity = updatedOrder;
           
-          // Marcar que los cambios fueron enviados (opcional: podrías agregar un flag)
-          enableSendToKitchen = false;
+          // Ahora que la orden está actualizada, verificar cambios
+          // (debería deshabilitar el botón ya que no hay diferencias)
+          _checkForChanges();
           
-          // Refrescar la lista de órdenes
-          getAllNewOrders();
+          Logger.info('Send to kitchen completed successfully');
         },
       );
     } catch (e) {

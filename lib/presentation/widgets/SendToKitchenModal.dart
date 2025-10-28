@@ -61,6 +61,7 @@ class SendTokitchenModal extends StatelessWidget {
                 onPressed: () async {
                   final navigator = Navigator.of(context);
                   final scaffoldMessenger = ScaffoldMessenger.of(context);
+                  final screenWidth = MediaQuery.of(context).size.width;
 
                   navigator.pop();
 
@@ -71,21 +72,123 @@ class SendTokitchenModal extends StatelessWidget {
                   if (provider.status == OrderStatus.success) {
                     scaffoldMessenger.showSnackBar(
                       SnackBar(
-                        content: Text(
-                          '¡Comanda enviada a cocina exitosamente!',
+                        content: Container(
+                          constraints: BoxConstraints(
+                            maxWidth: screenWidth * 0.9,
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 16,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 8,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.check_circle,
+                                  color: Colors.green,
+                                  size: 20,
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Flexible(
+                                child: Text(
+                                  '¡Enviado a cocina!',
+                                  style: TextStyle(
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        backgroundColor: Colors.green,
+                        backgroundColor: Colors.transparent,
+                        elevation: 0,
+                        behavior: SnackBarBehavior.floating,
+                        margin: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
                         duration: Duration(seconds: 3),
                       ),
                     );
                   } else {
                     scaffoldMessenger.showSnackBar(
                       SnackBar(
-                        content: Text(
-                          provider.errorMessage ?? 'Error al enviar la comanda',
+                        content: Container(
+                          constraints: BoxConstraints(
+                            maxWidth: screenWidth * 0.9,
+                          ),
+                          padding: EdgeInsets.symmetric(
+                            vertical: 12,
+                            horizontal: 16,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.1),
+                                blurRadius: 8,
+                                offset: Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.error_outline,
+                                  color: Colors.red,
+                                  size: 20,
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              Flexible(
+                                child: Text(
+                                  'Error al enviar',
+                                  style: TextStyle(
+                                    color: Colors.black87,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        backgroundColor: Colors.red,
-                        duration: Duration(seconds: 5),
+                        backgroundColor: Colors.transparent,
+                        elevation: 0,
+                        behavior: SnackBarBehavior.floating,
+                        margin: EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                        duration: Duration(seconds: 4),
                       ),
                     );
                   }
