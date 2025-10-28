@@ -3,7 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:ordena_ya/presentation/widgets/ShowOrderModal.dart';
 
 import '../../core/constants/AppColors.dart';
-import '../../core/utils/Functions.dart';
+import '../../core/utils/functions.dart';
 import '../../domain/entity/order.dart';
 import 'IconLabel.dart';
 import 'LabelValueRow.dart';

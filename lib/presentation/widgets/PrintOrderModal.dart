@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ordena_ya/core/utils/Functions.dart';
+import 'package:ordena_ya/core/utils/functions.dart';
 import 'package:ordena_ya/presentation/widgets/custom_button.dart';
 import 'package:ordena_ya/presentation/widgets/LabelValueRow.dart';
 import 'order_card.dart';

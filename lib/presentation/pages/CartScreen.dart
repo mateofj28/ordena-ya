@@ -3,7 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:ordena_ya/presentation/providers/tables_provider.dart';
 import 'package:provider/provider.dart';
 import '../../core/constants/AppColors.dart';
-import '../../core/utils/Functions.dart';
+import '../../core/utils/functions.dart';
 import '../providers/order_provider.dart';
 import '../widgets/CartProduct.dart';
 import '../widgets/custom_button.dart';

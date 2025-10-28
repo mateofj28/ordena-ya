@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ordena_ya/core/utils/Functions.dart';
+import 'package:ordena_ya/core/utils/functions.dart';
 import 'package:provider/provider.dart';
 import '../providers/order_provider.dart';
 import 'order_card.dart';

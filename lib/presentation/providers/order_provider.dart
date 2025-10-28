@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ordena_ya/core/utils/Functions.dart';
+import 'package:ordena_ya/core/utils/functions.dart';
 import 'package:ordena_ya/core/utils/logger.dart';
 import 'package:ordena_ya/data/model/client_model.dart';
 import 'package:ordena_ya/domain/dto/order_item.dart';
@@ -358,23 +358,33 @@ class OrderSetupProvider with ChangeNotifier {
     return order;
   }
 
-  void addProductToCart(Product product) async {
+  String? _validateOrderRequirements() {
     switch (_selectedIndex) {
-      case 0:
+      case 0: // Mesa
         if (_tableId == 0) {
-          errorMessage = "Debes seleccionar una mesa antes de crear tu orden";
+          return "Debes seleccionar una mesa antes de crear tu orden";
         }
         break;
-      case 1:
+      case 1: // Domicilio
         if (_clientId.isEmpty) {
-          errorMessage = "Debe seleccionar un cliente antes de crear la orden";
+          return "Debe seleccionar un cliente antes de crear la orden";
         }
         break;
-      case 2:
+      case 2: // Recoger
         // No necesita validación adicional
         break;
       default:
-        errorMessage = "Tipo de consumo no válido.";
+        return "Tipo de consumo no válido.";
+    }
+    return null; // Sin errores
+  }
+
+  void addProductToCart(Product product) async {
+    // Validar requisitos antes de proceder
+    final validationError = _validateOrderRequirements();
+    if (validationError != null) {
+      errorMessage = validationError;
+      return; // Detener ejecución si hay error
     }
 
     final index = _cartItems.indexWhere((p) => p.id == product.id);

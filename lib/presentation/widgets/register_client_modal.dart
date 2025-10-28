@@ -168,11 +168,7 @@ class _RegisterClientModalState extends State<RegisterClientModal> {
                     hintText: '3001234567',
                     maxLength: 10,
                     keyboardType: TextInputType.phone,
-                    validator:
-                        (value) => CustomValidators.name(
-                          value,
-                          fieldName: "Teléfono",
-                        ),
+                    validator: (value) => CustomValidators.phone(value),
                   ),
                   const SizedBox(height: 10),
                   const Text('Correo electrónico *'),

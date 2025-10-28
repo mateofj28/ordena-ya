@@ -4,7 +4,7 @@ import 'package:ordena_ya/domain/entity/product.dart';
 import 'package:ordena_ya/presentation/providers/order_provider.dart';
 import 'package:provider/provider.dart';
 
-import '../../core/utils/Functions.dart';
+import '../../core/utils/functions.dart';
 import 'AdjustValue.dart';
 
 class CartProduct extends StatelessWidget {

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:ordena_ya/core/utils/Functions.dart';
+import 'package:ordena_ya/core/utils/functions.dart';
 
 import '../../core/constants/AppColors.dart';
 

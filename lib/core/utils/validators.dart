@@ -19,12 +19,17 @@ class CustomValidators {
       '',
     ); // elimina todo menos números
 
-    if (cleaned.length < 7 || cleaned.length > 10) {
-      return '$fieldName debe tener entre 7 y 10 dígitos';
+    if (cleaned.length != 10) {
+      return '$fieldName debe tener exactamente 10 dígitos';
     }
 
     if (!RegExp(r'^[0-9]+$').hasMatch(cleaned)) {
       return '$fieldName solo puede contener números';
+    }
+
+    // Validación adicional para números de celular colombianos (opcional)
+    if (!cleaned.startsWith('3')) {
+      return '$fieldName debe comenzar con 3 (celular colombiano)';
     }
 
     return null;

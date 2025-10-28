@@ -8,8 +8,8 @@ class Functions {
     Navigator.of(context).push(
       PageRouteBuilder(
         transitionDuration: const Duration(milliseconds: 500),
-        pageBuilder: (_, __, ___) => screen,
-        transitionsBuilder: (_, animation, __, child) {
+        pageBuilder: (context, animation, secondaryAnimation) => screen,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
           const begin = Offset(0.0, 1.0); // desde abajo
           const end = Offset.zero;
           const curve = Curves.easeOut;
@@ -76,12 +76,29 @@ class Functions {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.warning, color: Colors.white),
+            Icon(Icons.error, color: Colors.white),
             SizedBox(width: 10),
             Expanded(child: Text(message)),
           ],
         ),
         backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
+
+  static void showWarningSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.warning_amber, color: Colors.white),
+            SizedBox(width: 10),
+            Expanded(child: Text(message)),
+          ],
+        ),
+        backgroundColor: Colors.orange,
         behavior: SnackBarBehavior.floating,
         duration: Duration(seconds: 3),
       ),

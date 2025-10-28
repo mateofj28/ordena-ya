@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'package:ordena_ya/core/constants/AppColors.dart';
+
 import 'package:ordena_ya/core/utils/error.dart';
 import 'package:ordena_ya/presentation/pages/CartScreen.dart';
 import 'package:ordena_ya/presentation/pages/OrdersScreen.dart';
@@ -75,7 +75,7 @@ class NewOrder extends StatelessWidget {
               builder:
                   (_) => AlertDialog(
                     title: const Text(
-                      'Error',
+                      'Advertencia',
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -92,12 +92,17 @@ class NewOrder extends StatelessWidget {
                           Navigator.pop(context);
                         },
                         child: const Text(
-                          'OK',
+                          'Entendido',
                           style: TextStyle(color: Colors.white),
                         ),
                       ),
                     ],
-                    backgroundColor: AppColors.redPrimary,
+                    backgroundColor: Colors.orange,
+                    icon: Icon(
+                      Icons.warning_amber,
+                      color: Colors.white,
+                      size: 32,
+                    ),
                   ),
             );
           }
