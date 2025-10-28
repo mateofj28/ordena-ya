@@ -1,5 +1,6 @@
 import 'package:ordena_ya/core/model/either.dart';
 import 'package:ordena_ya/core/model/failure.dart';
+import 'package:ordena_ya/core/utils/logger.dart';
 import 'package:ordena_ya/data/datasource/product_datasource.dart';
 import 'package:ordena_ya/domain/entity/product.dart';
 import '../../domain/repository/product_repository.dart';
@@ -22,8 +23,8 @@ class ProductRepositoryImpl implements ProductRepository {
       final entities = products.map((p) => p.toEntity()).toList();
       return Right(entities);
     } catch (e, stack) {
-      print("❌ Error: $e");
-      print("📌 StackTrace: $stack");
+      Logger.error("Error getting products: $e");
+      Logger.error("StackTrace: $stack");
       return Left(ServerFailure(e.toString()));
     }
   }

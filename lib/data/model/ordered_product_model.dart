@@ -1,3 +1,4 @@
+import 'package:ordena_ya/core/utils/logger.dart';
 import 'package:ordena_ya/domain/entity/ordered_product.dart';
 
 class OrderedProductModel extends OrderedProduct {
@@ -10,11 +11,11 @@ class OrderedProductModel extends OrderedProduct {
 
   factory OrderedProductModel.fromJson(Map<String, dynamic> json) {
     try {
-      print("🧩 OrderedProductModel.fromJson() → json: $json");
-      print("🆔 id: ${json['id']}");
-      print("📦 name: ${json['name']}");
-      print("💲 unitPrice: ${json['unitPrice']}");
-      print("🔢 quantity: ${json['quantity']}");
+      Logger.debug("OrderedProductModel.fromJson() → json: $json");
+      Logger.debug("id: ${json['id']}");
+      Logger.debug("name: ${json['name']}");
+      Logger.debug("unitPrice: ${json['unitPrice']}");
+      Logger.debug("quantity: ${json['quantity']}");
 
       return OrderedProductModel(
         json['id'],
@@ -23,7 +24,7 @@ class OrderedProductModel extends OrderedProduct {
         units: []
       );
     } catch (e) {
-      print('❌ Error en OrderedProductModel.fromJson: $e');
+      Logger.error('Error en OrderedProductModel.fromJson: $e');
       rethrow;
     }
   }

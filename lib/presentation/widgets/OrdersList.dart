@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+
 import 'package:ordena_ya/core/constants/AppColors.dart';
 import 'package:ordena_ya/domain/entity/order.dart';
-import 'package:ordena_ya/presentation/widgets/OrderSummaryCard.dart';
+
 
 class OrdersList extends StatelessWidget {
   final List<Order> orders;
@@ -29,7 +29,7 @@ class OrdersList extends StatelessWidget {
     return ListView.builder(
       itemCount: orders.length,
       itemBuilder: (context, index) {
-        final order = orders[index];
+        // final order = orders[index]; // Commented out since not currently used
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ordena_ya/data/model/select_table_model.dart';
+
 import 'package:ordena_ya/domain/entity/product.dart';
 import 'package:ordena_ya/domain/entity/restaurant_table.dart';
 import 'package:ordena_ya/domain/usecase/get_all_products.dart';
@@ -14,7 +14,7 @@ class TablesProvider extends ChangeNotifier {
   final GetAllProductsUseCase getAllProductsUseCase; 
 
   TablesState _state = TablesState.initial;
-  TablesState _selectTableState = TablesState.initial;
+  final TablesState _selectTableState = TablesState.initial;
   TablesState _getProductState = TablesState.initial;
 
   TablesState get state => _state;

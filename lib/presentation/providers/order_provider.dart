@@ -7,6 +7,8 @@ import 'package:ordena_ya/domain/dto/register_order_req.dart';
 import 'package:ordena_ya/domain/entity/order.dart';
 import 'package:ordena_ya/domain/entity/product.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
+import 'package:ordena_ya/domain/usecase/get_all_orders_new.dart';
+import 'package:ordena_ya/domain/entity/order_response.dart';
 import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
 import '../../domain/usecase/add_item_to_order.dart';
 import '../../domain/usecase/create_order.dart';
@@ -17,11 +19,13 @@ class OrderSetupProvider with ChangeNotifier {
   final CreateOrder createOrderUseCase;
   final AddItemToOrderUseCase addItemToOrderUseCase;
   final GetOrdersUseCase getAllOrdersUseCase;
+  final GetAllOrdersNewUseCase getAllOrdersNewUseCase;
 
   OrderSetupProvider({
     required this.createOrderUseCase,
     required this.addItemToOrderUseCase,
     required this.getAllOrdersUseCase,
+    required this.getAllOrdersNewUseCase,
   });
 
   OrderStatus status = OrderStatus.initial;
@@ -49,47 +53,12 @@ class OrderSetupProvider with ChangeNotifier {
   int _peopleCount = 1;
   int _productCount = 1;
   List<Order> _orders = [];
+  List<OrderResponseEntity> _newOrders = [];
   final PageController _pageController = PageController();
 
   final List<Product> _cartItems = [];
 
-  final _products = [
-    {
-      'name': 'Mesa 1',
-      'people': '2 Personas',
-      'date': '21/06/2025',
-      'time': '7:34 pm',
-      'total': 18500,
-    },
-    {
-      'name': 'Mesa 2',
-      'people': '3 Personas',
-      'date': '21/06/2025',
-      'time': '8:15 pm',
-      'total': 24500,
-    },
-    {
-      'name': 'Mesa 3',
-      'people': '4 Personas',
-      'date': '21/06/2025',
-      'time': '8:50 pm',
-      'total': 35000,
-    },
-    {
-      'name': 'Mesa 4',
-      'people': '5 Personas',
-      'date': '21/06/2025',
-      'time': '9:10 pm',
-      'total': 42500,
-    },
-    {
-      'name': 'Mesa 5',
-      'people': '6 Personas',
-      'date': '21/06/2025',
-      'time': '9:35 pm',
-      'total': 58000,
-    },
-  ];
+
 
   int _selectedTabIndex = 0;
   String _selectedTable = 'N/A';
@@ -100,14 +69,7 @@ class OrderSetupProvider with ChangeNotifier {
 
   bool _isLoadingAllOrders = true;
 
-  // Clientes fijos
-  final List<String> clients = [
-    'Mateo Florez',
-    'Nicolás Gómez',
-    'Camila Torres',
-    'Andrés Herrera',
-    'María López',
-  ];
+
 
   Map<int, String> deliveryTypeMap = {
     0: 'dine_in',
@@ -124,6 +86,9 @@ class OrderSetupProvider with ChangeNotifier {
   String get selectedPeople => _selectedPeople;
   String get selectedClient => _selectedClient;
   bool get isLoadingAllOrders => _isLoadingAllOrders;
+  
+  // TODO: Implement proper client management
+  List<String> get clients => ['Cliente 1', 'Cliente 2', 'Cliente 3'];
   int get currentMenu => _currentMenu;
   int get tableIndex => _tableIndex;
   bool get enableSendToKitchen => _enableSendToKitchen;
@@ -131,7 +96,8 @@ class OrderSetupProvider with ChangeNotifier {
   int get peopleCount => _peopleCount;
   int get productCount => _productCount;
   List<Order> get orders => _orders;
-  List get products => _products;
+  List<OrderResponseEntity> get newOrders => _newOrders;
+
   PageController get pageController => _pageController;
   int get deliveryType => _deliveryType;
 
@@ -506,6 +472,31 @@ class OrderSetupProvider with ChangeNotifier {
         errorMessage = '';
         _isLoadingAllOrders = false;
         Logger.info('Órdenes obtenidas exitosamente: ${orders.length}');
+        notifyListeners();
+      },
+    );
+  }
+
+  Future<void> getAllNewOrders() async {
+    Logger.info('Provider: Getting all new orders from localhost:3000');
+    status = OrderStatus.loading;
+    notifyListeners();
+
+    var result = await getAllOrdersNewUseCase.call();
+
+    result.fold(
+      (failure) {
+        status = OrderStatus.error;
+        errorMessage = failure.message;
+        Logger.error('Error obteniendo nuevas órdenes: ${failure.message}');
+        notifyListeners();
+      },
+      (orders) {
+        _newOrders = orders;
+        status = OrderStatus.success;
+        errorMessage = '';
+        _isLoadingAllOrders = false;
+        Logger.info('Nuevas órdenes obtenidas exitosamente: ${orders.length}');
         notifyListeners();
       },
     );

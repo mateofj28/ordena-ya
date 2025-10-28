@@ -1,3 +1,4 @@
+import '../../core/utils/logger.dart';
 import '../../domain/entity/order.dart';
 
 class OrderModel extends Order {
@@ -16,7 +17,7 @@ class OrderModel extends Order {
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
-    print(json);
+    Logger.debug('OrderModel JSON: $json');
     return OrderModel(
       orderId: json['orderId'] as String,
       tenantId: json['tenantId'] as String,

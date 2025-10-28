@@ -1,3 +1,4 @@
+import '../../core/utils/logger.dart';
 import '../../domain/entity/order_item.dart';
 
 class OrderItemModel extends OrderItem {
@@ -43,7 +44,7 @@ class OrderItemModel extends OrderItem {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt?.toIso8601String(),
     };
-    print(json);
+    Logger.debug('OrderItemModel JSON: $json');
     return json;
   }
 

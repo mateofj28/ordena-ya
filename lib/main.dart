@@ -7,6 +7,7 @@ import 'package:ordena_ya/domain/usecase/add_item_to_order.dart';
 import 'package:ordena_ya/domain/usecase/create_client.dart';
 import 'package:ordena_ya/domain/usecase/create_user.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
+import 'package:ordena_ya/domain/usecase/get_all_orders_new.dart';
 import 'package:ordena_ya/domain/usecase/get_all_products.dart';
 import 'package:ordena_ya/domain/usecase/get_all_tables.dart';
 import 'package:ordena_ya/domain/usecase/login.dart';
@@ -42,6 +43,7 @@ void main() async {
                 createOrderUseCase: getIt<CreateOrder>(),
                 addItemToOrderUseCase: getIt<AddItemToOrderUseCase>(),
                 getAllOrdersUseCase: getIt<GetOrdersUseCase>(),
+                getAllOrdersNewUseCase: getIt<GetAllOrdersNewUseCase>(),
               ),
         ),
         ChangeNotifierProvider(

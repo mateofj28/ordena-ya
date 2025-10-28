@@ -3,54 +3,168 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/AppColors.dart';
+import '../../core/utils/logger.dart';
 import '../providers/order_provider.dart';
-import '../widgets/custom_button.dart';
-import '../widgets/order_card.dart';
 
-class OrdersScreen extends StatelessWidget {
+import '../widgets/new_order_card.dart';
+
+
+class OrdersScreen extends StatefulWidget {
   const OrdersScreen({super.key});
 
   @override
+  State<OrdersScreen> createState() => _OrdersScreenState();
+}
+
+class _OrdersScreenState extends State<OrdersScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Cargar las órdenes cuando se inicializa la pantalla
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<OrderSetupProvider>().getAllNewOrders();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<OrderSetupProvider>(context);
-
-    return Scaffold(
-      backgroundColor: AppColors.lightGray,
-      body:
-          provider.orders.isEmpty
-              ? const EmptyCartView()
-              : Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 15),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 🧾 Lista de items del carrito
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: provider.orders.length,
-                        itemBuilder: (context, index) {
-                          final order = provider.orders[index];
-                          print("la orden es:");
-                          print(order);
-
-                          return OrderCard(
-                            people: "2",
-                            items: [],
-                            order: order,
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 15),
-                  ],
-                ),
+    return Consumer<OrderSetupProvider>(
+      builder: (context, provider, child) {
+        if (provider.status == OrderStatus.loading) {
+          return Scaffold(
+            backgroundColor: AppColors.lightGray,
+            body: const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text(
+                    'Cargando órdenes...',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                ],
               ),
+            ),
+          );
+        }
+
+        if (provider.status == OrderStatus.error) {
+          return Scaffold(
+            backgroundColor: AppColors.lightGray,
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    HugeIcons.strokeRoundedAlert02,
+                    size: 64,
+                    color: AppColors.redPrimary,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Error al cargar órdenes',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    provider.errorMessage ?? 'Error desconocido',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 14, color: Colors.black54),
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      provider.getAllNewOrders();
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Reintentar'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.redPrimary,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        return Scaffold(
+          backgroundColor: AppColors.lightGray,
+          body: provider.newOrders.isEmpty
+              ? const EmptyOrdersView()
+              : RefreshIndicator(
+                  onRefresh: () => provider.getAllNewOrders(),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 15),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Header con información
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          margin: const EdgeInsets.only(top: 10, bottom: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Órdenes Activas',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    '${provider.newOrders.length} órdenes encontradas',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.black54,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              IconButton(
+                                onPressed: () => provider.getAllNewOrders(),
+                                icon: const Icon(Icons.refresh),
+                                tooltip: 'Actualizar órdenes',
+                              ),
+                            ],
+                          ),
+                        ),
+                        
+                        // Lista de órdenes
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: provider.newOrders.length,
+                            itemBuilder: (context, index) {
+                              final order = provider.newOrders[index];
+                              Logger.info('Mostrando orden: Mesa ${order.mesa}, Estado: ${order.estadoGeneral}');
+
+                              return NewOrderCard(order: order);
+                            },
+                          ),
+                        ),
+                        const SizedBox(height: 15),
+                      ],
+                    ),
+                  ),
+                ),
+        );
+      },
     );
   }
 }
 
-class EmptyCartView extends StatelessWidget {
-  const EmptyCartView({super.key});
+class EmptyOrdersView extends StatelessWidget {
+  const EmptyOrdersView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -66,24 +180,27 @@ class EmptyCartView extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         const Text(
-          'No hay pedidos activos',
+          'No hay órdenes disponibles',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         const Text(
-          'Agregue productos desde la pestaña de Productos',
+          'Las órdenes aparecerán aquí cuando estén disponibles en el servidor',
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 16, color: Colors.black54),
         ),
         const SizedBox(height: 24),
-        CustomButton(
-          label: 'Ir a Productos',
-          baseColor: AppColors.redPrimary,
-          textColor: Colors.white,
-          onTap: () {
-            provider.updateMenu(0);
-            provider.goToPage(0);
+        ElevatedButton.icon(
+          onPressed: () {
+            provider.getAllNewOrders();
           },
+          icon: const Icon(Icons.refresh),
+          label: const Text('Actualizar'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.redPrimary,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+          ),
         ),
       ],
     );

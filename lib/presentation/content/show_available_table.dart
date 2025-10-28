@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ordena_ya/data/model/select_table_model.dart';
+
 import 'package:ordena_ya/domain/entity/restaurant_table.dart';
 import 'package:ordena_ya/presentation/providers/order_provider.dart';
 import 'package:ordena_ya/presentation/providers/tables_provider.dart';

@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:ordena_ya/core/utils/functions.dart';
-import 'package:provider/provider.dart';
-import '../providers/order_provider.dart';
 import 'order_card.dart';
 
 class ShowOrderModal extends StatelessWidget {
@@ -11,7 +9,6 @@ class ShowOrderModal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<OrderSetupProvider>(context);
     return Dialog(
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
