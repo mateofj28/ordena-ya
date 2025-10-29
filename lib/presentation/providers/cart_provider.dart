@@ -229,31 +229,20 @@ class CartProvider with ChangeNotifier {
   }
 
   CreateOrderRequestModel _buildOrderRequest() {
-    // Convertir items del carrito a productos solicitados
+    // Convertir items del carrito a productos solicitados (nueva estructura simplificada)
     final requestedProducts = _cartItems.map((item) {
-      // Crear estados por cantidad (todos empiezan como "pendiente")
-      final statusByQuantity = List.generate(
-        item.quantity,
-        (index) => ProductStatusModel(status: 'pendiente'),
-      );
-
       return RequestedProductModel(
         productId: item.productId,
-        productName: item.productName,
-        price: item.price,
         requestedQuantity: item.quantity,
         message: item.message,
-        statusByQuantity: statusByQuantity,
       );
     }).toList();
 
     return CreateOrderRequestModel(
       orderType: _orderType,
-      table: _orderType == 'table' ? _tableNumber : 0,
+      tableId: _orderType == 'table' ? _tableNumber.toString() : null,
       peopleCount: _orderType == 'table' ? _peopleCount : 1,
       requestedProducts: requestedProducts,
-      itemCount: totalItems,
-      total: total,
     );
   }
 

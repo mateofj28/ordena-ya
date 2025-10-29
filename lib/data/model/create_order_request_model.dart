@@ -1,57 +1,50 @@
 class CreateOrderRequestModel {
   final String orderType;
-  final int table;
+  final String? tableId; // Cambio: ahora es String (ID de la mesa) y opcional
   final int peopleCount;
   final List<RequestedProductModel> requestedProducts;
-  final int itemCount;
-  final double total;
+  // Eliminados: itemCount y total (se calculan automáticamente en el backend)
 
   CreateOrderRequestModel({
     required this.orderType,
-    required this.table,
+    this.tableId, // Opcional para delivery/takeout
     required this.peopleCount,
     required this.requestedProducts,
-    required this.itemCount,
-    required this.total,
   });
 
   Map<String, dynamic> toJson() {
-    return {
+    final json = {
       'orderType': orderType,
-      'table': table,
       'peopleCount': peopleCount,
       'requestedProducts': requestedProducts.map((product) => product.toJson()).toList(),
-      'itemCount': itemCount,
-      'total': total,
     };
+    
+    // Solo agregar tableId si es una orden de mesa
+    if (tableId != null && orderType == 'table') {
+      json['tableId'] = tableId!;
+    }
+    
+    return json;
   }
 }
 
 class RequestedProductModel {
   final String productId;
-  final String productName;
-  final double price;
   final int requestedQuantity;
   final String message;
-  final List<ProductStatusModel> statusByQuantity;
+  // Eliminados: productName, price, statusByQuantity (se generan automáticamente en el backend)
 
   RequestedProductModel({
     required this.productId,
-    required this.productName,
-    required this.price,
     required this.requestedQuantity,
     required this.message,
-    required this.statusByQuantity,
   });
 
   Map<String, dynamic> toJson() {
     return {
       'productId': productId,
-      'productName': productName,
-      'price': price,
       'requestedQuantity': requestedQuantity,
       'message': message,
-      'statusByQuantity': statusByQuantity.map((status) => status.toJson()).toList(),
     };
   }
 }

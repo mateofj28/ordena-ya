@@ -93,7 +93,7 @@ class ConsumerTabBar extends StatelessWidget {
         indicatorPadding: EdgeInsets.all(10),
         indicatorSize: TabBarIndicatorSize.label,
         labelPadding: const EdgeInsets.symmetric(horizontal: 16),
-        overlayColor: MaterialStateProperty.all(Colors.transparent),
+        overlayColor: WidgetStateProperty.all(Colors.transparent),
         labelColor: AppColors.redPrimary,
         unselectedLabelColor: Colors.grey,
       ),

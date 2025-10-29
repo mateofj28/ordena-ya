@@ -18,7 +18,7 @@ class OrderSummaryCard extends StatelessWidget {
   final TextStyle? totalStyle;
 
   const OrderSummaryCard({
-    Key? key,
+    super.key,
     required this.orderId,
     required this.table,
     required this.consumptionType,
@@ -30,7 +30,7 @@ class OrderSummaryCard extends StatelessWidget {
     this.backgroundColor = AppColors.yellowStatus,
     this.titleStyle,
     this.totalStyle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

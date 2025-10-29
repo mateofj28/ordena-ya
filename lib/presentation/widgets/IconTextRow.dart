@@ -8,13 +8,13 @@ class IconTextRow extends StatelessWidget {
   final TextStyle? textStyle;
 
   const IconTextRow({
-    Key? key,
+    super.key,
     required this.icon,
     required this.title,
     this.color = Colors.black,
     this.spacing = 10.0,
     this.textStyle,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

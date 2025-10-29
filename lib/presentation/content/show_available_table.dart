@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-
+import 'package:hugeicons/hugeicons.dart';
+import 'package:ordena_ya/core/constants/AppColors.dart';
+import 'package:ordena_ya/core/utils/logger.dart';
 import 'package:ordena_ya/domain/entity/restaurant_table.dart';
 import 'package:ordena_ya/presentation/providers/order_provider.dart';
 import 'package:ordena_ya/presentation/providers/tables_provider.dart';
@@ -7,48 +9,6 @@ import 'package:ordena_ya/presentation/widgets/CircularCloseButton.dart';
 import 'package:provider/provider.dart';
 
 class ShowAvailableTable extends StatelessWidget {
-  final List<RestaurantTable> tables = [
-    RestaurantTable(
-      id: 1,
-      tenantId: 10,
-      tableNumber: "Mesa 1",
-      capacity: 4,
-      status: "available",
-      location: "Terraza",
-    ),
-    RestaurantTable(
-      id: 2,
-      tenantId: 10,
-      tableNumber: "Mesa 2",
-      capacity: 2,
-      status: "occupied",
-      location: "Interior",
-    ),
-    RestaurantTable(
-      id: 3,
-      tenantId: 10,
-      tableNumber: "Mesa 3",
-      capacity: 6,
-      status: "occupied",
-      location: "Terraza",
-    ),
-    RestaurantTable(
-      id: 4,
-      tenantId: 10,
-      tableNumber: "Mesa 4",
-      capacity: 4,
-      status: "available",
-      location: "Salón Principal",
-    ),
-    RestaurantTable(
-      id: 5,
-      tenantId: 10,
-      tableNumber: "Mesa 5",
-      capacity: 8,
-      status: "occupied",
-      location: "VIP",
-    ),
-  ];
 
   Color _getColor(String status) {
     switch (status) {
@@ -78,20 +38,102 @@ class ShowAvailableTable extends StatelessWidget {
         return const Center(child: CircularProgressIndicator());
 
       case TablesState.success:
+        if (provider.tables.isEmpty) {
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  HugeIcon(
+                    color: AppColors.textPrimary,
+                    size: 64,
+                    icon: HugeIcons.strokeRoundedTable,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    "No hay mesas disponibles",
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Las mesas aparecerán aquí cuando estén registradas en el servidor",
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      context.read<TablesProvider>().getTables();
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text("Recargar"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.yellowStatus,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
         return buildTablesView(context, provider.tables);
 
       case TablesState.failure:
-        return Center(child: Text("Error: ${provider.errorMessage}"));
-
-      case TablesState.initial:
         return Center(
-          child: ElevatedButton(
-            onPressed: () {
-              context.read<TablesProvider>().getTables();
-            },
-            child: const Text("Cargar tablas"),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                HugeIcon(
+                  color: AppColors.redTotal,
+                  size: 64,
+                  icon: HugeIcons.strokeRoundedRssError,
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  "Error al cargar mesas",
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  provider.errorMessage ?? "Error desconocido",
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.grey[600],
+                      ),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    context.read<TablesProvider>().getTables();
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text("Reintentar"),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.redTotal,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
           ),
         );
+
+      case TablesState.initial:
+        // Cargar automáticamente las mesas cuando se abre el diálogo
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.read<TablesProvider>().getTables();
+        });
+        return const Center(child: CircularProgressIndicator());
     }
   }
 
@@ -134,10 +176,22 @@ class ShowAvailableTable extends StatelessWidget {
               final table = tables[index];
               return GestureDetector(
                 onTap: () {
+                  Logger.info('Table tapped: ${table.tableNumber} (${table.status})');
                   if (table.status != 'occupied') {
-                    context.read<OrderSetupProvider>().tableId = table.id;
-                    context.read<TablesProvider>().selectTable(table);
-                    Navigator.pop(context);                
+                    Logger.info('Table is available, proceeding with selection');
+                    try {
+                      // Usar el nuevo método que guarda la información completa
+                      context.read<OrderSetupProvider>().setSelectedTable(table);
+                      Logger.info('setSelectedTable called successfully');
+                      context.read<TablesProvider>().selectTable(table);
+                      Logger.info('TablesProvider.selectTable called successfully');
+                      Navigator.pop(context);
+                      Logger.info('Modal closed successfully');
+                    } catch (e) {
+                      Logger.error('Error selecting table: $e');
+                    }
+                  } else {
+                    Logger.info('Table is occupied, cannot select');
                   }
                 },
                 child: Container(
@@ -182,7 +236,7 @@ class ShowAvailableTable extends StatelessWidget {
     );
   }
 
-  ShowAvailableTable({super.key});
+  const ShowAvailableTable({super.key});
 
   @override
   Widget build(BuildContext context) {

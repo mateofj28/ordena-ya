@@ -22,7 +22,12 @@ class CartScreen extends StatelessWidget {
         String orderInfo = '';
         switch (provider.selectedIndex) {
           case 0:
-            orderInfo = 'Mesa: ${provider.tableIndex} · ${provider.peopleCount} personas';
+            if (provider.selectedTableInfo != null) {
+              final table = provider.selectedTableInfo!;
+              orderInfo = 'Mesa ${table.tableNumber} (${table.location}) · ${provider.peopleCount} personas';
+            } else {
+              orderInfo = 'Mesa: ${provider.tableId} · ${provider.peopleCount} personas';
+            }
             break;
           case 1:
             orderInfo = 'Domicilio · Cliente: ${provider.clientId}';

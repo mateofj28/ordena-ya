@@ -10,13 +10,13 @@ class LabelValueColumn extends StatelessWidget {
   final double valueSize;
 
   const LabelValueColumn({
-    Key? key,
+    super.key,
     required this.title,
     required this.value,
     this.textColor = Colors.black,
     this.titleSize = 16,
     this.valueSize = 14,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

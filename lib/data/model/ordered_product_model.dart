@@ -38,7 +38,7 @@ class OrderedProductModel extends OrderedProduct {
     );
   }
 
-  toJson() {
+  Map<String, Object?> toJson() {
     return {'id': id, 'name': name, 'unitPrice': price, 'quantity': quantity};
   }
 }

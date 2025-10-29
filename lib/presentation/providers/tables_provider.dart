@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-
+import 'package:ordena_ya/core/utils/logger.dart';
 import 'package:ordena_ya/domain/entity/product.dart';
 import 'package:ordena_ya/domain/entity/restaurant_table.dart';
 import 'package:ordena_ya/domain/usecase/get_all_products.dart';
@@ -46,17 +46,20 @@ class TablesProvider extends ChangeNotifier {
   }
 
   Future<void> getTables() async {
+    Logger.info('TablesProvider: Starting to get tables');
     _state = TablesState.loading;
     notifyListeners();
     final result = await getTablesUseCase.call();
 
     result.fold(
       (failure) {
+        Logger.error('TablesProvider: Failed to get tables - ${failure.message}');
         _state = TablesState.failure;
         _errorMessage = failure.message;
         notifyListeners();
       },
       (data) {
+        Logger.info('TablesProvider: Successfully got ${data.length} tables');
         _state = TablesState.success;
         _tables = data;
         notifyListeners();
@@ -65,17 +68,24 @@ class TablesProvider extends ChangeNotifier {
   }
 
   Future<void> getProducts() async {
+    Logger.info('TablesProvider: Starting to get products');
     _getProductState = TablesState.loading;
     notifyListeners();
     final result = await getAllProductsUseCase.call();
 
     result.fold(
       (failure) {
+        Logger.error('TablesProvider: Failed to get products - ${failure.message}');
         _getProductState = TablesState.failure;
         _getProductsError = failure.message;
         notifyListeners();
       },
       (data) {
+        Logger.info('TablesProvider: Successfully got ${data.length} products');
+        // Log de cada producto para debugging
+        for (var product in data) {
+          Logger.info('Product loaded: ID=${product.id}, Name=${product.name}');
+        }
         _getProductState = TablesState.success;
         _products = data;
         notifyListeners();

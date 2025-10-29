@@ -1,5 +1,5 @@
 class RestaurantTable {
-  final int id;
+  final String id; // Cambio: ahora es String para soportar ObjectIds de MongoDB
   final int tenantId;
   final String tableNumber;
   final int capacity;

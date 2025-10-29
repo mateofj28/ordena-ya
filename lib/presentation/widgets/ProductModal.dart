@@ -32,13 +32,103 @@ class _ProductModalState extends State<ProductModal> {
     super.dispose();
   }
 
+  Widget _buildProductImage() {
+    try {
+      final imageUrl = widget.product.imageUrl;
+
+      // Si no hay imagen, mostrar placeholder
+      if (imageUrl.isEmpty) {
+        return _buildImagePlaceholder();
+      }
+
+      // Si es una URL HTTP/HTTPS, usar Image.network
+      if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.network(
+            imageUrl,
+            width: 150,
+            height: 150,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildImagePlaceholder();
+            },
+            loadingBuilder: (context, child, loadingProgress) {
+              if (loadingProgress == null) return child;
+              return Center(
+                child: CircularProgressIndicator(
+                  value:
+                      loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                              loadingProgress.expectedTotalBytes!
+                          : null,
+                ),
+              );
+            },
+          ),
+        );
+      }
+
+      // Si es base64 con formato data:image/svg+xml;base64,
+      if (imageUrl.contains(',') && imageUrl.split(',').length > 1) {
+        final base64Part = imageUrl.split(',')[1];
+        return SvgPicture.string(
+          utf8.decode(base64Decode(base64Part)),
+          width: 150,
+          height: 150,
+        );
+      }
+
+      // Si es solo base64 sin prefijo
+      if (imageUrl.length > 50) {
+        // Asumimos que es base64 si es muy largo
+        try {
+          return SvgPicture.string(
+            utf8.decode(base64Decode(imageUrl)),
+            width: 150,
+            height: 150,
+          );
+        } catch (e) {
+          return _buildImagePlaceholder();
+        }
+      }
+
+      // Fallback: mostrar placeholder
+      return _buildImagePlaceholder();
+    } catch (e) {
+      // En caso de cualquier error, mostrar placeholder
+      return _buildImagePlaceholder();
+    }
+  }
+
+  Widget _buildImagePlaceholder() {
+    return Container(
+      width: 150,
+      height: 150,
+      decoration: BoxDecoration(
+        color: AppColors.lightGray,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.restaurant_menu, size: 50, color: Colors.grey[600]),
+          SizedBox(height: 8),
+          Text(
+            'Sin imagen',
+            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<OrderSetupProvider>(context);
     final clientProvider = Provider.of<UserProvider>(context);
     final clientId = clientProvider.currentClient?.id;
 
-    final String base64Part = widget.product.imageUrl.split(",")[1];
     return Dialog(
       backgroundColor: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -83,11 +173,7 @@ class _ProductModalState extends State<ProductModal> {
               SizedBox(
                 height: 200,
                 width: double.infinity,
-                child: SvgPicture.string(
-                  utf8.decode(base64Decode(base64Part)),
-                  width: 150,
-                  height: 150,
-                ),
+                child: _buildProductImage(),
               ),
 
               const SizedBox(height: 10),
@@ -195,9 +281,10 @@ class _ProductModalState extends State<ProductModal> {
               Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: CustomButton(
-                  label: provider.status == OrderStatus.loading 
-                      ? 'Agregando...' 
-                      : 'Añadir al carrito',
+                  label:
+                      provider.status == OrderStatus.loading
+                          ? 'Agregando...'
+                          : 'Añadir al carrito',
                   baseColor: AppColors.redPrimary,
                   textColor: Colors.white,
                   onTap: () {
@@ -214,7 +301,11 @@ class _ProductModalState extends State<ProductModal> {
     );
   }
 
-  void _addToCart(BuildContext context, OrderSetupProvider provider, String? clientId) {
+  void _addToCart(
+    BuildContext context,
+    OrderSetupProvider provider,
+    String? clientId,
+  ) {
     final updatedProduct = widget.product.copyWith(
       quantity: provider.productCount,
       notes: _observationsController.text,
@@ -227,7 +318,7 @@ class _ProductModalState extends State<ProductModal> {
 
     // Agregar producto al carrito
     provider.addProductToNewCart(
-      updatedProduct, 
+      updatedProduct,
       message: _observationsController.text,
     );
 

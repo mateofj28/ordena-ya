@@ -8,6 +8,7 @@ import 'package:ordena_ya/domain/dto/register_order_req.dart';
 import 'package:ordena_ya/domain/entity/cart_item.dart';
 import 'package:ordena_ya/domain/entity/order.dart';
 import 'package:ordena_ya/domain/entity/product.dart';
+import 'package:ordena_ya/domain/entity/restaurant_table.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders.dart';
 import 'package:ordena_ya/domain/usecase/get_all_orders_new.dart';
 import 'package:ordena_ya/domain/usecase/create_order_new.dart';
@@ -48,8 +49,9 @@ class OrderSetupProvider with ChangeNotifier {
   String cedula = '';
   String email = '';
 
-  int _tableId = 0;
+  String _tableId = ''; // ID de la mesa seleccionada (vacío = no seleccionada)
   String _clientId = '';
+  RestaurantTable? _selectedTableInfo; // Información completa de la mesa seleccionada
 
   int _clienteStep = 0;
   int _discountStep = 0;
@@ -60,7 +62,6 @@ class OrderSetupProvider with ChangeNotifier {
   int _selectedIndex = 0;
   int _currentIndex = 0;
   int _currentMenu = 0;
-  int _tableIndex = 1;
   int _peopleCount = 1;
   int _productCount = 1;
   List<Order> _orders = [];
@@ -73,7 +74,6 @@ class OrderSetupProvider with ChangeNotifier {
 
 
   int _selectedTabIndex = 0;
-  String _selectedTable = 'N/A';
   String _selectedDiscount = 'N/A';
   final String _selectedPeople = 'N/A';
   String _selectedClient = '';
@@ -93,13 +93,16 @@ class OrderSetupProvider with ChangeNotifier {
   List<Product> get cartItems => _cartItems;
   List<CartItem> get newCartItems => List.unmodifiable(_newCartItems);
   int get selectedTabIndex => _selectedTabIndex;
-  String get selectedTable => _selectedTable;
   String? get errorMessage => _errorMessage;
   String get selectedDiscount => _selectedDiscount;
   String get selectedPeople => _selectedPeople;
   String get selectedClient => _selectedClient;
   String get clientId => _clientId;
   bool get isLoadingAllOrders => _isLoadingAllOrders;
+  RestaurantTable? get selectedTableInfo => _selectedTableInfo;
+  
+  // Getter para debuggear el estado de la mesa
+  String get tableDebugInfo => 'tableId: $_tableId, selectedTableInfo: ${_selectedTableInfo != null ? '${_selectedTableInfo!.tableNumber} (ID: ${_selectedTableInfo!.id}, ${_selectedTableInfo!.status})' : 'NULL'}';
   
   // Getters para el nuevo carrito
   bool get hasCartItems => _newCartItems.isNotEmpty;
@@ -119,7 +122,7 @@ class OrderSetupProvider with ChangeNotifier {
     Logger.info('loadCurrentOrderFromExisting called - Orders available: ${_newOrders.length}');
     
     if (_newOrders.isNotEmpty) {
-      Logger.info('Current config - tableIndex: $_tableIndex, orderType: ${_getOrderTypeString()}');
+      Logger.info('Current config - tableId: $_tableId, orderType: ${_getOrderTypeString()}');
       
       // Por ahora, tomar la primera orden disponible para debuggear
       final matchingOrder = _newOrders.first;
@@ -130,11 +133,11 @@ class OrderSetupProvider with ChangeNotifier {
       Logger.info('_currentOrderEntity assigned - ID: ${_currentOrderEntity?.id}');
       
       // Actualizar valores actuales con los de la orden
-      _tableIndex = matchingOrder.mesa;
+      _tableId = matchingOrder.mesa.toString(); // Mantener conversión aquí porque mesa sigue siendo int
       _peopleCount = matchingOrder.cantidadPersonas;
       _selectedIndex = _getIndexFromOrderType(matchingOrder.tipoPedido);
       
-      Logger.info('Loaded order values - Table: $_tableIndex, People: $_peopleCount, Type: $_selectedIndex');
+      Logger.info('Loaded order values - Table: $_tableId, People: $_peopleCount, Type: $_selectedIndex');
       
       // Cargar los productos de la orden al carrito
       _loadCartFromOrder(matchingOrder);
@@ -248,7 +251,7 @@ class OrderSetupProvider with ChangeNotifier {
   // TODO: Implement proper client management
   List<String> get clients => ['Cliente 1', 'Cliente 2', 'Cliente 3'];
   int get currentMenu => _currentMenu;
-  int get tableIndex => _tableIndex;
+  String get tableId => _tableId; // ID de la mesa seleccionada
   bool get enableSendToKitchen => _enableSendToKitchen;
   bool get enableCloseBill => _enableCloseBill;
   int get peopleCount => _peopleCount;
@@ -295,11 +298,16 @@ class OrderSetupProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  set tableId(int id) {
-    _tableId = id;
-    _tableIndex = id; // Sincronizar ambas variables
-    _checkForChanges(); // Verificar si hay cambios
-    Logger.info('Table selected: $_tableIndex');
+  // Método para establecer la mesa seleccionada (usar este método siempre)
+  void setSelectedTable(RestaurantTable table) {
+    Logger.info('setSelectedTable called with: ID=${table.id}, Number=${table.tableNumber}, Status=${table.status}');
+    Logger.info('Table ID length: ${table.id.length}, Is valid ObjectId: ${table.id.length == 24}');
+    _selectedTableInfo = table;
+    // Usar el ID de la mesa (no el número) según la nueva API
+    _tableId = table.id;
+    Logger.info('After setting: _tableId=$_tableId (using table.id), selectedTableInfo=${_selectedTableInfo != null}');
+    _checkForChanges();
+    Logger.info('Table selected: ${table.tableNumber} (${table.location})');
     notifyListeners();
   }
 
@@ -334,10 +342,6 @@ class OrderSetupProvider with ChangeNotifier {
   }
 
   // Setters
-  void updateSelectedTable(String table) {
-    _selectedTable = table;
-    notifyListeners();
-  }
 
   set productCount(int index) {
     _productCount = index;
@@ -363,23 +367,7 @@ class OrderSetupProvider with ChangeNotifier {
     return formKey.currentState?.validate() ?? false;
   }
 
-  void increaseTable() {
-    _tableIndex++;
-    _tableId = _tableIndex; // Sincronizar
-    updateLastOrderWithTablesOrPeople();
-    _checkForChanges();
-    notifyListeners();
-  }
 
-  void decreaseTable() {
-    if (_tableIndex > 1) {
-      _tableIndex--;
-      _tableId = _tableIndex; // Sincronizar
-      updateLastOrderWithTablesOrPeople();
-      _checkForChanges();
-      notifyListeners();
-    }
-  }
 
   void increasePeople() {
     _peopleCount++;
@@ -408,7 +396,7 @@ class OrderSetupProvider with ChangeNotifier {
   void _checkForChanges() {
     if (_currentOrderEntity != null) {
       // Comparar con el estado ACTUAL de la orden (no el original)
-      bool hasTableChanges = _tableIndex != _currentOrderEntity!.mesa;
+      bool hasTableChanges = _tableId != _currentOrderEntity!.mesa.toString();
       bool hasPeopleChanges = _peopleCount != _currentOrderEntity!.cantidadPersonas;
       bool hasTypeChanges = _selectedIndex != _getIndexFromOrderType(_currentOrderEntity!.tipoPedido);
       bool hasCartChanges = _hasCartChanges();
@@ -416,7 +404,7 @@ class OrderSetupProvider with ChangeNotifier {
       bool hasChanges = hasTableChanges || hasPeopleChanges || hasTypeChanges || hasCartChanges;
       
       enableSendToKitchen = hasChanges;
-      Logger.info('Changes detected - Table: $_tableIndex vs ${_currentOrderEntity!.mesa}, People: $_peopleCount vs ${_currentOrderEntity!.cantidadPersonas}, Type: $_selectedIndex vs ${_getIndexFromOrderType(_currentOrderEntity!.tipoPedido)}, Cart: $hasCartChanges, Enable: $enableSendToKitchen');
+      Logger.info('Changes detected - Table: $_tableId vs ${_currentOrderEntity!.mesa}, People: $_peopleCount vs ${_currentOrderEntity!.cantidadPersonas}, Type: $_selectedIndex vs ${_getIndexFromOrderType(_currentOrderEntity!.tipoPedido)}, Cart: $hasCartChanges, Enable: $enableSendToKitchen');
     } else {
       // Si no hay orden actual, habilitar si hay productos en el carrito
       enableSendToKitchen = _newCartItems.isNotEmpty;
@@ -536,7 +524,7 @@ class OrderSetupProvider with ChangeNotifier {
 
     CreateOrderReq order = CreateOrderReq(
       tenantId: 1,
-      tableId: _tableId,
+      tableId: int.tryParse(_tableId) ?? 0,
       peopleCount: peopleCountValue,
       consumptionType: consumptionType,
       clientId: clientIdValue,
@@ -545,11 +533,34 @@ class OrderSetupProvider with ChangeNotifier {
   }
 
   String? _validateOrderRequirements() {
+    Logger.info('Validating order requirements - selectedIndex: $_selectedIndex');
     switch (_selectedIndex) {
       case 0: // Mesa
-        if (_tableId == 0) {
-          return "Debes seleccionar una mesa antes de crear tu orden";
+        Logger.info('Mesa validation - tableId: $_tableId, selectedTableInfo: ${_selectedTableInfo != null ? 'EXISTS' : 'NULL'}');
+        if (_selectedTableInfo != null) {
+          Logger.info('Table info - Number: ${_selectedTableInfo!.tableNumber}, Status: ${_selectedTableInfo!.status}');
         }
+        
+        if (_selectedTableInfo == null) {
+          Logger.error('Mesa validation failed - no table selected from modal');
+          return "Debes seleccionar una mesa desde el selector de mesas";
+        }
+
+        // Verificar consistencia entre _tableId y _selectedTableInfo
+        if (_tableId != _selectedTableInfo!.id) {
+          Logger.error('Mesa validation failed - tableId ($_tableId) does not match selectedTableInfo.id (${_selectedTableInfo!.id})');
+          return "Debes seleccionar una mesa desde el selector de mesas";
+        }
+        // Validar que la mesa esté disponible
+        if (_selectedTableInfo!.status == 'occupied') {
+          Logger.error('Mesa validation failed - table is occupied');
+          return "La mesa seleccionada está ocupada. Por favor, selecciona otra mesa.";
+        }
+        if (_selectedTableInfo!.status == 'reserved') {
+          Logger.error('Mesa validation failed - table is reserved');
+          return "La mesa seleccionada está reservada. Por favor, selecciona otra mesa.";
+        }
+        Logger.info('Mesa validation passed successfully');
         break;
       case 1: // Domicilio
         if (_clientId.isEmpty) {
@@ -584,16 +595,27 @@ class OrderSetupProvider with ChangeNotifier {
     }
 
     cartProvider.setOrderType(orderType);
-    cartProvider.setTableNumber(_tableIndex);
+    cartProvider.setTableNumber(_tableId);
     cartProvider.setPeopleCount(_peopleCount);
     cartProvider.setClientId(_clientId);
   }
 
   // Métodos para el nuevo carrito
   Future<void> addProductToNewCart(Product product, {String message = ''}) async {
+    Logger.info('addProductToNewCart called - Current table state: $tableDebugInfo');
+    Logger.info('DEBUG: _tableId=$_tableId, _selectedTableInfo=${_selectedTableInfo?.tableNumber}');
+    
+    // Arreglar inconsistencia si existe selectedTableInfo pero tableId está vacío
+    if (_selectedTableInfo != null && _tableId.isEmpty) {
+      Logger.info('Fixing inconsistency: _selectedTableInfo exists but _tableId is empty');
+      _tableId = _selectedTableInfo!.id;
+      Logger.info('Fixed _tableId to: $_tableId');
+    }
+    
     // Validar requisitos antes de proceder
     final validationError = _validateOrderRequirements();
     if (validationError != null) {
+      Logger.error('Validation failed in addProductToNewCart: $validationError');
       errorMessage = validationError;
       notifyListeners();
       return;
@@ -777,6 +799,14 @@ class OrderSetupProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  // Limpiar selección de mesa
+  void clearSelectedTable() {
+    _selectedTableInfo = null;
+    _tableId = ''; // vacío = no seleccionada
+    Logger.info('Selected table cleared');
+    notifyListeners();
+  }
+
   // Método simplificado para agregar productos (mantener compatibilidad)
   void addProductToCart(Product product) {
     // Redirigir al nuevo método
@@ -791,7 +821,7 @@ class OrderSetupProvider with ChangeNotifier {
 
   void updateLastOrderWithTablesOrPeople() {
     if (_orders.isEmpty) return;
-    Logger.info('Actualizando mesa: $_tableIndex, personas: $_peopleCount');
+    Logger.info('Actualizando mesa: $_tableId, personas: $_peopleCount');
   }
 
   void increaseProductQuantity(Product product) {
@@ -1095,31 +1125,32 @@ class OrderSetupProvider with ChangeNotifier {
         orderType = 'table';
     }
 
-    // Convertir items del carrito a productos solicitados
+    // Convertir items del carrito a productos solicitados (nueva estructura simplificada)
     final requestedProducts = _newCartItems.map((item) {
-      // Crear estados por cantidad (todos empiezan como "pendiente")
-      final statusByQuantity = List.generate(
-        item.quantity,
-        (index) => ProductStatusModel(status: 'pendiente'),
-      );
-
       return RequestedProductModel(
         productId: item.productId,
-        productName: item.productName,
-        price: item.price,
         requestedQuantity: item.quantity,
         message: item.message,
-        statusByQuantity: statusByQuantity,
       );
     }).toList();
 
+    // Debug: verificar valores antes de crear la orden
+    Logger.info('Building order request - orderType: $orderType, _tableId: $_tableId, _selectedIndex: $_selectedIndex');
+    Logger.info('Table info - selectedTableInfo: ${_selectedTableInfo != null ? '${_selectedTableInfo!.tableNumber} (ID: ${_selectedTableInfo!.id})' : 'NULL'}');
+    
+    Logger.info('Final tableId to send: $_tableId');
+    
+    // Validación adicional para mesa
+    if (orderType == 'table' && _tableId.isEmpty) {
+      Logger.error('ERROR: Trying to create table order but _tableId is empty: $_tableId');
+      throw Exception('Mesa no seleccionada correctamente. _tableId: $_tableId');
+    }
+    
     return CreateOrderRequestModel(
       orderType: orderType,
-      table: orderType == 'table' ? _tableIndex : 0,
+      tableId: orderType == 'table' ? _tableId : null,
       peopleCount: orderType == 'table' ? _peopleCount : 1,
       requestedProducts: requestedProducts,
-      itemCount: totalCartItems,
-      total: cartTotal,
     );
   }
 
