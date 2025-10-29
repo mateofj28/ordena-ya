@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:ordena_ya/core/config/api_config.dart';
 import 'package:ordena_ya/core/utils/logger.dart';
 import 'package:ordena_ya/data/model/order_response_model.dart';
+import 'package:ordena_ya/core/token/token_storage.dart';
 
 abstract class OrdersRemoteDataSource {
   Future<List<OrderResponseModel>> getAllOrders();
@@ -11,13 +12,21 @@ abstract class OrdersRemoteDataSource {
 
 class OrdersRemoteDataSourceImpl implements OrdersRemoteDataSource {
   final http.Client client;
+  final TokenStorage tokenStorage;
 
-  OrdersRemoteDataSourceImpl({required this.client});
+  OrdersRemoteDataSourceImpl({
+    required this.client,
+    required this.tokenStorage,
+  });
 
   @override
   Future<List<OrderResponseModel>> getAllOrders() async {
     try {
       final url = ApiConfig.ordersEndpoint;
+      
+      // Obtener token para autenticación
+      final token = await tokenStorage.getToken();
+      
       Logger.info('Fetching orders from: $url');
       Logger.info('API Config: ${ApiConfig.info}');
 
@@ -27,6 +36,7 @@ class OrdersRemoteDataSourceImpl implements OrdersRemoteDataSource {
           'Content-Type': 'application/json; charset=utf-8',
           'Accept': 'application/json; charset=utf-8',
           'Accept-Charset': 'utf-8',
+          if (token != null) 'Authorization': 'Bearer $token',
         },
       ).timeout(
         const Duration(seconds: 10),
@@ -62,6 +72,10 @@ class OrdersRemoteDataSourceImpl implements OrdersRemoteDataSource {
   Future<OrderResponseModel> getOrderById(String id) async {
     try {
       final url = '${ApiConfig.ordersEndpoint}/$id';
+      
+      // Obtener token para autenticación
+      final token = await tokenStorage.getToken();
+      
       Logger.info('Fetching order by ID from: $url');
 
       final response = await client.get(
@@ -70,6 +84,7 @@ class OrdersRemoteDataSourceImpl implements OrdersRemoteDataSource {
           'Content-Type': 'application/json; charset=utf-8',
           'Accept': 'application/json; charset=utf-8',
           'Accept-Charset': 'utf-8',
+          if (token != null) 'Authorization': 'Bearer $token',
         },
       ).timeout(
         const Duration(seconds: 10),

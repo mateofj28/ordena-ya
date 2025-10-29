@@ -4,6 +4,7 @@ import 'package:ordena_ya/core/config/api_config.dart';
 import 'package:ordena_ya/core/utils/logger.dart';
 import 'package:ordena_ya/data/model/create_order_request_model.dart';
 import 'package:ordena_ya/data/model/order_response_model.dart';
+import 'package:ordena_ya/core/token/token_storage.dart';
 
 abstract class CreateOrderRemoteDataSource {
   Future<OrderResponseModel> createOrder(CreateOrderRequestModel orderRequest);
@@ -13,14 +14,21 @@ abstract class CreateOrderRemoteDataSource {
 
 class CreateOrderRemoteDataSourceImpl implements CreateOrderRemoteDataSource {
   final http.Client client;
+  final TokenStorage tokenStorage;
 
-  CreateOrderRemoteDataSourceImpl({required this.client});
+  CreateOrderRemoteDataSourceImpl({
+    required this.client,
+    required this.tokenStorage,
+  });
 
   @override
   Future<OrderResponseModel> createOrder(CreateOrderRequestModel orderRequest) async {
     try {
       final url = ApiConfig.ordersEndpoint;
       final body = json.encode(orderRequest.toJson());
+      
+      // Obtener token para autenticación
+      final token = await tokenStorage.getToken();
       
       Logger.info('Creating order at: $url');
       Logger.info('Request body: $body');
@@ -31,6 +39,7 @@ class CreateOrderRemoteDataSourceImpl implements CreateOrderRemoteDataSource {
           'Content-Type': 'application/json; charset=utf-8',
           'Accept': 'application/json; charset=utf-8',
           'Accept-Charset': 'utf-8',
+          if (token != null) 'Authorization': 'Bearer $token',
         },
         body: body,
       ).timeout(
@@ -71,6 +80,9 @@ class CreateOrderRemoteDataSourceImpl implements CreateOrderRemoteDataSource {
       final url = '${ApiConfig.ordersEndpoint}/$orderId';
       final body = json.encode(orderRequest.toJson());
       
+      // Obtener token para autenticación
+      final token = await tokenStorage.getToken();
+      
       Logger.info('Updating order at: $url');
       Logger.info('Request body: $body');
 
@@ -80,6 +92,7 @@ class CreateOrderRemoteDataSourceImpl implements CreateOrderRemoteDataSource {
           'Content-Type': 'application/json; charset=utf-8',
           'Accept': 'application/json; charset=utf-8',
           'Accept-Charset': 'utf-8',
+          if (token != null) 'Authorization': 'Bearer $token',
         },
         body: body,
       ).timeout(
@@ -116,6 +129,9 @@ class CreateOrderRemoteDataSourceImpl implements CreateOrderRemoteDataSource {
     try {
       final url = '${ApiConfig.ordersEndpoint}/$orderId/close';
       
+      // Obtener token para autenticación
+      final token = await tokenStorage.getToken();
+      
       Logger.info('Closing order at: $url');
 
       final response = await client.patch(
@@ -124,6 +140,7 @@ class CreateOrderRemoteDataSourceImpl implements CreateOrderRemoteDataSource {
           'Content-Type': 'application/json; charset=utf-8',
           'Accept': 'application/json; charset=utf-8',
           'Accept-Charset': 'utf-8',
+          if (token != null) 'Authorization': 'Bearer $token',
         },
       ).timeout(
         const Duration(seconds: 15),

@@ -71,23 +71,38 @@ void setupLocator() {
   );
 
   getIt.registerLazySingleton<UserRemoteDataSource>(
-    () => UserRemoteDataSourceImple(apiClient: getIt<ApiClient>()),
+    () => UserRemoteDataSourceImple(
+      client: getIt<http.Client>(),
+      tokenStorage: getIt<TokenStorage>(),
+    ),
   );
 
   getIt.registerLazySingleton<RestaurantTableRemoteDataSource>(
-    () => RestaurantTableRemoteDataSourceImpl(apiClient: getIt<ApiClient>()),
+    () => RestaurantTableRemoteDataSourceImpl(
+      client: getIt<http.Client>(),
+      tokenStorage: getIt<TokenStorage>(),
+    ),
   );
 
   getIt.registerLazySingleton<ProductRemoteDataSource>(
-    () => ProductRemoteDataSourceImpl(apiClient: getIt<ApiClient>()),
+    () => ProductRemoteDataSourceImpl(
+      client: getIt<http.Client>(),
+      tokenStorage: getIt<TokenStorage>(),
+    ),
   );
 
   getIt.registerLazySingleton<OrdersRemoteDataSource>(
-    () => OrdersRemoteDataSourceImpl(client: getIt<http.Client>()),
+    () => OrdersRemoteDataSourceImpl(
+      client: getIt<http.Client>(),
+      tokenStorage: getIt<TokenStorage>(),
+    ),
   );
 
   getIt.registerLazySingleton<CreateOrderRemoteDataSource>(
-    () => CreateOrderRemoteDataSourceImpl(client: getIt<http.Client>()),
+    () => CreateOrderRemoteDataSourceImpl(
+      client: getIt<http.Client>(),
+      tokenStorage: getIt<TokenStorage>(),
+    ),
   );
 
   // Repositorio

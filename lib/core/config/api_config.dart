@@ -27,12 +27,23 @@ class ApiConfig {
     return 'http://$host:$_port/api';
   }
   
+  // Endpoints del nuevo servidor
+  static String get authLoginEndpoint => '$baseUrl/auth/login';
+  static String get authRegisterEndpoint => '$baseUrl/auth/register';
+  static String get tablesEndpoint => '$baseUrl/tables';
+  static String get productsEndpoint => '$baseUrl/products';
+  static String get customersEndpoint => '$baseUrl/customers';
   static String get ordersEndpoint => '$baseUrl/orders';
   
   // Método para obtener información de configuración
   static Map<String, String> get info => {
     'platform': Platform.operatingSystem,
     'baseUrl': baseUrl,
+    'authLoginEndpoint': authLoginEndpoint,
+    'authRegisterEndpoint': authRegisterEndpoint,
+    'tablesEndpoint': tablesEndpoint,
+    'productsEndpoint': productsEndpoint,
+    'customersEndpoint': customersEndpoint,
     'ordersEndpoint': ordersEndpoint,
   };
 }
