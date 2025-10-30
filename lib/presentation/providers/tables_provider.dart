@@ -53,13 +53,11 @@ class TablesProvider extends ChangeNotifier {
 
     result.fold(
       (failure) {
-        Logger.error('TablesProvider: Failed to get tables - ${failure.message}');
         _state = TablesState.failure;
         _errorMessage = failure.message;
         notifyListeners();
       },
       (data) {
-        Logger.info('TablesProvider: Successfully got ${data.length} tables');
         _state = TablesState.success;
         _tables = data;
         notifyListeners();
@@ -68,29 +66,29 @@ class TablesProvider extends ChangeNotifier {
   }
 
   Future<void> getProducts() async {
-    Logger.info('TablesProvider: Starting to get products');
     _getProductState = TablesState.loading;
     notifyListeners();
-    final result = await getAllProductsUseCase.call();
+    
+    try {
+      final result = await getAllProductsUseCase.call();
 
     result.fold(
       (failure) {
-        Logger.error('TablesProvider: Failed to get products - ${failure.message}');
         _getProductState = TablesState.failure;
         _getProductsError = failure.message;
         notifyListeners();
       },
       (data) {
-        Logger.info('TablesProvider: Successfully got ${data.length} products');
-        // Log de cada producto para debugging
-        for (var product in data) {
-          Logger.info('Product loaded: ID=${product.id}, Name=${product.name}');
-        }
         _getProductState = TablesState.success;
         _products = data;
         notifyListeners();
       },
     );
+    } catch (e) {
+      _getProductState = TablesState.failure;
+      _getProductsError = 'Exception: $e';
+      notifyListeners();
+    }
   }
 
   Future<void> selectTable(RestaurantTable newTable) async {

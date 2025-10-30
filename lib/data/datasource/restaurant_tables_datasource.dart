@@ -30,14 +30,6 @@ class RestaurantTableRemoteDataSourceImpl
       // Obtener token para autenticación
       final token = await tokenStorage.getToken();
 
-      Logger.info('Fetching tables from: $url');
-      Logger.info('Token available: ${token != null ? 'YES' : 'NO'}');
-      if (token != null) {
-        Logger.info(
-          'Token (first 20 chars): ${token.substring(0, token.length > 20 ? 20 : token.length)}...',
-        );
-      }
-
       final response = await client
           .get(
             Uri.parse(url),
@@ -51,38 +43,22 @@ class RestaurantTableRemoteDataSourceImpl
           .timeout(
             const Duration(seconds: 15),
             onTimeout: () {
-              Logger.error('Fetch tables timeout after 15 seconds');
               throw Exception(
                 'Request timeout - Check if server is running and accessible',
               );
             },
           );
 
-      Logger.info('Fetch tables response status: ${response.statusCode}');
-      Logger.info('Fetch tables response body: ${response.body}');
-
       if (response.statusCode == 200) {
         final String responseBody = utf8.decode(response.bodyBytes);
-        Logger.info('Raw tables response body: $responseBody');
 
         try {
           final Map<String, dynamic> json = jsonDecode(responseBody);
-          Logger.info('Parsed tables JSON keys: ${json.keys.toList()}');
-
           final tableResponse = TableResponseModel.fromJson(json);
-          Logger.info(
-            'TableResponse parsed, tables count: ${tableResponse.tables.length}',
-          );
 
           // Convertir TableDataModel a TableModel (modelo existente)
           final tables =
               tableResponse.tables.map((tableData) {
-                Logger.info(
-                  'Processing table: ID=${tableData.id}, Number=${tableData.number}, Status=${tableData.status}',
-                );
-                Logger.info(
-                  'Table ID length: ${tableData.id.length}, Is valid ObjectId: ${tableData.id.length == 24}',
-                );
                 return TableModel(
                   id: tableData.id, // Usar el ID original como string
                   tenantId: 1, // ID del tenant por defecto
@@ -93,13 +69,8 @@ class RestaurantTableRemoteDataSourceImpl
                 );
               }).toList();
 
-          Logger.info('Successfully fetched ${tables.length} tables');
-
           // Si el servidor devuelve lista vacía, mostrar error en lugar de usar mock
           if (tables.isEmpty) {
-            Logger.error(
-              'Server returned empty tables list. Check if tables exist in database.',
-            );
             throw Exception(
               'No tables found in database. Please add tables first.',
             );
@@ -107,15 +78,9 @@ class RestaurantTableRemoteDataSourceImpl
 
           return tables;
         } catch (parseError) {
-          Logger.error('Error parsing tables response: $parseError');
-          Logger.error('Response body was: $responseBody');
           throw Exception('Error parsing tables response: $parseError');
         }
       } else {
-        Logger.error('Failed to fetch tables: ${response.statusCode}');
-        Logger.error('Response headers: ${response.headers}');
-        Logger.error('Response body: ${response.body}');
-
         // Intentar parsear el error del servidor
         try {
           final errorJson = jsonDecode(response.body);
@@ -139,51 +104,6 @@ class RestaurantTableRemoteDataSourceImpl
       // Logger.info('Returning mock tables due to server error');
       // return _getMockTables();
     }
-  }
-
-  List<TableModel> _getMockTables() {
-    return [
-      TableModel(
-        id: "1",
-        tenantId: 1,
-        tableNumber: "1",
-        capacity: 4,
-        status: "available",
-        location: "Terraza",
-      ),
-      TableModel(
-        id: "2",
-        tenantId: 1,
-        tableNumber: "2",
-        capacity: 2,
-        status: "available",
-        location: "Interior",
-      ),
-      TableModel(
-        id: "3",
-        tenantId: 1,
-        tableNumber: "3",
-        capacity: 6,
-        status: "occupied",
-        location: "Salón Principal",
-      ),
-      TableModel(
-        id: "4",
-        tenantId: 1,
-        tableNumber: "4",
-        capacity: 4,
-        status: "available",
-        location: "VIP",
-      ),
-      TableModel(
-        id: "5",
-        tenantId: 1,
-        tableNumber: "5",
-        capacity: 8,
-        status: "available",
-        location: "Terraza",
-      ),
-    ];
   }
 
   @override

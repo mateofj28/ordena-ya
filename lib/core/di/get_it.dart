@@ -35,6 +35,7 @@ import 'package:ordena_ya/domain/repository/create_order_repository.dart';
 import 'package:ordena_ya/domain/usecase/create_order_new.dart';
 import 'package:ordena_ya/domain/usecase/update_order.dart';
 import 'package:ordena_ya/domain/usecase/close_order.dart';
+import 'package:ordena_ya/data/datasource/enriched_order_datasource.dart';
 import '../../domain/repository/order_item_repository.dart';
 import '../../domain/usecase/add_item_to_order.dart';
 import '../../domain/usecase/create_order.dart';
@@ -193,5 +194,13 @@ void setupLocator() {
 
   getIt.registerLazySingleton<CloseOrderUseCase>(
     () => CloseOrderUseCase(repository: getIt<CreateOrderRepository>()),
+  );
+
+  // Datasource para órdenes enriquecidas
+  getIt.registerLazySingleton<EnrichedOrderRemoteDataSource>(
+    () => EnrichedOrderRemoteDataSourceImpl(
+      client: getIt<http.Client>(),
+      tokenStorage: getIt<TokenStorage>(),
+    ),
   );
 }

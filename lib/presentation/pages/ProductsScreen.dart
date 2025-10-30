@@ -101,6 +101,9 @@ class ProductsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = Provider.of<OrderSetupProvider>(context);
     final tableProvider = Provider.of<TablesProvider>(context);
+    
+
+    
     final filteredProducts = getFilteredProducts(
       provider.currentMenu,
       tableProvider.products,

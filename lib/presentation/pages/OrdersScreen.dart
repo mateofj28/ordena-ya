@@ -3,10 +3,11 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/constants/AppColors.dart';
-import '../../core/utils/logger.dart';
+import '../../domain/entity/order_response.dart';
+import '../../data/model/enriched_order_model.dart';
 import '../providers/order_provider.dart';
-
 import '../widgets/new_order_card.dart';
+import '../widgets/enriched_order_card.dart';
 
 
 class OrdersScreen extends StatefulWidget {
@@ -22,7 +23,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
     super.initState();
     // Cargar las órdenes cuando se inicializa la pantalla
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<OrderSetupProvider>().getAllNewOrders();
+      final provider = context.read<OrderSetupProvider>();
+      // Debug temporal
+      print('DEBUG: enrichedOrderDataSource is ${provider.enrichedOrderDataSource != null ? 'AVAILABLE' : 'NULL'}');
+      
+      // Usar órdenes enriquecidas si está disponible, sino usar el método anterior
+      if (provider.enrichedOrderDataSource != null) {
+        print('DEBUG: Using enriched orders');
+        provider.getAllEnrichedOrders();
+      } else {
+        print('DEBUG: Using regular orders (fallback)');
+        provider.getAllNewOrders();
+      }
     });
   }
 
@@ -92,35 +104,64 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
         return Scaffold(
           backgroundColor: AppColors.lightGray,
-          body: provider.newOrders.isEmpty
-              ? const EmptyOrdersView()
-              : RefreshIndicator(
-                  onRefresh: () => provider.getAllNewOrders(),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 15),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-
-                        
-                        // Lista de órdenes
-                        Expanded(
-                          child: ListView.builder(
-                            itemCount: provider.newOrders.length,
-                            itemBuilder: (context, index) {
-                              final order = provider.newOrders[index];
-                              Logger.info('Mostrando orden: Mesa ${order.mesa}, Estado: ${order.estadoGeneral}');
-
-                              return NewOrderCard(order: order);
-                            },
-                          ),
-                        ),
-                        const SizedBox(height: 15),
-                      ],
-                    ),
-                  ),
-                ),
+          body: _buildOrdersList(provider),
         );
+      },
+    );
+  }
+
+  Widget _buildOrdersList(OrderSetupProvider provider) {
+    // Determinar qué tipo de órdenes mostrar
+    final hasEnrichedOrders = provider.enrichedOrders.isNotEmpty;
+    final hasRegularOrders = provider.newOrders.isNotEmpty;
+    final isEmpty = !hasEnrichedOrders && !hasRegularOrders;
+
+    if (isEmpty) {
+      return const EmptyOrdersView();
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        if (provider.enrichedOrderDataSource != null) {
+          await provider.getAllEnrichedOrders();
+        } else {
+          await provider.getAllNewOrders();
+        }
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 15),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Lista de órdenes
+            Expanded(
+              child: hasEnrichedOrders 
+                  ? _buildEnrichedOrdersList(provider.enrichedOrders)
+                  : _buildRegularOrdersList(provider.newOrders),
+            ),
+            const SizedBox(height: 15),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEnrichedOrdersList(List<EnrichedOrderModel> orders) {
+    return ListView.builder(
+      itemCount: orders.length,
+      itemBuilder: (context, index) {
+        final order = orders[index];
+        return EnrichedOrderCard(order: order);
+      },
+    );
+  }
+
+  Widget _buildRegularOrdersList(List<OrderResponseEntity> orders) {
+    return ListView.builder(
+      itemCount: orders.length,
+      itemBuilder: (context, index) {
+        final order = orders[index];
+        return NewOrderCard(order: order);
       },
     );
   }

@@ -63,7 +63,7 @@ class ShowOrderModal extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Mesa ${order['tableName']}',
+                          '${order['tableName']}',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,

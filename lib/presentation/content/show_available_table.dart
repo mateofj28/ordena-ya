@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:ordena_ya/core/constants/AppColors.dart';
-import 'package:ordena_ya/core/utils/logger.dart';
 import 'package:ordena_ya/domain/entity/restaurant_table.dart';
 import 'package:ordena_ya/presentation/providers/order_provider.dart';
 import 'package:ordena_ya/presentation/providers/tables_provider.dart';
@@ -176,22 +175,14 @@ class ShowAvailableTable extends StatelessWidget {
               final table = tables[index];
               return GestureDetector(
                 onTap: () {
-                  Logger.info('Table tapped: ${table.tableNumber} (${table.status})');
                   if (table.status != 'occupied') {
-                    Logger.info('Table is available, proceeding with selection');
                     try {
-                      // Usar el nuevo método que guarda la información completa
                       context.read<OrderSetupProvider>().setSelectedTable(table);
-                      Logger.info('setSelectedTable called successfully');
                       context.read<TablesProvider>().selectTable(table);
-                      Logger.info('TablesProvider.selectTable called successfully');
                       Navigator.pop(context);
-                      Logger.info('Modal closed successfully');
                     } catch (e) {
-                      Logger.error('Error selecting table: $e');
+                      // Mostrar error al usuario si es necesario
                     }
-                  } else {
-                    Logger.info('Table is occupied, cannot select');
                   }
                 },
                 child: Container(

@@ -15,6 +15,8 @@ import 'package:ordena_ya/domain/usecase/create_order_new.dart';
 import 'package:ordena_ya/domain/usecase/update_order.dart';
 import 'package:ordena_ya/domain/usecase/close_order.dart';
 import 'package:ordena_ya/domain/entity/order_response.dart';
+import 'package:ordena_ya/data/model/enriched_order_model.dart';
+import 'package:ordena_ya/data/datasource/enriched_order_datasource.dart';
 import 'package:ordena_ya/presentation/pages/MenuScreen.dart';
 import '../../domain/usecase/add_item_to_order.dart';
 import '../../domain/usecase/create_order.dart';
@@ -29,6 +31,7 @@ class OrderSetupProvider with ChangeNotifier {
   final CreateOrderNewUseCase createOrderNewUseCase;
   final UpdateOrderUseCase updateOrderUseCase;
   final CloseOrderUseCase closeOrderUseCase;
+  final EnrichedOrderRemoteDataSource? enrichedOrderDataSource;
 
   OrderSetupProvider({
     required this.createOrderUseCase,
@@ -38,6 +41,7 @@ class OrderSetupProvider with ChangeNotifier {
     required this.createOrderNewUseCase,
     required this.updateOrderUseCase,
     required this.closeOrderUseCase,
+    this.enrichedOrderDataSource,
   });
 
   OrderStatus status = OrderStatus.initial;
@@ -66,6 +70,7 @@ class OrderSetupProvider with ChangeNotifier {
   int _productCount = 1;
   List<Order> _orders = [];
   List<OrderResponseEntity> _newOrders = [];
+  List<EnrichedOrderModel> _enrichedOrders = [];
   final PageController _pageController = PageController();
 
   final List<Product> _cartItems = [];
@@ -258,6 +263,7 @@ class OrderSetupProvider with ChangeNotifier {
   int get productCount => _productCount;
   List<Order> get orders => _orders;
   List<OrderResponseEntity> get newOrders => _newOrders;
+  List<EnrichedOrderModel> get enrichedOrders => _enrichedOrders;
 
   PageController get pageController => _pageController;
   int get deliveryType => _deliveryType;
@@ -300,14 +306,9 @@ class OrderSetupProvider with ChangeNotifier {
 
   // Método para establecer la mesa seleccionada (usar este método siempre)
   void setSelectedTable(RestaurantTable table) {
-    Logger.info('setSelectedTable called with: ID=${table.id}, Number=${table.tableNumber}, Status=${table.status}');
-    Logger.info('Table ID length: ${table.id.length}, Is valid ObjectId: ${table.id.length == 24}');
     _selectedTableInfo = table;
-    // Usar el ID de la mesa (no el número) según la nueva API
     _tableId = table.id;
-    Logger.info('After setting: _tableId=$_tableId (using table.id), selectedTableInfo=${_selectedTableInfo != null}');
     _checkForChanges();
-    Logger.info('Table selected: ${table.tableNumber} (${table.location})');
     notifyListeners();
   }
 
@@ -533,34 +534,23 @@ class OrderSetupProvider with ChangeNotifier {
   }
 
   String? _validateOrderRequirements() {
-    Logger.info('Validating order requirements - selectedIndex: $_selectedIndex');
     switch (_selectedIndex) {
       case 0: // Mesa
-        Logger.info('Mesa validation - tableId: $_tableId, selectedTableInfo: ${_selectedTableInfo != null ? 'EXISTS' : 'NULL'}');
-        if (_selectedTableInfo != null) {
-          Logger.info('Table info - Number: ${_selectedTableInfo!.tableNumber}, Status: ${_selectedTableInfo!.status}');
-        }
-        
         if (_selectedTableInfo == null) {
-          Logger.error('Mesa validation failed - no table selected from modal');
           return "Debes seleccionar una mesa desde el selector de mesas";
         }
 
         // Verificar consistencia entre _tableId y _selectedTableInfo
         if (_tableId != _selectedTableInfo!.id) {
-          Logger.error('Mesa validation failed - tableId ($_tableId) does not match selectedTableInfo.id (${_selectedTableInfo!.id})');
           return "Debes seleccionar una mesa desde el selector de mesas";
         }
         // Validar que la mesa esté disponible
         if (_selectedTableInfo!.status == 'occupied') {
-          Logger.error('Mesa validation failed - table is occupied');
           return "La mesa seleccionada está ocupada. Por favor, selecciona otra mesa.";
         }
         if (_selectedTableInfo!.status == 'reserved') {
-          Logger.error('Mesa validation failed - table is reserved');
           return "La mesa seleccionada está reservada. Por favor, selecciona otra mesa.";
         }
-        Logger.info('Mesa validation passed successfully');
         break;
       case 1: // Domicilio
         if (_clientId.isEmpty) {
@@ -602,20 +592,14 @@ class OrderSetupProvider with ChangeNotifier {
 
   // Métodos para el nuevo carrito
   Future<void> addProductToNewCart(Product product, {String message = ''}) async {
-    Logger.info('addProductToNewCart called - Current table state: $tableDebugInfo');
-    Logger.info('DEBUG: _tableId=$_tableId, _selectedTableInfo=${_selectedTableInfo?.tableNumber}');
-    
     // Arreglar inconsistencia si existe selectedTableInfo pero tableId está vacío
     if (_selectedTableInfo != null && _tableId.isEmpty) {
-      Logger.info('Fixing inconsistency: _selectedTableInfo exists but _tableId is empty');
       _tableId = _selectedTableInfo!.id;
-      Logger.info('Fixed _tableId to: $_tableId');
     }
     
     // Validar requisitos antes de proceder
     final validationError = _validateOrderRequirements();
     if (validationError != null) {
-      Logger.error('Validation failed in addProductToNewCart: $validationError');
       errorMessage = validationError;
       notifyListeners();
       return;
@@ -651,15 +635,11 @@ class OrderSetupProvider with ChangeNotifier {
     notifyListeners();
 
     // Ahora manejar la orden según si existe o no
-    Logger.info('Current order entity before operation: ${_currentOrderEntity?.id}');
-    
     if (_currentOrderEntity == null) {
       // No existe orden: crear una nueva
-      Logger.info('No current order, creating new one');
       await _createInitialOrder();
     } else {
       // Existe orden: modificarla (agregar producto)
-      Logger.info('Current order exists: ${_currentOrderEntity!.id}, updating it');
       await _updateExistingOrder();
     }
 
@@ -672,12 +652,10 @@ class OrderSetupProvider with ChangeNotifier {
         // Remover el producto que se agregó
         _newCartItems.removeLast();
       }
-      Logger.error('Failed to add product to cart: $errorMessage');
     } else {
       // Éxito: actualizar estado
       enableSendToKitchen = true;
       _productCount = 1;
-      Logger.info('Product added to cart and order updated: ${product.name} x${product.quantity}');
     }
 
     notifyListeners();
@@ -803,7 +781,6 @@ class OrderSetupProvider with ChangeNotifier {
   void clearSelectedTable() {
     _selectedTableInfo = null;
     _tableId = ''; // vacío = no seleccionada
-    Logger.info('Selected table cleared');
     notifyListeners();
   }
 
@@ -910,7 +887,6 @@ class OrderSetupProvider with ChangeNotifier {
   }
 
   Future<void> getAllNewOrders() async {
-    Logger.info('Provider: Getting all new orders from localhost:3000');
     status = OrderStatus.loading;
     notifyListeners();
 
@@ -920,7 +896,6 @@ class OrderSetupProvider with ChangeNotifier {
       (failure) {
         status = OrderStatus.error;
         errorMessage = failure.message;
-        Logger.error('Error obteniendo nuevas órdenes: ${failure.message}');
         notifyListeners();
       },
       (orders) {
@@ -928,19 +903,46 @@ class OrderSetupProvider with ChangeNotifier {
         status = OrderStatus.success;
         errorMessage = '';
         _isLoadingAllOrders = false;
-        Logger.info('Nuevas órdenes obtenidas exitosamente: ${orders.length}');
         
         // Si no hay orden actual pero hay órdenes disponibles, cargar una
         if (_currentOrderEntity == null && orders.isNotEmpty) {
-          Logger.info('No current order but orders available, loading from existing');
           loadCurrentOrderFromExisting();
-        } else {
-          Logger.info('Current order status - _currentOrderEntity: ${_currentOrderEntity?.id}, orders count: ${orders.length}');
         }
         
         notifyListeners();
       },
     );
+  }
+
+  // Nuevo método para obtener órdenes enriquecidas
+  Future<void> getAllEnrichedOrders() async {
+    print('DEBUG: getAllEnrichedOrders called');
+    print('DEBUG: enrichedOrderDataSource is ${enrichedOrderDataSource != null ? 'AVAILABLE' : 'NULL'}');
+    
+    if (enrichedOrderDataSource == null) {
+      print('DEBUG: No enriched datasource, falling back to regular orders');
+      // Fallback al método anterior si no hay datasource enriquecido
+      return getAllNewOrders();
+    }
+
+    print('DEBUG: Using enriched datasource to fetch orders');
+    status = OrderStatus.loading;
+    notifyListeners();
+
+    try {
+      final orders = await enrichedOrderDataSource!.fetchEnrichedOrders();
+      print('DEBUG: Successfully fetched ${orders.length} enriched orders');
+      _enrichedOrders = orders;
+      status = OrderStatus.success;
+      errorMessage = '';
+      _isLoadingAllOrders = false;
+      notifyListeners();
+    } catch (e) {
+      print('DEBUG: Error fetching enriched orders: $e');
+      status = OrderStatus.error;
+      errorMessage = 'Error al cargar órdenes: $e';
+      notifyListeners();
+    }
   }
 
   // Crear orden usando la nueva arquitectura
