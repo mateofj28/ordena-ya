@@ -215,18 +215,33 @@ class OrderItemRow extends StatelessWidget {
           ],
         ),
 
-        // Muestra los estados con sus íconos
+        // Muestra los estados agrupados con colores
         Wrap(
-          spacing: 10,
-          children:
-              stateCount.entries.map((entry) {
-                final config = getStateUIConfig(entry.key);
-                return IconLabel(
-                  icon: config.icon,
-                  label: "${config.label} (${entry.value})",
-                  color: config.color,
-                );
-              }).toList(),
+          spacing: 6,
+          runSpacing: 4,
+          children: stateCount.entries.map((entry) {
+            final status = entry.key;
+            final count = entry.value;
+            final displayText = count == 1 
+                ? '(1) ${_getStatusDisplayText(status)}'
+                : '($count) ${_getStatusDisplayTextPlural(status)}';
+                
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: _getStatusColor(status),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                displayText,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            );
+          }).toList(),
         ),
         const SizedBox(height: 10),
       ],
@@ -244,6 +259,63 @@ class StateUIConfig {
     required this.label,
     required this.color,
   });
+}
+
+Color _getStatusColor(String status) {
+  switch (status.toLowerCase()) {
+    case 'pendiente':
+      return const Color(0xFFFFD54F); // #FFD54F
+    case 'cocinando':
+    case 'en preparación':
+    case 'en_preparacion':
+      return const Color(0xFFFFB74D); // #FFB74D
+    case 'listo_para_entregar':
+    case 'listo para entregar':
+    case 'listo':
+      return const Color(0xFF29B6F6); // #29B6F6
+    case 'entregado':
+      return const Color(0xFF81C784); // #81C784
+    default:
+      return Colors.grey;
+  }
+}
+
+String _getStatusDisplayText(String status) {
+  switch (status.toLowerCase()) {
+    case 'pendiente':
+      return 'Pendiente';
+    case 'cocinando':
+    case 'en preparación':
+    case 'en_preparacion':
+      return 'Cocinando';
+    case 'listo_para_entregar':
+    case 'listo para entregar':
+    case 'listo':
+      return 'Listo para entregar';
+    case 'entregado':
+      return 'Entregado';
+    default:
+      return status.substring(0, 1).toUpperCase() + status.substring(1);
+  }
+}
+
+String _getStatusDisplayTextPlural(String status) {
+  switch (status.toLowerCase()) {
+    case 'pendiente':
+      return 'Pendientes';
+    case 'cocinando':
+    case 'en preparación':
+    case 'en_preparacion':
+      return 'Cocinando';
+    case 'listo_para_entregar':
+    case 'listo para entregar':
+    case 'listo':
+      return 'Listo para entregar';
+    case 'entregado':
+      return 'Entregados';
+    default:
+      return status.substring(0, 1).toUpperCase() + status.substring(1);
+  }
 }
 
 StateUIConfig getStateUIConfig(String state) {
