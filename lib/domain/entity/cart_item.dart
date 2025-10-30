@@ -4,6 +4,8 @@ class CartItem {
   final double price;
   final int quantity;
   final String message;
+  final String category;
+  final String description;
 
   CartItem({
     required this.productId,
@@ -11,6 +13,8 @@ class CartItem {
     required this.price,
     required this.quantity,
     this.message = '',
+    this.category = 'general',
+    this.description = '',
   });
 
   CartItem copyWith({
@@ -19,6 +23,8 @@ class CartItem {
     double? price,
     int? quantity,
     String? message,
+    String? category,
+    String? description,
   }) {
     return CartItem(
       productId: productId ?? this.productId,
@@ -26,6 +32,8 @@ class CartItem {
       price: price ?? this.price,
       quantity: quantity ?? this.quantity,
       message: message ?? this.message,
+      category: category ?? this.category,
+      description: description ?? this.description,
     );
   }
 

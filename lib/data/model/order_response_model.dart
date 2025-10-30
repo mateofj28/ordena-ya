@@ -24,8 +24,12 @@ class OrderResponseModel {
   });
 
   factory OrderResponseModel.fromJson(Map<String, dynamic> json) {
+    print('🔍 PARSING ORDER RESPONSE:');
+    print('  - JSON keys: ${json.keys.toList()}');
+    
     // Verificar si es una respuesta de creación (solo tiene message y orderId)
     if (json.containsKey('message') && json.containsKey('orderId') && !json.containsKey('_id')) {
+      print('  - Detected: Creation response');
       // Es una respuesta de creación, crear un modelo básico
       return OrderResponseModel(
         id: json['orderId'] ?? '',
@@ -40,19 +44,57 @@ class OrderResponseModel {
       );
     }
     
+    print('  - Detected: Full order response');
+    
     // Es una respuesta completa (listado de órdenes)
     List<dynamic>? productsList = json['requestedProducts'] ?? json['productosSolicitados'];
     
+    print('  - Products list: ${productsList?.length ?? 0} items');
+    if (productsList != null && productsList.isNotEmpty) {
+      print('  - First product: ${productsList.first}');
+      
+      // DETECTAR SI ES RESPUESTA DE BACKEND INCOMPLETA (sin productSnapshot)
+      final firstProduct = productsList.first as Map<String, dynamic>;
+      final hasProductSnapshot = firstProduct.containsKey('productSnapshot');
+      print('  - Has productSnapshot: $hasProductSnapshot');
+      
+      if (!hasProductSnapshot) {
+        print('  ⚠️  WARNING: Backend returned incomplete data (no productSnapshot)');
+        print('  ⚠️  This is a BACKEND BUG in the UPDATE endpoint');
+      }
+    }
+    
+    final orderId = json['_id'] ?? json['id'] ?? json['orderId'] ?? '';
+    
+    // DETECTAR MESA DESDE tableInfo SI ESTÁ DISPONIBLE
+    int mesa = json['table'] ?? json['mesa'] ?? 0;
+    if (mesa == 0 && json['tableInfo'] != null) {
+      final tableInfo = json['tableInfo'] as Map<String, dynamic>;
+      mesa = tableInfo['number'] ?? 0;
+      print('  - Mesa extracted from tableInfo: $mesa');
+    }
+    
+    final peopleCount = json['peopleCount'] ?? json['cantidadPersonas'] ?? 0;
+    final orderType = json['orderType'] ?? json['tipoPedido'] ?? '';
+    final total = (json['total'] ?? 0).toDouble();
+    
+    print('  - Parsed values:');
+    print('    * ID: $orderId');
+    print('    * Mesa: $mesa');
+    print('    * People: $peopleCount');
+    print('    * Type: $orderType');
+    print('    * Total: $total');
+    
     return OrderResponseModel(
-      id: json['_id'] ?? json['id'] ?? json['orderId'] ?? '',
-      mesa: json['table'] ?? json['mesa'] ?? 0,
-      cantidadPersonas: json['peopleCount'] ?? json['cantidadPersonas'] ?? 0,
-      tipoPedido: json['orderType'] ?? json['tipoPedido'] ?? '',
+      id: orderId,
+      mesa: mesa,
+      cantidadPersonas: peopleCount,
+      tipoPedido: orderType,
       productosSolicitados: productsList != null
           ? productsList.map((item) => ProductoSolicitadoModel.fromJson(item as Map<String, dynamic>)).toList()
           : [],
       cantidadIps: json['itemCount'] ?? json['cantidadIps'] ?? 0,
-      total: (json['total'] ?? 0).toDouble(),
+      total: total,
       fechaCreacion: DateTime.tryParse(json['createdAt'] ?? json['fechaCreacion'] ?? '') ?? DateTime.now(),
       estadoGeneral: json['status'] ?? json['estadoGeneral'] ?? _calculateGeneralStatus(productsList),
     );
@@ -137,18 +179,60 @@ class ProductoSolicitadoModel {
   });
 
   factory ProductoSolicitadoModel.fromJson(Map<String, dynamic> json) {
+    print('    🔍 PARSING PRODUCT:');
+    print('      - JSON: $json');
+    
     // Obtener la lista de estados de manera segura
     List<dynamic>? statusList = json['statusByQuantity'] ?? json['estadosPorCantidad'];
     
+    final productId = json['productId'] ?? '';
+    
+    // MANEJAR FALTA DE productSnapshot (BUG DEL BACKEND)
+    String productName = '';
+    double price = 0.0;
+    
+    if (json.containsKey('productSnapshot')) {
+      // Caso normal: hay productSnapshot
+      final snapshot = json['productSnapshot'] as Map<String, dynamic>;
+      productName = snapshot['name'] ?? '';
+      price = (snapshot['price'] ?? 0).toDouble();
+      print('      - Using productSnapshot data');
+    } else {
+      // FALLBACK: Backend no envió productSnapshot (BUG)
+      productName = json['productName'] ?? json['nombreProducto'] ?? 'Producto ${productId.substring(0, 8)}';
+      price = (json['price'] ?? 0).toDouble();
+      print('      ⚠️  FALLBACK: No productSnapshot, using direct fields');
+    }
+    
+    final quantity = json['requestedQuantity'] ?? json['cantidadSolicitada'] ?? 0;
+    final message = json['message'] ?? json['mensaje'] ?? '';
+    
+    // Si no hay statusByQuantity, crear estados por defecto
+    if (statusList == null || statusList.isEmpty) {
+      statusList = [];
+      for (int i = 0; i < quantity; i++) {
+        statusList.add({'status': 'pendiente'});
+      }
+      print('      ⚠️  FALLBACK: Created default status list');
+    }
+    
+    print('      - Parsed values:');
+    print('        * ID: $productId');
+    print('        * Name: $productName');
+    print('        * Price: $price');
+    print('        * Quantity: $quantity');
+    print('        * Message: $message');
+    print('        * Status list: ${statusList.length} items');
+    
     return ProductoSolicitadoModel(
-      productId: json['productId'] ?? '',
-      nombreProducto: json['productName'] ?? json['nombreProducto'] ?? '',
-      price: (json['price'] ?? 0).toDouble(),
-      cantidadSolicitada: json['requestedQuantity'] ?? json['cantidadSolicitada'] ?? 0,
-      mensaje: json['message'] ?? json['mensaje'] ?? '',
-      estadosPorCantidad: statusList != null
-          ? statusList.map((item) => EstadoPorCantidadModel.fromJson(item as Map<String, dynamic>)).toList()
-          : [],
+      productId: productId,
+      nombreProducto: productName,
+      price: price,
+      cantidadSolicitada: quantity,
+      mensaje: message,
+      estadosPorCantidad: statusList
+          .map((item) => EstadoPorCantidadModel.fromJson(item as Map<String, dynamic>))
+          .toList(),
     );
   }
 

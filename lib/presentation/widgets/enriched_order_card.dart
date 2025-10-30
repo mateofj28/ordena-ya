@@ -147,7 +147,12 @@ class EnrichedOrderCard extends StatelessWidget {
     if (order.tableInfo != null && order.tableInfo!.number > 0) {
       return 'Mesa ${order.tableInfo!.number}';
     } else if (order.tableId != null && order.tableId!.isNotEmpty) {
-      return 'Mesa ${order.tableId}';
+      // FALLBACK: El backend no está enviando tableInfo enriquecida
+      // Extraer número de mesa del tableId si es posible
+      final tableIdShort = order.tableId!.length > 8 
+          ? order.tableId!.substring(order.tableId!.length - 4)
+          : order.tableId!;
+      return 'Mesa $tableIdShort';
     } else {
       return _getOrderTypeDisplayText();
     }
@@ -219,20 +224,7 @@ class EnrichedOrderCard extends StatelessWidget {
     );
   }
 
-  Color _getStatusColor(String status) {
-    switch (status.toLowerCase()) {
-      case 'pendiente':
-        return Colors.orange;
-      case 'en_preparacion':
-        return Colors.blue;
-      case 'listo_para_entregar':
-        return Colors.green;
-      case 'entregado':
-        return Colors.grey;
-      default:
-        return Colors.grey;
-    }
-  }
+
 
   String _getStatusText(String status) {
     switch (status.toLowerCase()) {

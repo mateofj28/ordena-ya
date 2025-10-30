@@ -185,13 +185,31 @@ class EnrichedOrderProduct {
     if (json['productSnapshot'] != null) {
       snapshot = EnrichedProductSnapshot.fromJson(json['productSnapshot']);
     } else {
-      // Crear snapshot básico usando productId como nombre temporal
+      // FALLBACK: El backend no está enviando productSnapshot
+      // Crear snapshot básico con información limitada
       snapshot = EnrichedProductSnapshot(
-        name: 'Producto ${json['productId']?.toString() ?? 'Desconocido'}',
-        price: 0.0,
+        name: 'Producto ${json['productId']?.toString().substring(0, 8) ?? 'Desconocido'}',
+        price: 0.0, // Sin precio porque el backend no lo envía
         category: 'general',
-        description: 'Información no disponible',
+        description: 'Información no disponible - Backend no enriquecido',
       );
+    }
+
+    // Si no hay statusByQuantity, crear estados por defecto basados en requestedQuantity
+    List<EnrichedProductStatus> statusList = [];
+    if (json['statusByQuantity'] != null) {
+      statusList = (json['statusByQuantity'] as List<dynamic>)
+          .map((status) => EnrichedProductStatus.fromJson(status))
+          .toList();
+    } else {
+      // FALLBACK: Crear estados por defecto
+      final quantity = _parseIntSafely(json['requestedQuantity']) ?? 1;
+      for (int i = 0; i < quantity; i++) {
+        statusList.add(EnrichedProductStatus(
+          index: i + 1,
+          status: 'pendiente', // Estado por defecto
+        ));
+      }
     }
 
     return EnrichedOrderProduct(
@@ -199,9 +217,7 @@ class EnrichedOrderProduct {
       productSnapshot: snapshot,
       requestedQuantity: _parseIntSafely(json['requestedQuantity']) ?? 0,
       message: json['message']?.toString() ?? '',
-      statusByQuantity: (json['statusByQuantity'] as List<dynamic>?)
-          ?.map((status) => EnrichedProductStatus.fromJson(status))
-          .toList() ?? [],
+      statusByQuantity: statusList,
     );
   }
 

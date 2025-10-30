@@ -605,13 +605,15 @@ class OrderSetupProvider with ChangeNotifier {
       return;
     }
 
-    // Crear el item del carrito
+    // Crear el item del carrito con información completa
     final cartItem = CartItem(
       productId: product.id,
       productName: product.name,
       price: product.unitPrice,
       quantity: product.quantity,
       message: message,
+      category: product.category,
+      description: product.description,
     );
 
     // Verificar si el producto ya existe en el carrito
@@ -932,6 +934,22 @@ class OrderSetupProvider with ChangeNotifier {
     try {
       final orders = await enrichedOrderDataSource!.fetchEnrichedOrders();
       print('DEBUG: Successfully fetched ${orders.length} enriched orders');
+      
+      // DEBUG: Verificar si realmente son órdenes enriquecidas
+      if (orders.isNotEmpty) {
+        final firstOrder = orders.first;
+        print('DEBUG: First order analysis:');
+        print('  - Has tableInfo: ${firstOrder.tableInfo != null}');
+        print('  - Has productSnapshot: ${firstOrder.requestedProducts.isNotEmpty ? firstOrder.requestedProducts.first.productSnapshot.name != 'Producto Desconocido' : false}');
+        print('  - Total: ${firstOrder.total}');
+        print('  - TableId: ${firstOrder.tableId}');
+        
+        if (firstOrder.tableInfo == null && firstOrder.total == 0) {
+          print('⚠️  WARNING: Backend is NOT returning enriched data!');
+          print('⚠️  This looks like regular order data, not enriched.');
+        }
+      }
+      
       _enrichedOrders = orders;
       status = OrderStatus.success;
       errorMessage = '';
@@ -1127,20 +1145,95 @@ class OrderSetupProvider with ChangeNotifier {
         orderType = 'table';
     }
 
-    // Convertir items del carrito a productos solicitados (nueva estructura simplificada)
+    // Convertir items del carrito a productos solicitados (estructura completa)
     final requestedProducts = _newCartItems.map((item) {
+      // Crear productSnapshot con la información completa del producto
+      final productSnapshot = ProductSnapshotModel(
+        name: item.productName,
+        price: item.price,
+        category: item.category,
+        description: item.description,
+      );
+      
+      // PRESERVAR ESTADOS EXISTENTES O CREAR NUEVOS
+      List<ProductStatusModel> statusByQuantity = [];
+      
+      if (_currentOrderEntity != null) {
+        // Buscar el producto en la orden actual para preservar estados
+        final existingProduct = _currentOrderEntity!.productosSolicitados
+            .where((p) => p.productId == item.productId)
+            .firstOrNull;
+            
+        if (existingProduct != null) {
+          // PRODUCTO EXISTENTE: Manejar cambios de cantidad
+          final existingStates = existingProduct.estadosPorCantidad;
+          
+          if (item.quantity == existingStates.length) {
+            // Cantidad igual: mantener estados existentes
+            statusByQuantity = existingStates
+                .map((state) => ProductStatusModel(status: state.estado))
+                .toList();
+          } else if (item.quantity > existingStates.length) {
+            // Cantidad aumentó: mantener existentes + agregar pendientes
+            statusByQuantity = existingStates
+                .map((state) => ProductStatusModel(status: state.estado))
+                .toList();
+            // Agregar estados pendientes para las nuevas unidades
+            for (int i = existingStates.length; i < item.quantity; i++) {
+              statusByQuantity.add(ProductStatusModel(status: 'pendiente'));
+            }
+          } else {
+            // Cantidad disminuyó: mantener solo los primeros estados
+            statusByQuantity = existingStates
+                .take(item.quantity)
+                .map((state) => ProductStatusModel(status: state.estado))
+                .toList();
+          }
+        } else {
+          // PRODUCTO NUEVO: crear estados pendientes
+          statusByQuantity = List.generate(
+            item.quantity,
+            (index) => ProductStatusModel(status: 'pendiente'),
+          );
+        }
+      } else {
+        // NO HAY ORDEN ACTUAL: crear estados pendientes (orden nueva)
+        statusByQuantity = List.generate(
+          item.quantity,
+          (index) => ProductStatusModel(status: 'pendiente'),
+        );
+      }
+      
       return RequestedProductModel(
         productId: item.productId,
         requestedQuantity: item.quantity,
         message: item.message,
+        productSnapshot: productSnapshot,
+        statusByQuantity: statusByQuantity,
       );
     }).toList();
 
     // Debug: verificar valores antes de crear la orden
-    Logger.info('Building order request - orderType: $orderType, _tableId: $_tableId, _selectedIndex: $_selectedIndex');
-    Logger.info('Table info - selectedTableInfo: ${_selectedTableInfo != null ? '${_selectedTableInfo!.tableNumber} (ID: ${_selectedTableInfo!.id})' : 'NULL'}');
+    Logger.info('🔍 BUILDING ORDER REQUEST:');
+    Logger.info('  - orderType: $orderType');
+    Logger.info('  - _tableId: $_tableId');
+    Logger.info('  - _selectedIndex: $_selectedIndex');
+    Logger.info('  - _peopleCount: $_peopleCount');
+    Logger.info('  - requestedProducts count: ${requestedProducts.length}');
     
-    Logger.info('Final tableId to send: $_tableId');
+    for (int i = 0; i < requestedProducts.length; i++) {
+      final product = requestedProducts[i];
+      Logger.info('  - Product $i: ${product.productId} (qty: ${product.requestedQuantity}, msg: "${product.message}")');
+      if (product.productSnapshot != null) {
+        Logger.info('    * Snapshot: ${product.productSnapshot!.name} - \$${product.productSnapshot!.price} (${product.productSnapshot!.category})');
+      }
+      if (product.statusByQuantity != null) {
+        final statuses = product.statusByQuantity!.map((s) => s.status).join(', ');
+        Logger.info('    * Status (${product.statusByQuantity!.length}): [$statuses]');
+      }
+    }
+    
+    Logger.info('Table info - selectedTableInfo: ${_selectedTableInfo != null ? '${_selectedTableInfo!.tableNumber} (ID: ${_selectedTableInfo!.id})' : 'NULL'}');
     
     // Validación adicional para mesa
     if (orderType == 'table' && _tableId.isEmpty) {
@@ -1148,12 +1241,16 @@ class OrderSetupProvider with ChangeNotifier {
       throw Exception('Mesa no seleccionada correctamente. _tableId: $_tableId');
     }
     
-    return CreateOrderRequestModel(
+    final orderRequest = CreateOrderRequestModel(
       orderType: orderType,
       tableId: orderType == 'table' ? _tableId : null,
       peopleCount: orderType == 'table' ? _peopleCount : 1,
       requestedProducts: requestedProducts,
     );
+    
+    Logger.info('📤 FINAL ORDER REQUEST JSON: ${orderRequest.toJson()}');
+    
+    return orderRequest;
   }
 
   // Navigation

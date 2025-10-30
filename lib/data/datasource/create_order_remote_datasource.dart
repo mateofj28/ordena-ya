@@ -78,13 +78,17 @@ class CreateOrderRemoteDataSourceImpl implements CreateOrderRemoteDataSource {
   Future<OrderResponseModel> updateOrder(String orderId, CreateOrderRequestModel orderRequest) async {
     try {
       final url = '${ApiConfig.ordersEndpoint}/$orderId';
-      final body = json.encode(orderRequest.toJson());
+      final requestJson = orderRequest.toJson();
+      final body = json.encode(requestJson);
       
       // Obtener token para autenticación
       final token = await tokenStorage.getToken();
       
-      Logger.info('Updating order at: $url');
-      Logger.info('Request body: $body');
+      Logger.info('🚀 UPDATING ORDER:');
+      Logger.info('  - URL: $url');
+      Logger.info('  - Order ID: $orderId');
+      Logger.info('  - Request JSON: $requestJson');
+      Logger.info('  - Request body: $body');
 
       final response = await client.put(
         Uri.parse(url),
@@ -103,23 +107,35 @@ class CreateOrderRemoteDataSourceImpl implements CreateOrderRemoteDataSource {
         },
       );
 
-      Logger.info('Update order response status: ${response.statusCode}');
-      Logger.info('Update order response body: ${response.body}');
+      Logger.info('📥 UPDATE ORDER RESPONSE:');
+      Logger.info('  - Status: ${response.statusCode}');
+      Logger.info('  - Headers: ${response.headers}');
+      Logger.info('  - Body: ${response.body}');
 
       if (response.statusCode == 200) {
         // Decodificar con UTF-8 explícitamente
         final String responseBody = utf8.decode(response.bodyBytes);
-        final Map<String, dynamic> json = jsonDecode(responseBody);
-        final order = OrderResponseModel.fromJson(json);
+        final Map<String, dynamic> responseJson = jsonDecode(responseBody);
+        
+        Logger.info('📋 PARSED RESPONSE JSON:');
+        Logger.info('  - Keys: ${responseJson.keys.toList()}');
+        Logger.info('  - Full JSON: $responseJson');
+        
+        final order = OrderResponseModel.fromJson(responseJson);
 
-        Logger.info('Successfully updated order: ${order.id}');
+        Logger.info('✅ Successfully updated order: ${order.id}');
+        Logger.info('  - Mesa: ${order.mesa}');
+        Logger.info('  - Total: ${order.total}');
+        Logger.info('  - Products count: ${order.productosSolicitados.length}');
+        
         return order;
       } else {
-        Logger.error('Failed to update order: ${response.statusCode}');
+        Logger.error('❌ Failed to update order: ${response.statusCode}');
+        Logger.error('  - Response body: ${response.body}');
         throw Exception('Failed to update order: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
-      Logger.error('Error updating order: $e');
+      Logger.error('💥 Error updating order: $e');
       throw Exception('Error updating order: $e');
     }
   }
