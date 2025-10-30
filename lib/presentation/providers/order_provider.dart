@@ -235,22 +235,47 @@ class OrderSetupProvider with ChangeNotifier {
       _newCartItems.removeAt(index);
       
       Logger.info('Product removed from cart: ${removedItem.productName}');
+      Logger.info('Cart items remaining: ${_newCartItems.length}');
       
-      // Si hay orden actual, actualizar en el backend
+      // SIEMPRE ENVIAR AL BACKEND - Dejar que el backend decida qué hacer
       if (_currentOrderEntity != null) {
+        Logger.info('📤 Sending updated cart to backend (${_newCartItems.length} items)');
         await _updateExistingOrder();
         
         // Si hubo error, revertir el cambio
         if (status == OrderStatus.error) {
           _newCartItems.insert(index, removedItem);
           Logger.error('Failed to remove product from order, reverted local change');
+        } else {
+          // Si el backend respondió exitosamente, verificar si eliminó la orden
+          Logger.info('✅ Backend processed removal successfully');
         }
+      } else {
+        Logger.info('⚠️ No current order to update');
       }
       
       // Verificar cambios respecto a la orden actual
       _checkForChanges();
       notifyListeners();
     }
+  }
+
+  // Método para resetear el estado cuando el carrito queda vacío
+  void _resetOrderState() {
+    Logger.info('🔄 Resetting order state to initial');
+    
+    // Limpiar referencia a la orden actual
+    _currentOrderEntity = null;
+    
+    // Resetear estado
+    status = OrderStatus.initial;
+    errorMessage = null;
+    
+    // Deshabilitar botones
+    enableSendToKitchen = false;
+    enableCloseBill = false;
+    
+    Logger.info('✅ Order state reset completed - Ready for new order');
   }
   
   // TODO: Implement proper client management
@@ -639,9 +664,11 @@ class OrderSetupProvider with ChangeNotifier {
     // Ahora manejar la orden según si existe o no
     if (_currentOrderEntity == null) {
       // No existe orden: crear una nueva
+      Logger.info('🆕 No current order - Creating new order');
       await _createInitialOrder();
     } else {
       // Existe orden: modificarla (agregar producto)
+      Logger.info('📝 Current order exists - Updating existing order: ${_currentOrderEntity!.id}');
       await _updateExistingOrder();
     }
 
@@ -727,11 +754,27 @@ class OrderSetupProvider with ChangeNotifier {
       result.fold(
         (failure) {
           Logger.error('Error updating existing order: ${failure.message}');
+          
+          // DETECTAR ERROR 404 - ORDEN NO ENCONTRADA (Backend la eliminó)
+          if (failure.message.contains('404') || failure.message.contains('no encontrada')) {
+            Logger.info('🔄 Order not found (404) - Backend deleted empty order, resetting state');
+            _resetOrderState();
+            return;
+          }
+          
           status = OrderStatus.error;
           errorMessage = failure.message;
         },
         (updatedOrder) {
           Logger.info('Existing order updated successfully: ${updatedOrder.id}');
+          
+          // VERIFICAR SI EL BACKEND DEVOLVIÓ UNA ORDEN VACÍA (debería eliminarla)
+          if (updatedOrder.productosSolicitados.isEmpty) {
+            Logger.info('🔄 Backend returned empty order - Should have been deleted, resetting state');
+            _resetOrderState();
+            return;
+          }
+          
           _currentOrderEntity = updatedOrder;
           status = OrderStatus.success;
           errorMessage = null;
@@ -1053,6 +1096,14 @@ class OrderSetupProvider with ChangeNotifier {
       result.fold(
         (failure) {
           Logger.error('Error updating order: ${failure.message}');
+          
+          // DETECTAR ERROR 404 - ORDEN NO ENCONTRADA (Backend la eliminó)
+          if (failure.message.contains('404') || failure.message.contains('no encontrada')) {
+            Logger.info('🔄 Order not found (404) during sendToKitchen - Backend deleted empty order, resetting state');
+            _resetOrderState();
+            return;
+          }
+          
           status = OrderStatus.error;
           errorMessage = failure.message;
         },

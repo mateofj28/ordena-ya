@@ -106,8 +106,7 @@ class _ProductModalState extends State<ProductModal> {
       width: 150,
       height: 150,
       decoration: BoxDecoration(
-        color: AppColors.lightGray,
-        borderRadius: BorderRadius.circular(8),
+        color: AppColors.lightGray,        
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -216,7 +215,7 @@ class _ProductModalState extends State<ProductModal> {
                         Icon(Icons.access_time, color: Colors.black, size: 20),
                         const SizedBox(width: 8),
                         Text(
-                          widget.product.preparationTime,
+                          '${widget.product.preparationTime} minutos',
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w600,

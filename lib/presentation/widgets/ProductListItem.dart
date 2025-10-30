@@ -87,7 +87,7 @@ class ProductListItem extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      estimatedTime,
+                      '$estimatedTime min',
                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                     ElevatedButton(

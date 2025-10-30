@@ -13,7 +13,7 @@ class PrintOrderModal extends StatelessWidget {
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
     final isTablet = screenSize.width > 600;
-    
+
     return Dialog(
       backgroundColor: Colors.transparent,
       insetPadding: EdgeInsets.symmetric(
@@ -79,7 +79,7 @@ class PrintOrderModal extends StatelessWidget {
                 ],
               ),
             ),
-            
+
             // Receipt Content
             Flexible(
               child: SingleChildScrollView(
@@ -197,7 +197,7 @@ class PrintOrderModal extends StatelessWidget {
                           ),
                         ],
                       ),
-                      
+
                       SizedBox(height: 8),
                       Container(height: 1, color: Colors.grey[300]),
                       SizedBox(height: 8),
@@ -205,9 +205,13 @@ class PrintOrderModal extends StatelessWidget {
                       // Products List
                       ...List.generate(order['items'].length, (index) {
                         final product = order['items'][index] as OrderItemRow;
-                        final quantity = product.states.length.toString(); // Usar la cantidad real de estados
+                        final quantity =
+                            product.states.length
+                                .toString(); // Usar la cantidad real de estados
+                        final itemSubtotal =
+                            product.states.length * product.value;
                         final productName = _extractProductName(product.label);
-                        
+
                         return Padding(
                           padding: EdgeInsets.symmetric(vertical: 4),
                           child: Row(
@@ -231,7 +235,9 @@ class PrintOrderModal extends StatelessWidget {
                               Expanded(
                                 flex: 2,
                                 child: Text(
-                                  Functions.formatCurrencyINT(product.value.toInt()),
+                                  Functions.formatCurrencyINT(
+                                    itemSubtotal.toInt(),
+                                  ),
                                   style: TextStyle(fontSize: 14),
                                   textAlign: TextAlign.right,
                                 ),
@@ -257,7 +263,9 @@ class PrintOrderModal extends StatelessWidget {
                             ),
                           ),
                           Text(
-                            Functions.formatCurrencyINT((order['total'] ?? 0.0).toInt()),
+                            Functions.formatCurrencyINT(
+                              (order['total'] ?? 0.0).toInt(),
+                            ),
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -295,7 +303,7 @@ class PrintOrderModal extends StatelessWidget {
                 ),
               ),
             ),
-            
+
             // Footer Buttons
             Container(
               padding: EdgeInsets.all(20),
@@ -336,7 +344,9 @@ class PrintOrderModal extends StatelessWidget {
                         Navigator.of(context).pop();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('Función de impresión no implementada'),
+                            content: Text(
+                              'Función de impresión no implementada',
+                            ),
                             backgroundColor: Colors.orange,
                           ),
                         );
@@ -367,7 +377,7 @@ class PrintOrderModal extends StatelessWidget {
       ),
     );
   }
-  
+
   Widget _buildInfoRow(String label, String value) {
     return Padding(
       padding: EdgeInsets.symmetric(vertical: 2),
@@ -378,15 +388,12 @@ class PrintOrderModal extends StatelessWidget {
             label,
             style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
           ),
-          Text(
-            value,
-            style: TextStyle(fontSize: 14),
-          ),
+          Text(value, style: TextStyle(fontSize: 14)),
         ],
       ),
     );
   }
-  
+
   // Helper method to extract product name
   String _extractProductName(String label) {
     final match = RegExp(r'^\d+x\s*(.+)').firstMatch(label);
