@@ -51,6 +51,8 @@ class CartProduct extends StatelessWidget {
                 index: cartItem.quantity,
                 increase: () => provider.increaseCartItemQuantity(index),
                 decrease: () => provider.decreaseCartItemQuantity(index),
+                canDecrease: provider.canDecreaseQuantityAt(index),
+                canIncrease: cartItem.canIncrease,
               ),
               Text(
                 Functions.formatCurrency(cartItem.totalPrice),
@@ -88,10 +90,22 @@ class CartProduct extends StatelessWidget {
               Consumer<OrderSetupProvider>(
                 builder: (context, deleteProvider, child) {
                   return IconButton(
-                    onPressed: deleteProvider.status == OrderStatus.loading 
+                    onPressed: deleteProvider.status == OrderStatus.loading || !deleteProvider.canRemoveProductAt(index)
                         ? null 
                         : () async {
                             final scaffoldMessenger = ScaffoldMessenger.of(context);
+                            
+                            // Mostrar mensaje de validación si no se puede eliminar
+                            if (!deleteProvider.canRemoveProductAt(index)) {
+                              scaffoldMessenger.showSnackBar(
+                                SnackBar(
+                                  content: Text('No se puede eliminar: existen unidades que ya están siendo preparadas o entregadas'),
+                                  backgroundColor: Colors.orange,
+                                  duration: Duration(seconds: 3),
+                                ),
+                              );
+                              return;
+                            }
                             
                             await deleteProvider.removeCartItemAt(index);
                             
@@ -118,7 +132,7 @@ class CartProduct extends StatelessWidget {
                           )
                         : HugeIcon(
                             icon: HugeIcons.strokeRoundedDelete02,
-                            color: Colors.redAccent,
+                            color: deleteProvider.canRemoveProductAt(index) ? Colors.redAccent : Colors.grey[400]!,
                           ),
                   );
                 },
@@ -126,11 +140,223 @@ class CartProduct extends StatelessWidget {
             ],
           ),
 
+          // Mostrar estados de las unidades si existen
+          if (cartItem.unitStates.isNotEmpty) ...[
+            SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: Wrap(
+                    spacing: 6,
+                    runSpacing: 4,
+                    children: _buildStatusIndicators(cartItem.unitStates),
+                  ),
+                ),
+                SizedBox(width: 8),
+                // Botón de diagnóstico (temporal para debugging)
+                IconButton(
+                  onPressed: () async {
+                    provider.debugCartStates();
+                    await provider.forceSyncWithBackend();
+                  },
+                  icon: Icon(
+                    HugeIcons.strokeRoundedBug02,
+                    size: 16,
+                    color: Colors.purple[700],
+                  ),
+                  constraints: BoxConstraints(minWidth: 24, minHeight: 24),
+                  padding: EdgeInsets.zero,
+                  tooltip: 'Debug y sincronizar',
+                ),
+                // Botón de refresh
+                IconButton(
+                  onPressed: () async {
+                    await provider.refreshCartStatesFromBackend();
+                  },
+                  icon: Icon(
+                    HugeIcons.strokeRoundedRefresh,
+                    size: 16,
+                    color: Colors.blue[700],
+                  ),
+                  constraints: BoxConstraints(minWidth: 24, minHeight: 24),
+                  padding: EdgeInsets.zero,
+                  tooltip: 'Actualizar estados',
+                ),
+              ],
+            ),
+          ],
+
+          // Mostrar mensaje de validación si no se puede editar
+          if (!provider.canRemoveProductAt(index) && cartItem.unitStates.isNotEmpty) ...[
+            SizedBox(height: 8),
+            Container(
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.orange[50],
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.orange[200]!),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    HugeIcons.strokeRoundedInformationCircle,
+                    size: 16,
+                    color: Colors.orange[700],
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Edición limitada: solo se pueden modificar las unidades pendientes (${cartItem.pendingUnitsCount} de ${cartItem.quantity})',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.orange[700],
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+
+          // Mostrar error si existe
+          if (provider.status == OrderStatus.error && provider.errorMessage != null) ...[
+            SizedBox(height: 8),
+            Container(
+              padding: EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.red[50],
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.red[200]!),
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    HugeIcons.strokeRoundedAlert02,
+                    size: 16,
+                    color: Colors.red[700],
+                  ),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      provider.errorMessage!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.red[700],
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () {
+                      provider.errorMessage = null;
+                    },
+                    icon: Icon(
+                      HugeIcons.strokeRoundedCancel01,
+                      size: 16,
+                      color: Colors.red[700],
+                    ),
+                    constraints: BoxConstraints(minWidth: 24, minHeight: 24),
+                    padding: EdgeInsets.zero,
+                  ),
+                ],
+              ),
+            ),
+          ],
+
           SizedBox(height: 10),
 
         ],
       ),
     );
+  }
+
+  List<Widget> _buildStatusIndicators(List<String> states) {
+    final stateCount = <String, int>{};
+
+    for (final state in states) {
+      stateCount[state] = (stateCount[state] ?? 0) + 1;
+    }
+
+    return stateCount.entries.map((entry) {
+      final status = entry.key;
+      final count = entry.value;
+      final displayText = count == 1
+          ? '(1) ${_getStatusDisplayText(status)}'
+          : '($count) ${_getStatusDisplayTextPlural(status)}';
+
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        decoration: BoxDecoration(
+          color: _getStatusColor(status),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Text(
+          displayText,
+          style: const TextStyle(
+            fontSize: 11,
+            color: Colors.white,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+      );
+    }).toList();
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pendiente':
+        return const Color(0xFFFFD54F);
+      case 'cocinando':
+      case 'en preparación':
+      case 'en_preparacion':
+        return const Color(0xFFFFB74D);
+      case 'listo_para_entregar':
+      case 'listo para entregar':
+      case 'listo':
+        return const Color(0xFF29B6F6);
+      case 'entregado':
+        return const Color(0xFF81C784);
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _getStatusDisplayText(String status) {
+    switch (status.toLowerCase()) {
+      case 'pendiente':
+        return 'Pendiente';
+      case 'cocinando':
+      case 'en preparación':
+      case 'en_preparacion':
+        return 'Cocinando';
+      case 'listo_para_entregar':
+      case 'listo para entregar':
+      case 'listo':
+        return 'Listo para entregar';
+      case 'entregado':
+        return 'Entregado';
+      default:
+        return status.substring(0, 1).toUpperCase() + status.substring(1);
+    }
+  }
+
+  String _getStatusDisplayTextPlural(String status) {
+    switch (status.toLowerCase()) {
+      case 'pendiente':
+        return 'Pendientes';
+      case 'cocinando':
+      case 'en preparación':
+      case 'en_preparacion':
+        return 'Cocinando';
+      case 'listo_para_entregar':
+      case 'listo para entregar':
+      case 'listo':
+        return 'Listo para entregar';
+      case 'entregado':
+        return 'Entregados';
+      default:
+        return status.substring(0, 1).toUpperCase() + status.substring(1);
+    }
   }
 }
 

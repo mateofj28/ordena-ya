@@ -77,20 +77,25 @@ class CreateOrderRemoteDataSourceImpl implements CreateOrderRemoteDataSource {
   @override
   Future<OrderResponseModel> updateOrder(String orderId, CreateOrderRequestModel orderRequest) async {
     try {
-      final url = '${ApiConfig.ordersEndpoint}/$orderId';
-      final requestJson = orderRequest.toJson();
+      final url = '${ApiConfig.ordersEndpoint}/$orderId/edit-products';
+      final requestJson = {
+        'requestedProducts': orderRequest.toJson()['requestedProducts'],
+        'action': 'edit_order', // Marcar claramente que es una edición
+      };
       final body = json.encode(requestJson);
       
       // Obtener token para autenticación
       final token = await tokenStorage.getToken();
       
-      Logger.info('🚀 UPDATING ORDER:');
+      Logger.info('🚀 EDITING ORDER PRODUCTS:');
       Logger.info('  - URL: $url');
       Logger.info('  - Order ID: $orderId');
+      Logger.info('  - Action: edit_order');
+      Logger.info('  - Products count: ${(requestJson['requestedProducts'] as List).length}');
       Logger.info('  - Request JSON: $requestJson');
       Logger.info('  - Request body: $body');
 
-      final response = await client.put(
+      final response = await client.patch(
         Uri.parse(url),
         headers: {
           'Content-Type': 'application/json; charset=utf-8',
@@ -102,12 +107,12 @@ class CreateOrderRemoteDataSourceImpl implements CreateOrderRemoteDataSource {
       ).timeout(
         const Duration(seconds: 15),
         onTimeout: () {
-          Logger.error('Update order timeout after 15 seconds');
+          Logger.error('Edit order products timeout after 15 seconds');
           throw Exception('Request timeout - Check if server is running and accessible');
         },
       );
 
-      Logger.info('📥 UPDATE ORDER RESPONSE:');
+      Logger.info('📥 EDIT ORDER PRODUCTS RESPONSE:');
       Logger.info('  - Status: ${response.statusCode}');
       Logger.info('  - Headers: ${response.headers}');
       Logger.info('  - Body: ${response.body}');
@@ -117,22 +122,25 @@ class CreateOrderRemoteDataSourceImpl implements CreateOrderRemoteDataSource {
         final String responseBody = utf8.decode(response.bodyBytes);
         final Map<String, dynamic> responseJson = jsonDecode(responseBody);
         
-        Logger.info('📋 PARSED RESPONSE JSON:');
+        Logger.info('📋 PARSED EDIT RESPONSE JSON:');
         Logger.info('  - Keys: ${responseJson.keys.toList()}');
         Logger.info('  - Full JSON: $responseJson');
         
         final order = OrderResponseModel.fromJson(responseJson);
 
-        Logger.info('✅ Successfully updated order: ${order.id}');
+        Logger.info('✅ Successfully edited order products: ${order.id}');
         Logger.info('  - Mesa: ${order.mesa}');
         Logger.info('  - Total: ${order.total}');
         Logger.info('  - Products count: ${order.productosSolicitados.length}');
         
         return order;
+      } else if (response.statusCode == 404) {
+        Logger.info('🗑️ Order was deleted by backend (empty products)');
+        throw Exception('Order deleted: 404 - ${response.body}');
       } else {
-        Logger.error('❌ Failed to update order: ${response.statusCode}');
+        Logger.error('❌ Failed to edit order products: ${response.statusCode}');
         Logger.error('  - Response body: ${response.body}');
-        throw Exception('Failed to update order: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to edit order products: ${response.statusCode} - ${response.body}');
       }
     } catch (e) {
       Logger.error('💥 Error updating order: $e');

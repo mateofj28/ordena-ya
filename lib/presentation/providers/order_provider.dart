@@ -1,3 +1,5 @@
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:ordena_ya/core/utils/functions.dart';
 import 'package:ordena_ya/core/utils/logger.dart';
@@ -42,7 +44,29 @@ class OrderSetupProvider with ChangeNotifier {
     required this.updateOrderUseCase,
     required this.closeOrderUseCase,
     this.enrichedOrderDataSource,
-  });
+  }) {
+    // Inicializar sincronización automática cada 10 segundos
+    _startAutoSync();
+  }
+
+  Timer? _autoSyncTimer;
+
+  void _startAutoSync() {
+    _autoSyncTimer?.cancel();
+    // Deshabilitado temporalmente para debugging
+    // _autoSyncTimer = Timer.periodic(Duration(seconds: 10), (timer) {
+    //   if (_currentOrderEntity != null) {
+    //     Logger.info('🔄 Auto-sync: Refreshing cart states...');
+    //     refreshCartStatesFromBackend();
+    //   }
+    // });
+  }
+
+  @override
+  void dispose() {
+    _autoSyncTimer?.cancel();
+    super.dispose();
+  }
 
   OrderStatus status = OrderStatus.initial;
   String? _errorMessage = '';
@@ -98,6 +122,7 @@ class OrderSetupProvider with ChangeNotifier {
   List<Product> get cartItems => _cartItems;
   List<CartItem> get newCartItems => List.unmodifiable(_newCartItems);
   int get selectedTabIndex => _selectedTabIndex;
+  bool get isEditingOrder => _currentOrderEntity != null;
   String? get errorMessage => _errorMessage;
   String get selectedDiscount => _selectedDiscount;
   String get selectedPeople => _selectedPeople;
@@ -193,29 +218,127 @@ class OrderSetupProvider with ChangeNotifier {
     }
   }
 
-  // Métodos para manejar items del carrito (solo cambios locales)
-  void increaseCartItemQuantity(int index) {
+  // Métodos para manejar items del carrito con sincronización al backend
+  Future<void> increaseCartItemQuantity(int index) async {
     if (index >= 0 && index < _newCartItems.length) {
       final item = _newCartItems[index];
-      _newCartItems[index] = item.copyWith(quantity: item.quantity + 1);
       
-      // Verificar cambios respecto a la orden actual
-      _checkForChanges();
-      notifyListeners();
-    }
-  }
-
-  void decreaseCartItemQuantity(int index) {
-    if (index >= 0 && index < _newCartItems.length) {
-      final item = _newCartItems[index];
-      if (item.quantity > 1) {
-        _newCartItems[index] = item.copyWith(quantity: item.quantity - 1);
+      // Aumentar cantidad siempre está permitido
+      if (canIncreaseProductQuantity(item.productId)) {
+        final oldQuantity = item.quantity;
+        _newCartItems[index] = item.copyWith(quantity: item.quantity + 1);
+        Logger.info('✅ Increased quantity for ${item.productName}: $oldQuantity → ${item.quantity + 1}');
         
         // Verificar cambios respecto a la orden actual
         _checkForChanges();
         notifyListeners();
+
+        // Si hay una orden actual, enviar cambios al backend
+        if (_currentOrderEntity != null) {
+          Logger.info('📤 Sending quantity increase to backend');
+          await _updateExistingOrder();
+          
+          // Si hubo error, revertir el cambio
+          if (status == OrderStatus.error) {
+            _newCartItems[index] = item.copyWith(quantity: oldQuantity);
+            Logger.error('Failed to increase quantity, reverted local change');
+            notifyListeners();
+          }
+        }
       }
     }
+  }
+
+  Future<void> decreaseCartItemQuantity(int index) async {
+    Logger.info('🔽 DECREASE CALLED - index: $index, items count: ${_newCartItems.length}');
+    
+    if (index >= 0 && index < _newCartItems.length) {
+      final item = _newCartItems[index];
+      Logger.info('🔽 Item found: ${item.productName}, quantity: ${item.quantity}');
+      
+      if (item.quantity > 1) {
+        Logger.info('🔽 Quantity > 1, checking if can decrease...');
+        
+        // Validar si se puede reducir cantidad
+        if (canDecreaseProductQuantity(item.productId)) {
+          Logger.info('🔽 CAN DECREASE - Proceeding with decrease');
+          final oldQuantity = item.quantity;
+          _newCartItems[index] = item.copyWith(quantity: item.quantity - 1);
+          Logger.info('✅ Decreased quantity for ${item.productName}: $oldQuantity → ${item.quantity - 1}');
+          
+          // Verificar cambios respecto a la orden actual
+          _checkForChanges();
+          notifyListeners();
+
+          // Si hay una orden actual, enviar cambios al backend
+          if (_currentOrderEntity != null) {
+            Logger.info('📤 Sending quantity decrease to backend');
+            await _updateExistingOrder();
+            
+            // Si hubo error, revertir el cambio
+            if (status == OrderStatus.error) {
+              _newCartItems[index] = item.copyWith(quantity: oldQuantity);
+              Logger.error('Failed to decrease quantity, reverted local change');
+              notifyListeners();
+            }
+          }
+        } else {
+          Logger.warning('❌ Cannot decrease quantity for ${item.productName}: has non-pending units');
+          _errorMessage = "No se puede disminuir la cantidad: existen unidades que ya están siendo preparadas o entregadas.";
+          notifyListeners();
+        }
+      } else {
+        Logger.warning('🔽 Cannot decrease: quantity is 1 or less');
+      }
+    } else {
+      Logger.error('🔽 Invalid index: $index, items count: ${_newCartItems.length}');
+    }
+  }
+
+  /// Verifica si se puede reducir cantidad para mostrar en UI
+  bool canDecreaseQuantityAt(int index) {
+    if (index >= 0 && index < _newCartItems.length) {
+      final item = _newCartItems[index];
+      
+      // Si no hay estados definidos (producto nuevo), permitir si quantity > 1
+      if (item.unitStates.isEmpty) {
+        return item.quantity > 1;
+      }
+      
+      // Contar unidades pendientes disponibles
+      final pendingCount = item.unitStates
+          .where((state) => state.toLowerCase() == 'pendiente')
+          .length;
+      
+      Logger.info('🔍 canDecreaseQuantityAt($index) for ${item.productName}:');
+      Logger.info('  - Total quantity: ${item.quantity}');
+      Logger.info('  - Pending units: $pendingCount');
+      Logger.info('  - Unit states: ${item.unitStates}');
+      
+      // Permitir disminuir si hay unidades pendientes disponibles y quantity > 1
+      // El backend se encarga de eliminar las unidades correctas inteligentemente
+      final canDecrease = pendingCount > 0 && item.quantity > 1;
+      Logger.info('  - Can decrease: $canDecrease');
+      
+      return canDecrease;
+    }
+    return false;
+  }
+
+  /// Verifica si se puede eliminar producto para mostrar en UI
+  bool canRemoveProductAt(int index) {
+    if (index >= 0 && index < _newCartItems.length) {
+      final item = _newCartItems[index];
+      
+      // Si no hay estados definidos (producto nuevo), permitir eliminar
+      if (item.unitStates.isEmpty) {
+        return true;
+      }
+      
+      // Solo permitir eliminar si todas las unidades están pendientes
+      return item.unitStates.every((state) => state.toLowerCase() == 'pendiente');
+    }
+    return false;
   }
 
   void updateCartItemMessage(int index, String message) {
@@ -232,14 +355,23 @@ class OrderSetupProvider with ChangeNotifier {
   Future<void> removeCartItemAt(int index) async {
     if (index >= 0 && index < _newCartItems.length) {
       final removedItem = _newCartItems[index];
+      
+      // VALIDAR SI SE PUEDE ELIMINAR
+      if (!canRemoveProduct(removedItem.productId)) {
+        Logger.warning('❌ Cannot remove ${removedItem.productName}: has non-pending units');
+        _errorMessage = "No se puede eliminar el producto: existen unidades que ya están siendo preparadas o entregadas.";
+        notifyListeners();
+        return;
+      }
+      
       _newCartItems.removeAt(index);
       
-      Logger.info('Product removed from cart: ${removedItem.productName}');
+      Logger.info('✅ Product removed from cart: ${removedItem.productName}');
       Logger.info('Cart items remaining: ${_newCartItems.length}');
       
       // SIEMPRE ENVIAR AL BACKEND - Dejar que el backend decida qué hacer
       if (_currentOrderEntity != null) {
-        Logger.info('📤 Sending updated cart to backend (${_newCartItems.length} items)');
+        Logger.info('📤 Sending updated cart to backend (${_newCartItems.length} items) - ACTION: EDIT_ORDER');
         await _updateExistingOrder();
         
         // Si hubo error, revertir el cambio
@@ -249,6 +381,12 @@ class OrderSetupProvider with ChangeNotifier {
         } else {
           // Si el backend respondió exitosamente, verificar si eliminó la orden
           Logger.info('✅ Backend processed removal successfully');
+          
+          // Si el carrito quedó vacío y no hay error, la orden fue eliminada
+          if (_newCartItems.isEmpty) {
+            Logger.info('🔄 Cart is empty after removal - Order was deleted by backend');
+            _resetOrderState();
+          }
         }
       } else {
         Logger.info('⚠️ No current order to update');
@@ -276,6 +414,491 @@ class OrderSetupProvider with ChangeNotifier {
     enableCloseBill = false;
     
     Logger.info('✅ Order state reset completed - Ready for new order');
+  }
+
+  // VALIDACIONES PARA ACCIONES DE EDICIÓN
+  
+  /// Verifica si se puede reducir la cantidad de un producto
+  bool canDecreaseProductQuantity(String productId) {
+    // Buscar el item en el carrito para verificar sus estados
+    final cartItem = _newCartItems
+        .where((item) => item.productId == productId)
+        .firstOrNull;
+
+    if (cartItem == null) return true; // No encontrado, permitir
+
+    // Si no tiene estados definidos, es un producto nuevo, permitir
+    if (cartItem.unitStates.isEmpty) return true;
+
+    // Contar unidades pendientes disponibles
+    final pendingCount = cartItem.unitStates
+        .where((state) => state.toLowerCase() == 'pendiente')
+        .length;
+
+    Logger.info('🔍 canDecreaseProductQuantity for ${cartItem.productName}:');
+    Logger.info('  - Total quantity: ${cartItem.quantity}');
+    Logger.info('  - Pending units: $pendingCount');
+    Logger.info('  - Unit states: ${cartItem.unitStates}');
+
+    // Se puede disminuir si hay unidades pendientes disponibles
+    // y la cantidad actual es mayor a 1
+    // El backend maneja inteligentemente cuáles unidades eliminar
+    final canDecrease = pendingCount > 0 && cartItem.quantity > 1;
+    Logger.info('  - Can decrease: $canDecrease');
+    
+    return canDecrease;
+  }
+  
+  /// Verifica si se puede eliminar un producto completamente
+  bool canRemoveProduct(String productId) {
+    // Buscar el item en el carrito para verificar sus estados
+    final cartItem = _newCartItems
+        .where((item) => item.productId == productId)
+        .firstOrNull;
+
+    if (cartItem == null) return true; // No encontrado, permitir
+
+    // Si no tiene estados definidos, es un producto nuevo, permitir
+    if (cartItem.unitStates.isEmpty) return true;
+
+    // Verificar que todas las unidades estén pendientes
+    return cartItem.unitStates.every((state) => state.toLowerCase() == 'pendiente');
+  }
+  
+  /// Verifica si se puede aumentar la cantidad (siempre permitido)
+  bool canIncreaseProductQuantity(String productId) {
+    return true; // Aumentar cantidad siempre está permitido
+  }
+  
+  /// Obtiene el mensaje de error para mostrar al usuario
+  String getEditRestrictionMessage() {
+    return "No se puede editar la orden: existen unidades con estado no pendiente.";
+  }
+
+  /// Método de prueba para validar la lógica de decrease
+  void testDecreaseLogic() {
+    Logger.info('🧪 TESTING NEW DECREASE LOGIC');
+    
+    // Crear un item de prueba con estados mixtos
+    final testItem = CartItem(
+      productId: 'test-product',
+      productName: 'Test Product',
+      price: 10.0,
+      quantity: 4,
+      message: '',
+      unitStates: ['pendiente', 'cocinando', 'pendiente', 'cocinando'],
+    );
+    
+    Logger.info('Test item: ${testItem.productName}');
+    Logger.info('Quantity: ${testItem.quantity}');
+    Logger.info('Unit states: ${testItem.unitStates}');
+    Logger.info('Pending units: ${testItem.pendingUnitsCount}');
+    Logger.info('Can decrease (entity): ${testItem.canDecrease}');
+    
+    // Agregar temporalmente al carrito para probar
+    _newCartItems.add(testItem);
+    final index = _newCartItems.length - 1;
+    
+    Logger.info('Can decrease (provider): ${canDecreaseQuantityAt(index)}');
+    Logger.info('Can decrease product: ${canDecreaseProductQuantity(testItem.productId)}');
+    
+    // Limpiar
+    _newCartItems.removeAt(index);
+    
+    Logger.info('✅ New logic: Frontend solo verifica unidades pendientes disponibles');
+    Logger.info('✅ Backend maneja inteligentemente cuáles eliminar');
+  }
+
+  /// Convierte errores del backend a mensajes amigables
+  String _getErrorMessage(String originalError) {
+    // Detectar errores específicos de edición de órdenes
+    if (originalError.contains('No se puede reducir') && originalError.contains('no están en estado "pendiente"')) {
+      return 'No se puede reducir la cantidad: algunas unidades ya están siendo preparadas o entregadas.';
+    }
+    
+    if (originalError.contains('Edición rechazada')) {
+      return 'No se puede realizar la edición: existen unidades que ya están en proceso.';
+    }
+    
+    // Detectar errores comunes y convertirlos a mensajes amigables
+    if (originalError.contains('404') || originalError.contains('no encontrada')) {
+      return 'La orden ya no existe. Es posible que haya sido eliminada.';
+    }
+    
+    if (originalError.contains('400') || originalError.contains('Bad Request')) {
+      return 'Los datos enviados no son válidos. Por favor, revisa la información.';
+    }
+    
+    if (originalError.contains('500') || originalError.contains('Internal Server Error')) {
+      return 'Error interno del servidor. Por favor, intenta nuevamente.';
+    }
+    
+    if (originalError.contains('network') || originalError.contains('connection')) {
+      return 'Error de conexión. Verifica tu conexión a internet.';
+    }
+    
+    if (originalError.contains('timeout')) {
+      return 'La operación tardó demasiado tiempo. Intenta nuevamente.';
+    }
+    
+    // Si no es un error conocido, devolver el mensaje original pero más limpio
+    return originalError.length > 100 
+        ? 'Ha ocurrido un error. Por favor, intenta nuevamente.'
+        : originalError;
+  }
+
+  /// Método helper para cargar una orden existente en el carrito para edición
+  /// Este método debe ser llamado cuando se quiere editar una orden existente
+  void loadOrderForEditing(OrderResponseEntity order) {
+    // Almacenar la orden que se está editando
+    _currentOrderEntity = order;
+    
+    // Limpiar carrito actual
+    _newCartItems.clear();
+
+    // Convertir productos de la orden a items del carrito
+    for (final orderProduct in order.productosSolicitados) {
+      // Extraer los estados de las unidades
+      final unitStates = orderProduct.estadosPorCantidad.map((estado) => estado.estado).toList();
+
+      // Crear item del carrito con los estados
+      final cartItem = CartItem(
+        productId: orderProduct.productId,
+        productName: orderProduct.nombreProducto,
+        price: orderProduct.price,
+        quantity: orderProduct.cantidadSolicitada,
+        message: orderProduct.mensaje,
+        unitStates: unitStates,
+      );
+
+      _newCartItems.add(cartItem);
+    }
+
+    notifyListeners();
+  }
+
+  /// Envía los cambios del carrito al backend para actualizar la orden existente
+  Future<void> _updateExistingOrder() async {
+    if (_currentOrderEntity == null) {
+      Logger.warning('No hay orden actual para actualizar');
+      return;
+    }
+
+    status = OrderStatus.loading;
+    notifyListeners();
+
+    try {
+      // Construir la petición con los productos actuales del carrito
+      final requestedProducts = _newCartItems.map((item) {
+        return RequestedProductModel(
+          productId: item.productId,
+          requestedQuantity: item.quantity,
+          message: item.message,
+        );
+      }).toList();
+
+      final orderRequest = CreateOrderRequestModel(
+        orderType: _getOrderTypeFromTipoPedido(_currentOrderEntity!.tipoPedido),
+        tableId: _currentOrderEntity!.mesa.toString(),
+        peopleCount: _currentOrderEntity!.cantidadPersonas,
+        requestedProducts: requestedProducts,
+      );
+
+      Logger.info('📤 Updating order ${_currentOrderEntity!.id} with ${requestedProducts.length} products');
+
+      // Llamar al backend
+      final result = await updateOrderUseCase.call(_currentOrderEntity!.id, orderRequest);
+
+      result.fold(
+        (failure) {
+          Logger.error('❌ Error updating order: ${failure.message}');
+          
+          // Si el error contiene información de la orden actual, actualizarla
+          if (failure.message.contains('currentOrder')) {
+            try {
+              // Extraer la orden actual del mensaje de error
+              final errorJson = failure.message.split(' - ').last;
+              final errorData = json.decode(errorJson);
+              if (errorData['currentOrder'] != null) {
+                // Parsear la orden actual y actualizar estados
+                final currentOrderData = errorData['currentOrder'];
+                Logger.info('🔄 Updating cart states from error response');
+                _updateCartStatesFromErrorResponse(currentOrderData);
+              }
+            } catch (e) {
+              Logger.warning('Failed to parse error response for order update: $e');
+            }
+          }
+          
+          status = OrderStatus.error;
+          _errorMessage = _getErrorMessage(failure.message);
+        },
+        (updatedOrder) {
+          Logger.info('✅ Order updated successfully');
+          status = OrderStatus.success;
+          _errorMessage = null;
+          
+          // Actualizar la orden actual con la respuesta del backend
+          _currentOrderEntity = updatedOrder;
+          
+          // Actualizar los estados de las unidades en el carrito
+          _updateCartItemStatesFromOrder(updatedOrder);
+          
+          // Refrescar la lista de órdenes para que se vea el cambio
+          _refreshOrdersList();
+        },
+      );
+    } catch (e) {
+      Logger.error('❌ Unexpected error updating order: $e');
+      status = OrderStatus.error;
+      _errorMessage = _getErrorMessage(e.toString());
+    }
+
+    notifyListeners();
+  }
+
+  /// Actualiza los estados de las unidades en el carrito basándose en la orden actualizada
+  void _updateCartItemStatesFromOrder(OrderResponseEntity order) {
+    Logger.info('🔄 Updating cart states from backend order...');
+    
+    for (int i = 0; i < _newCartItems.length; i++) {
+      final cartItem = _newCartItems[i];
+      
+      // Buscar el producto correspondiente en la orden
+      final orderProduct = order.productosSolicitados
+          .where((p) => p.productId == cartItem.productId)
+          .firstOrNull;
+
+      if (orderProduct != null) {
+        // Extraer los estados de las unidades
+        final unitStates = orderProduct.estadosPorCantidad.map((estado) => estado.estado).toList();
+        final backendQuantity = orderProduct.cantidadSolicitada;
+        
+        Logger.info('📦 Updating ${cartItem.productName}:');
+        Logger.info('  - Frontend quantity: ${cartItem.quantity} -> Backend quantity: $backendQuantity');
+        Logger.info('  - Frontend states: ${cartItem.unitStates} -> Backend states: $unitStates');
+        
+        // Actualizar el item del carrito con los estados Y la cantidad del backend
+        _newCartItems[i] = cartItem.copyWith(
+          unitStates: unitStates,
+          quantity: backendQuantity, // IMPORTANTE: Sincronizar cantidad también
+        );
+        
+        Logger.info('  - ✅ Updated successfully');
+      } else {
+        Logger.warning('  - ⚠️ Product ${cartItem.productName} not found in backend order');
+      }
+    }
+    
+    Logger.info('🔄 Cart states update completed');
+  }
+
+  /// Actualiza los estados del carrito desde una respuesta de error del backend
+  void _updateCartStatesFromErrorResponse(Map<String, dynamic> currentOrderData) {
+    try {
+      final requestedProducts = currentOrderData['requestedProducts'] as List<dynamic>?;
+      if (requestedProducts == null) return;
+
+      for (int i = 0; i < _newCartItems.length; i++) {
+        final cartItem = _newCartItems[i];
+        
+        // Buscar el producto correspondiente en la respuesta de error
+        final orderProduct = requestedProducts
+            .where((p) => p['productId'] == cartItem.productId)
+            .firstOrNull;
+
+        if (orderProduct != null) {
+          // Extraer los estados de las unidades
+          final statusByQuantity = orderProduct['statusByQuantity'] as List<dynamic>?;
+          if (statusByQuantity != null) {
+            final unitStates = statusByQuantity
+                .map((estado) => estado['status'] as String)
+                .toList();
+            
+            // Actualizar el item del carrito con los estados actuales
+            _newCartItems[i] = cartItem.copyWith(
+              unitStates: unitStates,
+              quantity: statusByQuantity.length, // Asegurar que la cantidad coincida
+            );
+            
+            Logger.info('🔄 Updated ${cartItem.productName} states: $unitStates');
+          }
+        }
+      }
+    } catch (e) {
+      Logger.error('Error updating cart states from error response: $e');
+    }
+  }
+
+  /// Convierte el tipo de pedido de la orden a formato del request
+  String _getOrderTypeFromTipoPedido(String tipoPedido) {
+    switch (tipoPedido.toLowerCase()) {
+      case 'mesa':
+        return 'table';
+      case 'domicilio':
+        return 'delivery';
+      case 'recoger':
+        return 'takeout';
+      default:
+        return 'table';
+    }
+  }
+
+  /// Refresca la lista de órdenes para mostrar los cambios
+  Future<void> _refreshOrdersList() async {
+    Logger.info('🔄 Refreshing orders list...');
+    await getAllNewOrders();
+  }
+
+  /// Fuerza la actualización de estados desde el backend
+  Future<void> refreshCartStatesFromBackend() async {
+    if (_currentOrderEntity == null) return;
+    
+    Logger.info('🔄 Refreshing cart states from backend...');
+    
+    try {
+      // Obtener la orden actual del backend
+      await getAllNewOrders();
+      
+      // Buscar la orden actual en la lista actualizada
+      final currentOrder = _newOrders
+          .where((order) => order.id == _currentOrderEntity!.id)
+          .firstOrNull;
+          
+      if (currentOrder != null) {
+        Logger.info('✅ Found current order, updating states');
+        _updateCartItemStatesFromOrder(currentOrder);
+        _currentOrderEntity = currentOrder;
+        notifyListeners();
+      } else {
+        Logger.warning('⚠️ Current order not found in backend response');
+      }
+    } catch (e) {
+      Logger.error('❌ Error refreshing cart states: $e');
+    }
+  }
+
+  /// MÉTODO DE DIAGNÓSTICO - Para debuggear el problema
+  void debugCartStates() {
+    Logger.info('🔍 === DIAGNÓSTICO DE ESTADOS DEL CARRITO ===');
+    Logger.info('Current order ID: ${_currentOrderEntity?.id ?? "NULL"}');
+    Logger.info('Cart items count: ${_newCartItems.length}');
+    
+    for (int i = 0; i < _newCartItems.length; i++) {
+      final item = _newCartItems[i];
+      Logger.info('--- Item $i: ${item.productName} ---');
+      Logger.info('  Product ID: ${item.productId}');
+      Logger.info('  Quantity: ${item.quantity}');
+      Logger.info('  Unit states: ${item.unitStates}');
+      Logger.info('  Pending units: ${item.pendingUnitsCount}');
+      Logger.info('  Can decrease: ${canDecreaseQuantityAt(i)}');
+      Logger.info('  Can remove: ${canRemoveProductAt(i)}');
+    }
+    
+    if (_currentOrderEntity != null) {
+      Logger.info('--- Backend Order Data ---');
+      for (final product in _currentOrderEntity!.productosSolicitados) {
+        Logger.info('Backend Product: ${product.nombreProducto}');
+        Logger.info('  Product ID: ${product.productId}');
+        Logger.info('  Quantity: ${product.cantidadSolicitada}');
+        final states = product.estadosPorCantidad.map((e) => e.estado).toList();
+        Logger.info('  Backend states: $states');
+      }
+    }
+    
+    Logger.info('🔍 === FIN DIAGNÓSTICO ===');
+  }
+
+  /// MÉTODO DE PRUEBA - Fuerza sincronización inmediata
+  Future<void> forceSyncWithBackend() async {
+    Logger.info('🚀 FORZANDO SINCRONIZACIÓN CON BACKEND...');
+    
+    if (_currentOrderEntity == null) {
+      Logger.error('❌ No hay orden actual para sincronizar');
+      return;
+    }
+
+    try {
+      // 1. Obtener datos frescos del backend
+      Logger.info('📡 Obteniendo datos frescos del backend...');
+      await getAllNewOrders();
+      
+      // 2. Buscar la orden actual
+      final freshOrder = _newOrders
+          .where((order) => order.id == _currentOrderEntity!.id)
+          .firstOrNull;
+      
+      if (freshOrder == null) {
+        Logger.error('❌ Orden no encontrada en el backend');
+        return;
+      }
+      
+      Logger.info('✅ Orden encontrada en backend');
+      
+      // 3. Comparar datos
+      Logger.info('🔍 COMPARANDO DATOS:');
+      Logger.info('Frontend order ID: ${_currentOrderEntity!.id}');
+      Logger.info('Backend order ID: ${freshOrder.id}');
+      
+      // 4. Actualizar estados
+      Logger.info('🔄 Actualizando estados...');
+      _currentOrderEntity = freshOrder;
+      _updateCartItemStatesFromOrder(freshOrder);
+      
+      // 5. Notificar cambios
+      notifyListeners();
+      
+      Logger.info('✅ SINCRONIZACIÓN COMPLETADA');
+      
+    } catch (e) {
+      Logger.error('❌ Error en sincronización forzada: $e');
+    }
+  }
+
+  /// Método de ejemplo para simular una orden con diferentes estados
+  /// Solo para testing - eliminar en producción
+  void simulateOrderWithMixedStates() {
+    _newCartItems.clear();
+
+    // Producto 1: Todas las unidades pendientes (se puede editar)
+    _newCartItems.add(CartItem(
+      productId: '1',
+      productName: 'Hamburguesa Clásica',
+      price: 15000,
+      quantity: 2,
+      message: 'Sin cebolla',
+      unitStates: ['pendiente', 'pendiente'],
+    ));
+
+    // Producto 2: Unidades mixtas (NO se puede editar)
+    _newCartItems.add(CartItem(
+      productId: '2',
+      productName: 'Pizza Margherita',
+      price: 25000,
+      quantity: 3,
+      message: '',
+      unitStates: ['pendiente', 'cocinando', 'listo_para_entregar'],
+    ));
+
+    // Producto 3: Producto nuevo sin estados (se puede editar)
+    _newCartItems.add(CartItem(
+      productId: '3',
+      productName: 'Coca Cola',
+      price: 3000,
+      quantity: 1,
+      message: '',
+      unitStates: [], // Sin estados = producto nuevo
+    ));
+
+    notifyListeners();
+  }
+
+  /// Limpia el estado de edición y vuelve al modo de crear orden nueva
+  void clearEditingOrder() {
+    _currentOrderEntity = null;
+    _newCartItems.clear();
+    Logger.info('🔄 Cleared editing order state');
+    notifyListeners();
   }
   
   // TODO: Implement proper client management
@@ -705,13 +1328,17 @@ class OrderSetupProvider with ChangeNotifier {
         (failure) {
           Logger.error('Error creating initial order: ${failure.message}');
           status = OrderStatus.error;
-          errorMessage = failure.message;
+          errorMessage = _getErrorMessage(failure.message);
         },
         (order) {
           Logger.info('Initial order created successfully: ${order.id}');
           Logger.info('Order details - ID: ${order.id}, Mesa: ${order.mesa}, Total: ${order.total}');
           _currentOrderEntity = order;
           Logger.info('_currentOrderEntity set to: ${_currentOrderEntity?.id}');
+          
+          // Actualizar los estados de las unidades en el carrito
+          _updateCartItemStatesFromOrder(order);
+          
           status = OrderStatus.success;
           errorMessage = null;
           
@@ -721,76 +1348,13 @@ class OrderSetupProvider with ChangeNotifier {
     } catch (e) {
       Logger.error('Unexpected error creating initial order: $e');
       status = OrderStatus.error;
-      errorMessage = 'Error inesperado al crear la orden';
+      errorMessage = _getErrorMessage(e.toString());
     }
 
     notifyListeners();
   }
 
-  // Modificar orden existente cuando se agrega un producto
-  Future<void> _updateExistingOrder() async {
-    Logger.info('_updateExistingOrder called - _currentOrderEntity: ${_currentOrderEntity?.id}');
-    
-    if (_currentOrderEntity == null || _currentOrderEntity!.id.isEmpty) {
-      Logger.error('Cannot update order: currentOrderEntity is null or ID is empty');
-      Logger.error('_currentOrderEntity: $_currentOrderEntity');
-      Logger.error('Available orders: ${_newOrders.map((o) => o.id).toList()}');
-      status = OrderStatus.error;
-      errorMessage = 'Error: No hay orden actual válida para actualizar';
-      notifyListeners();
-      return;
-    }
 
-    status = OrderStatus.loading;
-    notifyListeners();
-
-    try {
-      final orderRequest = _buildNewOrderRequest();
-      Logger.info('Updating existing order: ${_currentOrderEntity!.id} with ${_newCartItems.length} products');
-      Logger.info('Order entity details - ID: ${_currentOrderEntity!.id}, Mesa: ${_currentOrderEntity!.mesa}');
-      
-      final result = await updateOrderUseCase.call(_currentOrderEntity!.id, orderRequest);
-
-      result.fold(
-        (failure) {
-          Logger.error('Error updating existing order: ${failure.message}');
-          
-          // DETECTAR ERROR 404 - ORDEN NO ENCONTRADA (Backend la eliminó)
-          if (failure.message.contains('404') || failure.message.contains('no encontrada')) {
-            Logger.info('🔄 Order not found (404) - Backend deleted empty order, resetting state');
-            _resetOrderState();
-            return;
-          }
-          
-          status = OrderStatus.error;
-          errorMessage = failure.message;
-        },
-        (updatedOrder) {
-          Logger.info('Existing order updated successfully: ${updatedOrder.id}');
-          
-          // VERIFICAR SI EL BACKEND DEVOLVIÓ UNA ORDEN VACÍA (debería eliminarla)
-          if (updatedOrder.productosSolicitados.isEmpty) {
-            Logger.info('🔄 Backend returned empty order - Should have been deleted, resetting state');
-            _resetOrderState();
-            return;
-          }
-          
-          _currentOrderEntity = updatedOrder;
-          status = OrderStatus.success;
-          errorMessage = null;
-          
-          // Refrescar la lista de órdenes
-          getAllNewOrders();
-        },
-      );
-    } catch (e) {
-      Logger.error('Unexpected error updating existing order: $e');
-      status = OrderStatus.error;
-      errorMessage = 'Error inesperado al actualizar la orden';
-    }
-
-    notifyListeners();
-  }
 
   void removeProductFromNewCart(String productId) {
     _newCartItems.removeWhere((item) => item.productId == productId);
@@ -873,7 +1437,7 @@ class OrderSetupProvider with ChangeNotifier {
 
     result.fold(
       (failure) {
-        errorMessage = failure.message;
+        errorMessage = _getErrorMessage(failure.message);
         Logger.error('Error creando orden: ${failure.message}');
       },
       (createdOrder) async {
@@ -896,7 +1460,7 @@ class OrderSetupProvider with ChangeNotifier {
       (failure) async {
         Logger.error('Error agregando producto: ${failure.message}');
         await getAllOrders();
-        errorMessage = failure.message;
+        errorMessage = _getErrorMessage(failure.message);
       },
       (_) {
         Logger.info('Producto agregado exitosamente');
@@ -916,7 +1480,7 @@ class OrderSetupProvider with ChangeNotifier {
     result.fold(
       (failure) {
         status = OrderStatus.error;
-        errorMessage = failure.message;
+        errorMessage = _getErrorMessage(failure.message);
         Logger.error('Error obteniendo órdenes: ${failure.message}');
         notifyListeners();
       },
@@ -940,7 +1504,7 @@ class OrderSetupProvider with ChangeNotifier {
     result.fold(
       (failure) {
         status = OrderStatus.error;
-        errorMessage = failure.message;
+        errorMessage = _getErrorMessage(failure.message);
         notifyListeners();
       },
       (orders) {
@@ -1001,7 +1565,7 @@ class OrderSetupProvider with ChangeNotifier {
     } catch (e) {
       print('DEBUG: Error fetching enriched orders: $e');
       status = OrderStatus.error;
-      errorMessage = 'Error al cargar órdenes: $e';
+      errorMessage = _getErrorMessage('Error al cargar órdenes: $e');
       notifyListeners();
     }
   }
@@ -1040,7 +1604,7 @@ class OrderSetupProvider with ChangeNotifier {
         (failure) {
           Logger.error('Error creating new order: ${failure.message}');
           status = OrderStatus.error;
-          errorMessage = failure.message;
+          errorMessage = _getErrorMessage(failure.message);
         },
         (order) {
           Logger.info('New order created successfully: ${order.id}');
@@ -1058,7 +1622,7 @@ class OrderSetupProvider with ChangeNotifier {
     } catch (e) {
       Logger.error('Unexpected error creating new order: $e');
       status = OrderStatus.error;
-      errorMessage = 'Error inesperado al crear la orden';
+      errorMessage = _getErrorMessage(e.toString());
     }
 
     notifyListeners();
@@ -1105,7 +1669,7 @@ class OrderSetupProvider with ChangeNotifier {
           }
           
           status = OrderStatus.error;
-          errorMessage = failure.message;
+          errorMessage = _getErrorMessage(failure.message);
         },
         (updatedOrder) {
           Logger.info('Order sent to kitchen successfully: ${updatedOrder.id}');
@@ -1115,6 +1679,9 @@ class OrderSetupProvider with ChangeNotifier {
           
           // Actualizar la orden actual con los datos del servidor
           _currentOrderEntity = updatedOrder;
+          
+          // Actualizar los estados de las unidades en el carrito
+          _updateCartItemStatesFromOrder(updatedOrder);
           
           // Ahora que la orden está actualizada, verificar cambios
           // (debería deshabilitar el botón ya que no hay diferencias)
@@ -1126,7 +1693,7 @@ class OrderSetupProvider with ChangeNotifier {
     } catch (e) {
       Logger.error('Unexpected error sending to kitchen: $e');
       status = OrderStatus.error;
-      errorMessage = 'Error inesperado al enviar a cocina';
+      errorMessage = _getErrorMessage(e.toString());
     }
 
     notifyListeners();
@@ -1154,7 +1721,7 @@ class OrderSetupProvider with ChangeNotifier {
         (failure) {
           Logger.error('Error closing order: ${failure.message}');
           status = OrderStatus.error;
-          errorMessage = failure.message;
+          errorMessage = _getErrorMessage(failure.message);
         },
         (closedOrder) {
           Logger.info('Order closed successfully: ${closedOrder.id}');
@@ -1173,7 +1740,7 @@ class OrderSetupProvider with ChangeNotifier {
     } catch (e) {
       Logger.error('Unexpected error closing order: $e');
       status = OrderStatus.error;
-      errorMessage = 'Error inesperado al cerrar la orden';
+      errorMessage = _getErrorMessage(e.toString());
     }
 
     notifyListeners();
@@ -1333,4 +1900,6 @@ class OrderSetupProvider with ChangeNotifier {
       ),
     );
   }
+
+
 }

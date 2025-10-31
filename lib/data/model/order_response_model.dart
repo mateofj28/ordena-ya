@@ -44,6 +44,14 @@ class OrderResponseModel {
       );
     }
     
+    // Verificar si es una respuesta de edit-products (tiene success, message, order)
+    if (json.containsKey('success') && json.containsKey('order')) {
+      print('  - Detected: Edit-products response');
+      // Extraer la orden del campo 'order' y parsearla recursivamente
+      final orderData = json['order'] as Map<String, dynamic>;
+      return OrderResponseModel.fromJson(orderData);
+    }
+    
     print('  - Detected: Full order response');
     
     // Es una respuesta completa (listado de órdenes)
