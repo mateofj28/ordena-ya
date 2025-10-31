@@ -356,6 +356,12 @@ class OrderSetupProvider with ChangeNotifier {
     if (index >= 0 && index < _newCartItems.length) {
       final removedItem = _newCartItems[index];
       
+      Logger.info('🗑️ === INICIANDO ELIMINACIÓN DE PRODUCTO ===');
+      Logger.info('Producto a eliminar: ${removedItem.productName} (qty: ${removedItem.quantity})');
+      
+      // Ejecutar diagnóstico antes de la eliminación
+      debugRemovalProcess();
+      
       // VALIDAR SI SE PUEDE ELIMINAR
       if (!canRemoveProduct(removedItem.productId)) {
         Logger.warning('❌ Cannot remove ${removedItem.productName}: has non-pending units');
@@ -372,6 +378,11 @@ class OrderSetupProvider with ChangeNotifier {
       // SIEMPRE ENVIAR AL BACKEND - Dejar que el backend decida qué hacer
       if (_currentOrderEntity != null) {
         Logger.info('📤 Sending updated cart to backend (${_newCartItems.length} items) - ACTION: EDIT_ORDER');
+        
+        if (_newCartItems.isEmpty) {
+          Logger.info('⚠️ CARRITO VACÍO - Backend debería eliminar la orden completa');
+        }
+        
         await _updateExistingOrder();
         
         // Si hubo error, revertir el cambio
@@ -395,6 +406,8 @@ class OrderSetupProvider with ChangeNotifier {
       // Verificar cambios respecto a la orden actual
       _checkForChanges();
       notifyListeners();
+      
+      Logger.info('🗑️ === ELIMINACIÓN COMPLETADA ===');
     }
   }
 
@@ -473,6 +486,35 @@ class OrderSetupProvider with ChangeNotifier {
   /// Obtiene el mensaje de error para mostrar al usuario
   String getEditRestrictionMessage() {
     return "No se puede editar la orden: existen unidades con estado no pendiente.";
+  }
+
+  /// Método de diagnóstico para el problema de eliminación
+  void debugRemovalProcess() {
+    Logger.info('🔍 === DIAGNÓSTICO DE ELIMINACIÓN DE PRODUCTOS ===');
+    Logger.info('Current order ID: ${_currentOrderEntity?.id ?? "NULL"}');
+    Logger.info('Cart items count: ${_newCartItems.length}');
+    
+    if (_currentOrderEntity != null) {
+      Logger.info('Backend order products: ${_currentOrderEntity!.productosSolicitados.length}');
+      for (int i = 0; i < _currentOrderEntity!.productosSolicitados.length; i++) {
+        final product = _currentOrderEntity!.productosSolicitados[i];
+        Logger.info('  - Product $i: ${product.nombreProducto} (qty: ${product.cantidadSolicitada})');
+      }
+    }
+    
+    Logger.info('Frontend cart products:');
+    for (int i = 0; i < _newCartItems.length; i++) {
+      final item = _newCartItems[i];
+      Logger.info('  - Item $i: ${item.productName} (qty: ${item.quantity})');
+    }
+    
+    Logger.info('=== PRÓXIMO PASO ===');
+    if (_newCartItems.isEmpty) {
+      Logger.info('⚠️ CARRITO VACÍO - El backend debería ELIMINAR la orden completa');
+    } else {
+      Logger.info('📤 El backend debería ACTUALIZAR la orden con ${_newCartItems.length} productos');
+    }
+    Logger.info('=== FIN DIAGNÓSTICO ===');
   }
 
   /// Método de prueba para validar la lógica de decrease

@@ -153,71 +153,12 @@ class CartProduct extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: 8),
-                // Botón de diagnóstico (temporal para debugging)
-                IconButton(
-                  onPressed: () async {
-                    provider.debugCartStates();
-                    await provider.forceSyncWithBackend();
-                  },
-                  icon: Icon(
-                    HugeIcons.strokeRoundedBug02,
-                    size: 16,
-                    color: Colors.purple[700],
-                  ),
-                  constraints: BoxConstraints(minWidth: 24, minHeight: 24),
-                  padding: EdgeInsets.zero,
-                  tooltip: 'Debug y sincronizar',
-                ),
-                // Botón de refresh
-                IconButton(
-                  onPressed: () async {
-                    await provider.refreshCartStatesFromBackend();
-                  },
-                  icon: Icon(
-                    HugeIcons.strokeRoundedRefresh,
-                    size: 16,
-                    color: Colors.blue[700],
-                  ),
-                  constraints: BoxConstraints(minWidth: 24, minHeight: 24),
-                  padding: EdgeInsets.zero,
-                  tooltip: 'Actualizar estados',
-                ),
+
               ],
             ),
           ],
 
-          // Mostrar mensaje de validación si no se puede editar
-          if (!provider.canRemoveProductAt(index) && cartItem.unitStates.isNotEmpty) ...[
-            SizedBox(height: 8),
-            Container(
-              padding: EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.orange[50],
-                borderRadius: BorderRadius.circular(6),
-                border: Border.all(color: Colors.orange[200]!),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    HugeIcons.strokeRoundedInformationCircle,
-                    size: 16,
-                    color: Colors.orange[700],
-                  ),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      'Edición limitada: solo se pueden modificar las unidades pendientes (${cartItem.pendingUnitsCount} de ${cartItem.quantity})',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.orange[700],
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
+
 
           // Mostrar error si existe
           if (provider.status == OrderStatus.error && provider.errorMessage != null) ...[
